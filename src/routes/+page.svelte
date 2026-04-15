@@ -45,7 +45,7 @@
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Saira+Stencil:ital,wght@0,100..900;1,100..900&display=swap");
   .img {
-    background-image: url("./bg2.png");
+    background-image: url("./bg2.webp");
     background-size: cover;
     background-position: center;
   }
