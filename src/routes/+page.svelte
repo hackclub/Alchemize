@@ -3,11 +3,12 @@
 	import { PUBLIC_HACKCLUB_AUTH } from "$env/static/public"
 	import { browser } from "$app/environment"
 	const clientId = PUBLIC_HACKCLUB_AUTH
-	const hasIdToken = browser && document.cookie.split('; ').find((row) => row.startsWith('id_token='))
+	const hasIdToken =
+		browser &&
+		document.cookie.split("; ").find(row => row.startsWith("id_token="))
 	const authUrl = hasIdToken
 		? `./dashboard`
 		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email&redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fcallback`
-	
 </script>
 
 <Nav />
@@ -74,10 +75,10 @@
 </div>
 
 <div
-	class="how-to-participate h-screen w-screen bg-black flex items-center text-white flex-col"
+	class="how-to-participate w-screen bg-black flex items-center text-white flex-col pb-50"
 >
 	<h1 class="alchemizefont text-5xl text-[#fc6565]">How does it work?</h1>
-	<div class="grid grid-cols-2 gap-4 mt-10">
+	<div class="grid grid-cols-2 gap-4 mt-10 hdiw">
 		<div
 			class="card flex w-90 h-48 border border-red-600 border-dashed flex flex-col items-center justify-center rounded-md"
 		>
@@ -92,17 +93,18 @@
 				project, and track your time with a Timing system like Hackatime
 			</p>
 		</div>
-      <div
-        class="card flex w-90 h-48 border border-red-600 border-dashed flex flex-col items-center justify-center rounded-md"
-      >
-        <i class="fa-solid fa-ship text-3xl mb-2"></i>
-        <h2 class="text-3xl text-justify alchemizefont font-bold">Ship It</h2>
-        <p
-          class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
-        >
-          Ship your completed project, and let it get reviewed by our Master Alchistants, once approved you will earn the currency of that theme.
-        </p>
-      </div>
+		<div
+			class="card flex w-90 h-48 border border-red-600 border-dashed flex flex-col items-center justify-center rounded-md"
+		>
+			<i class="fa-solid fa-ship text-3xl mb-2"></i>
+			<h2 class="text-3xl text-justify alchemizefont font-bold">Ship It</h2>
+			<p
+				class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
+			>
+				Ship your completed project, and let it get reviewed by our Master
+				Alchistants, once approved you will earn the currency of that theme.
+			</p>
+		</div>
 		<div
 			class="card flex w-90 h-48 border border-red-600 border-dashed flex flex-col items-center justify-center rounded-md"
 		>
@@ -127,11 +129,55 @@
 			<p
 				class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
 			>
-				Our shop is dynamic, with new items added every week. You suggest the items, we add it. Spend your Potion Mix there.
+				Our shop is dynamic, with new items added every week. You suggest the
+				items, we add it. Spend your Potion Mix there.
 			</p>
 		</div>
 	</div>
-  
+	<div class="themes mt-28 flex flex-col items-center gap-10">
+		<h2 class="text-5xl alchemizefont text-[#fc6565]">Season 1 Themes</h2>
+		<div class="grid grid-cols-3 gap-10 s1t">
+			<div
+				class="card flex w-90 h-48 border border-blue-600 border-dashed flex flex-col items-center justify-center rounded-md"
+			>
+				<i class="fa-solid fa-jedi mb-2 text-3xl"></i>
+				<h2 class="text-3xl text-justify alchemizefont font-bold">Sci-Fi</h2>
+				<p
+					class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
+				>
+					Create a project based on Sci-Fi, it can be anything, a website, an
+					app, a game, a robot, anything. As long as it's based on Sci-Fi, it
+					counts.
+				</p>
+			</div>
+			<div
+				class="card flex w-90 h-48 border border-red-600 border-dashed flex flex-col items-center justify-center rounded-md"
+			>
+				<i class="fa-solid fa-dragon mb-2 text-3xl"></i>
+				<h2 class="text-3xl text-justify alchemizefont font-bold">Anime</h2>
+				<p
+					class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
+				>
+					Make something related to your favourite Anime charector, it can be a
+					website, an app, a game, a robot, anything. As long as it's based on
+					Anime, it counts.
+				</p>
+			</div>
+			<div
+				class="card flex w-90 h-48 border border-green-600 border-dashed flex flex-col items-center justify-center rounded-md"
+			>
+				<i class="fa-solid fa-tencent-weibo text-3xl mb-2"></i>
+			
+				<h2 class="text-3xl text-justify alchemizefont font-bold">Tribute</h2>
+				<p
+					class="text-gray-300 text-center text-sm mt-2 text-justify w-3/4 leading-5"
+				>
+					Make a project that pays tribute to something, it can be a person, a
+					group, an event, anything. As long as it's a tribute, it counts.
+				</p>
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -193,6 +239,14 @@
 		}
 		.slack {
 			border-radius: 0px 0px 10px 0px !important;
+		}
+		.hdiw{
+			grid-template-columns: 1fr !important;
+		}
+	}
+	@media  screen and (max-width:1000px) {
+		.s1t{
+			grid-template-columns: 1fr !important;
 		}
 	}
 </style>
