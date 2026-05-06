@@ -7,9 +7,9 @@
 		window.location.href = `${href}`
 	}
 </script>
-
+<div class="smallBlock w-16"></div>
 <div
-	class="group sticky w-16 bg-sidebar h-full flex flex-col py-3 px-2 hover:w-64 transition-[width] duration-300 ease-in-out overflow-hidden"
+	class="group z-20 absolute w-16 bg-sidebar h-full flex flex-col py-3 px-2 hover:w-64 transition-[width] duration-300 ease-in-out overflow-hidden"
 >
 	<Button
 		variant="ghost"
@@ -25,11 +25,12 @@
 	</Button>
 
 	<div class="w-full h-full space-y-3">
-		<Button
+		<a href="/dashboard">
+					<Button
 			class="w-full justify-start gap-3 px-3 py-8 text-lg"
 			variant="ghost"
 			size="lg"
-			onclick={() => changeHref("/dashboard")}
+			
 		>
 			<BookDashed class="h-8 w-8 shrink-0" />
 			<span
@@ -38,11 +39,12 @@
 				Home
 			</span>
 		</Button>
+		</a>
+		<a href="/dashboard/projects">
 		<Button
 			class="w-full justify-start gap-3 px-3 py-8 text-lg"
 			variant="ghost"
 			size="lg"
-			onclick={() => changeHref("/dashboard/projects")}
 		>
 			<Blocks class="h-8 w-8 shrink-0" />
 			<span
@@ -50,12 +52,12 @@
 			>
 				Projects
 			</span>
-		</Button>
+		</Button></a>
+		<a href="/dashboard/shop">
 		<Button
 			class="w-full justify-start gap-3 px-3 py-8 text-lg"
 			variant="ghost"
 			size="lg"
-			onclick={() => changeHref("/dashboard/shop")}
 		>
 			<ShoppingBasket class="h-8 w-8 shrink-0" />
 			<span
@@ -64,11 +66,12 @@
 				Shop
 			</span>
 		</Button>
+		</a>
+		<a href="/dashboard/exchange">
 		<Button
 			class="w-full justify-start gap-3 px-3 py-8 text-lg"
 			variant="ghost"
 			size="lg"
-			onclick={() => changeHref("/dashboard/exchange")}
 		>
 			<FlaskConical class="h-8 w-8 shrink-0" />
 			<span
@@ -77,5 +80,6 @@
 				Exchange
 			</span>
 		</Button>
+		</a>
 	</div>
 </div>
