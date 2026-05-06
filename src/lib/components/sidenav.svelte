@@ -1,56 +1,81 @@
-<div class="w-20 h-screen"></div>
-<div class="absolute left-0  sidenav h-screen w-20 overflow-hidden grad-bg gap-10 border-r-[#3b0202] border-r-1 flex flex-col  pt-4 items-center">
-<div class="item mb-20">
-    <img src="/Alchemist.webp" alt="" class="h-14 w-14 aspect-square max-w-14">
-    <h1 class="font alchemizefont text-[#ff2e2e] text-4xl w-20 ml-2 font-bold">Alchemize</h1>
-</div>
-<a class="item" href="/dashboard/projects">
-    <i class="fa-solid fa-code text-4xl w-10"></i>
-    <h1 class="font text-3xl w-20">Projects</h1>
-</a>
-<div class="item">
-    <i class="fa-solid fa-bag-shopping text-4xl w-10"></i>
-    <h1 class="font text-3xl w-20">Shop</h1>
-</div>
-<div class="item">
-   <i class="fa-solid fa-flask text-4xl w-10"></i>
-    <h1 class="font text-3xl w-20">Exchange</h1>
-</div>
-</div>
-<style>
-	@import url("https://fonts.googleapis.com/css2?family=Saira+Stencil:ital,wght@0,100..900;1,100..900&display=swap");
+<script lang="ts">
+	import Button from "./ui/button/button.svelte"
+	import { Blocks, ShoppingBasket, FlaskConical } from "lucide-svelte"
+	import { BookDashed } from "lucide-svelte"
 
-    .grad-bg{
-    background: #000000;
-}
-.item{
-    padding-bottom: 10px;
-    padding-top: 20px;
-    padding-left: 20px;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 30px;
-    padding-right: 50px;
-    border-bottom: 1px dotted rgba(102, 1, 1, 0.678);
-}
-.sidenav:hover{
-    width:320px;
-    align-items: center;
-}
-.sidenav{
-    transition: width 0.5s ease;
-    /* width: 70px; */
-}
-.item h1{
-    display: none;
-    transition: display 0.5s ease;
-}
-.sidenav:hover .item h1{
-    display: block;
-}
-.item:hover{
-    background-color: #1a0505;
-    cursor: pointer;
-}
-</style>
+	const changeHref = (href: string) => {
+		window.location.href = `${href}`
+	}
+</script>
+
+<div
+	class="group sticky w-16 bg-sidebar h-full flex flex-col py-3 px-2 hover:w-64 transition-[width] duration-300 ease-in-out overflow-hidden"
+>
+	<Button
+		variant="ghost"
+		class="flex items-center justify-start gap-3 px-3 py-8 w-full mb-16"
+		onclick={() => (window.location.href = "/")}
+	>
+		<img src="/Alchemist.webp" alt="" class="h-9 w-9 shrink-0 object-contain" />
+		<span
+			class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap text-lg text-primary font-semibold"
+		>
+			Alchemize
+		</span>
+	</Button>
+
+	<div class="w-full h-full space-y-3">
+		<Button
+			class="w-full justify-start gap-3 px-3 py-8 text-lg"
+			variant="ghost"
+			size="lg"
+			onclick={() => changeHref("/dashboard")}
+		>
+			<BookDashed class="h-8 w-8 shrink-0" />
+			<span
+				class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap"
+			>
+				Home
+			</span>
+		</Button>
+		<Button
+			class="w-full justify-start gap-3 px-3 py-8 text-lg"
+			variant="ghost"
+			size="lg"
+			onclick={() => changeHref("/dashboard/projects")}
+		>
+			<Blocks class="h-8 w-8 shrink-0" />
+			<span
+				class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap"
+			>
+				Projects
+			</span>
+		</Button>
+		<Button
+			class="w-full justify-start gap-3 px-3 py-8 text-lg"
+			variant="ghost"
+			size="lg"
+			onclick={() => changeHref("/dashboard/shop")}
+		>
+			<ShoppingBasket class="h-8 w-8 shrink-0" />
+			<span
+				class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap"
+			>
+				Shop
+			</span>
+		</Button>
+		<Button
+			class="w-full justify-start gap-3 px-3 py-8 text-lg"
+			variant="ghost"
+			size="lg"
+			onclick={() => changeHref("/dashboard/exchange")}
+		>
+			<FlaskConical class="h-8 w-8 shrink-0" />
+			<span
+				class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap"
+			>
+				Exchange
+			</span>
+		</Button>
+	</div>
+</div>

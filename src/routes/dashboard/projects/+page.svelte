@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { TriangleAlert } from "lucide-svelte"
+
 	interface Project {
 		id: string
 		createdTime: string
@@ -137,36 +139,52 @@
 </script>
 
 <main
-	class="bg-black h-screen w-screen flex items-center justify-center text-white gap-20"
+	class="bg-background h-screen w-screen flex flex-col items-center justify-center text-foreground gap-10 p-5"
 >
-<div class="warning border-amber-600 border-2 h-20 w-4/5 absolute top-20 rounded-lg flex items-center justify-center bg-black p-10">
-	<p class="text-lg font-bold">Warning: This is a work in progress! The hackatime start date is set to an obscenely long future date so any projects will show as 0hr</p>
-</div>
-	<h1 class="absolute top-10">Projects</h1>
-	{#each projects as project}
-		<button onclick={() => openUpdateProjWindow(project)}>
-			<div
-				class="new-proj h-80 w-50 border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg"
-			>
-				<span class="text-2xl alchemizefont">{project.fields.Name}</span>
+	<h1 class="text-4xl">Projects</h1>
+	<div
+		class="warning border-dashed border-chart-5 border-2 rounded-lg flex items-center justify-center bg-black/10 p-10 flex-col"
+	>
+		<div class="flex font-semibold text-chart-5 text-2xl">
+			<TriangleAlert />
+			<h1>Warning:</h1>
+		</div>
+		<p class="font-medium">
+			This is a work in progress! The hackatime start date is set to an
+			obscenely long future date so any projects will show as 0hr
+		</p>
+	</div>
+	<div class="flex items-start justify-start w-full h-full gap-5">
+		<div class="projects">
+			<button class="proj-btn cursor-pointer" onclick={openNewProjWindow}>
+				<div
+					class="new-proj w-48 h-48 border-red-500 border-dashed border flex flex-col items-center justify-center gap-3 rounded-lg"
+				>
+					<i class="fa-solid fa-plus text-4xl"></i>
+					<h2 class="text-xl alchemizefont text-chart-5">New Project</h2>
+					<h2 class="text-md alchemizefont font-bold">WIP</h2>
+				</div>
+			</button>
+		</div>
+		{#each projects as project}
+			<button onclick={() => openUpdateProjWindow(project)}>
+				<div
+					class="new-proj border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg w-48 h-48"
+				>
+					<span class="text-4xl alchemizefont text-chart-5 font-medium"
+						>{project.fields.Name}</span
+					>
 
-				<span class="text-lg hours">
-					{formatHours(
-						hackSecondsByName.get(project.fields.hackatime.trim().toLowerCase())
-					)}
-				</span>
-			</div>
-		</button>
-	{/each}
-	<div class="projects">
-		<button class="proj-btn cursor-pointer" onclick={openNewProjWindow}>
-			<div
-				class="new-proj h-80 w-50 border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg"
-			>
-				<i class="fa-solid fa-plus text-4xl"></i>
-				<h2 class="text-xl alchemizefont">New Project(Work in progress)</h2>
-			</div>
-		</button>
+					<span class="text-lg hours">
+						{formatHours(
+							hackSecondsByName.get(
+								project.fields.hackatime.trim().toLowerCase()
+							)
+						)}
+					</span>
+				</div>
+			</button>
+		{/each}
 	</div>
 </main>
 <div
