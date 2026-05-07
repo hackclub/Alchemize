@@ -1,10 +1,13 @@
 <script lang="ts">
-    import Sidenav from "$lib/components/sidenav.svelte"
-    import { navigating } from '$app/stores'
-    
-    let { children } = $props()
-	import { PUBLIC_HACKATIME_AUTH,PUBLIC_HACKATIME_REDIRECT } from "$env/static/public"
-    console.log("Hackatime Auth:", PUBLIC_HACKATIME_AUTH);
+	import Sidenav from "$lib/components/sidenav.svelte"
+	import { navigating } from "$app/stores"
+
+	let { children } = $props()
+	import {
+		PUBLIC_HACKATIME_AUTH,
+		PUBLIC_HACKATIME_REDIRECT,
+	} from "$env/static/public"
+	console.log("Hackatime Auth:", PUBLIC_HACKATIME_AUTH)
 	let unVerified = true
 	if (typeof document !== "undefined") {
 		const hackatimeVerifiedCookie = document.cookie
@@ -19,27 +22,34 @@
 <svelte:head><link rel="icon" href="/Alchemist.webp" /></svelte:head>
 
 {#if $navigating}
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-none">
-        <div class="flex flex-col items-center gap-4">
-            <div class="w-12 h-12 border-4 border-gray-600 border-t-red-600 rounded-full animate-spin"></div>
-            <p class="text-white text-lg">Loading...</p>
-        </div>
-    </div>
+	<div
+		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-none"
+	>
+		<div class="flex flex-col items-center gap-4">
+			<div
+				class="w-12 h-12 border-4 border-gray-600 border-t-red-600 rounded-full animate-spin"
+			></div>
+			<p class="text-white text-lg">Loading...</p>
+		</div>
+	</div>
 {/if}
 
 <div class="root h-screen w-screen flex items-center justify-start text-white">
 	<Sidenav />
 	{#if unVerified}
-	<div
-		class="ovr h-screen w-screen bg-black absolute flex items-center flex-col justify-center top-0 left-0 backdrop-opacity-50 z-10"
-	>
-		<span>Oh!! So we actually need you to login via hackatime too</span> <br />
-		<a
-			class="button w-60 h-20 flex items-center justify-center border border-dashed border-red-600 rounded-xl"
-			href="https://hackatime.hackclub.com/oauth/authorize?client_id={PUBLIC_HACKATIME_AUTH}&redirect_uri={encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read"
-			target="_blank">Login Via Hackatime</a
+		<div
+			class="ovr h-screen w-screen bg-black absolute flex items-center flex-col justify-center top-0 left-0 backdrop-opacity-50 z-10"
 		>
-	</div>
+			<span>Oh!! So we actually need you to login via hackatime too</span>
+			<br />
+			<a
+				class="button w-60 h-20 flex items-center justify-center border border-dashed border-red-600 rounded-xl"
+				href="https://hackatime.hackclub.com/oauth/authorize?client_id={PUBLIC_HACKATIME_AUTH}&redirect_uri={encodeURIComponent(
+					PUBLIC_HACKATIME_REDIRECT
+				)}&response_type=code&scope=profile+read"
+				target="_blank">Login Via Hackatime</a
+			>
+		</div>
 	{/if}
 	{@render children()}
 </div>
