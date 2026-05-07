@@ -52,7 +52,7 @@
 			class="flex flex-row items-center justify-center gap-3 px-6 py-4 border-b border-red-500/20"
 		>
 			<img
-				src="/Alchemist.webp"
+				src="/Alchemize.png"
 				alt=""
 				class="h-10 w-10 shrink-0 object-contain"
 			/>

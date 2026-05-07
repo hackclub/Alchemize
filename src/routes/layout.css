@@ -27,12 +27,10 @@ body{
     background: linear-gradient(transparent,rgb(255, 104, 104), transparent)
 
 }
-	.alchemizefont {
-		font-family: "Saira Stencil", cursive;
-	}
 
 	@theme inline {
     --font-heading: var(--font-sans);
+    --font-alchemize: "Saira Stencil", cursive;
     --font-sans: 'Inter Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -153,6 +151,7 @@ body{
     }
   html {
     @apply font-sans;
+    @apply scroll-smooth;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;

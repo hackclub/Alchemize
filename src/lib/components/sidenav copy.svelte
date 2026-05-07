@@ -17,7 +17,7 @@
 		class="flex items-center justify-start gap-3 px-3 py-8 w-full mb-16"
 		onclick={() => (window.location.href = "/")}
 	>
-		<img src="/Alchemist.webp" alt="" class="h-9 w-9 shrink-0 object-contain" />
+		<img src="/Alchemize.png" alt="" class="h-9 w-9 shrink-0 object-contain" />
 		<span
 			class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100 whitespace-nowrap text-lg text-primary font-semibold"
 		>
