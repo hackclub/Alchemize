@@ -1,34 +1,35 @@
-<script lang="ts">
-    import {onMount} from 'svelte';
-    import { jwtDecode } from 'jwt-decode';
-    interface UserInfo {
-        name: string;
-        email: string;
-        nickname: string;
-        auth_time: number;
-    }
-    let decodedToken: UserInfo;
-    let name = $state("");
-    let email = $state("");
-    onMount(() => {
-        // @ts-ignore
-        let id_token = document.cookie.split('; ').find(row => row.startsWith('id_token=')).split('=')[1];
-        decodedToken = jwtDecode(id_token);
-        console.log(decodedToken);
-        name = decodedToken.name;
-        email = decodedToken.email;
-        console.log(id_token);
-    })
-    
-</script>
-<main class="root  grad-bg flex items-center justify-center text-white flex-col relative -z-10">
-    <div class="image-container">
-        <div class="stage">
-            <img src="/dashStatic/dashboard_bg.png" alt="background" class="background-image" />
-            <img src="/dashStatic/Exchange.png" alt="overlay" class="overlay-image" />
-        </div>
-
-    </div>
+<main class="root grad-bg flex items-center justify-center text-white flex-col">
+	<div class="image-container">
+		<div class="stage">
+			<img
+				src="/dashStatic/dashboard_bg.png"
+				alt="background"
+				class="background-image"
+			/>
+            <a href="/dashboard/exchange">
+            			<img
+				src="/dashStatic/Exchange.png"
+				alt="overlay"
+				class="ovrImg"
+				style="top: 730px; left: 680px; height: 445px;"
+			/></a>
+            <a href="/dashboard/projects">
+            			<img
+				src="/dashStatic/lab.png"
+				alt="overlay"
+				class="ovrImg"
+				style="top: 26px; left: 512px; height: 740px;"
+			/></a>
+            <a href="/dashboard/shop">
+                			<img
+				src="/dashStatic/shop.png"
+				alt="overlay"
+				class="ovrImg"
+				style="top: 620px; left: 202px; height: 440px;"
+			/>
+            </a>
+		</div>
+	</div>
 </main>
 
 <style>
@@ -52,33 +53,29 @@
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: 2752px;
+		width: 2952px;
 		height: 1536px;
 		transform-origin: top left;
 		transform: scale(calc(100vh / 1536px));
 	}
 
-.background-image {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    object-position: left;
-}
+	.background-image {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+		object-position: left;
+	}
 
+	.ovrImg {
+		width: auto;
 
+		position: absolute;
 
-.overlay-image {
-    width: auto;
-    height: 445px;
-}
-.overlay-image{
-    position: absolute;
-    top: 730px;
-    left: 680px;
-}
-.overlay-image:hover {
-    transform: scale(1.05);
-    transition: transform 0.3s ease-in-out;
-}
+		transition: transform 0.3s ease-in-out;
+	}
+
+	.ovrImg:hover {
+		filter: brightness(1.4);
+	}
 </style>

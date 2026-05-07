@@ -17,7 +17,7 @@
 
 	const authUrl = hasIdToken
 		? `./dashboard`
-		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email&redirect_uri=${uri}`
+		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+slack_id&redirect_uri=${uri}`
 
 	onMount(() => {
 		const blob = document.getElementById("blob")
@@ -37,85 +37,126 @@
 	})
 </script>
 
+<Nav />
 <div
-	id="blob"
-	class="z-20 fixed opacity-70 blur-[180px] size-32 pointer-events-none background-gradient"
-></div>
-
-<div
-	class="relative bg-linear-to-br from-neutral-900 via-rose-950 to-red-900 w-screen min-h-screen overflow-x-hidden"
+	class="top-0 flex justify-center items-center w-screen h-screen center-ovr"
 >
-	<div class="top-0 left-0 -z-10 fixed bg-black/70 w-full h-full"></div>
-
-	<div class="streaks">
-		<div class="streak streak-1"></div>
-		<div class="streak streak-2"></div>
-		<div class="streak streak-3"></div>
-		<div class="streak streak-4"></div>
-	</div>
-
-	<main class="z-10 relative">
-		<section class="flex flex-col justify-center gap-y-8 px-16 min-h-screen">
-			<div class="flex items-center gap-4">
-				<img src="/Alchemist.webp" alt="" class="w-16 h-16" />
-				<span
-					class="font-alchemize text-primary text-2xl uppercase tracking-widest"
-				>
-					Hack Club
-				</span>
-			</div>
-
-			<h1 class="font-alchemize hero-title">ALCHEMIZE</h1>
-
-			<p class="text-red-200/80 text-2xl leading-relaxed">
-				Turn your code into prizes.<br />
-				<strong class="text-white text-3xl">And you're invited.</strong>
-				<br />
-				<span class="opacity-70 text-lg">Ages 13-18 </span>
-			</p>
-
-			<a href={authUrl} class="cta-btn">
-				<span class="cta-text">GET STARTED</span>
-				<div class="cta-chevrons">
-					<span>›</span><span>›</span><span>›</span>
-				</div>
-			</a>
-
-			<div class="flex flex-col gap-2 max-w-sm">
-				<div
-					class="bg-gray-900 border border-red-900/50 rounded-full w-full h-3 overflow-hidden"
-				>
-					<div
-						class="bg-primary h-full transition-all duration-1000"
-						style="width: {(data.rsvpCount / 300) * 100}%"
-					></div>
-				</div>
-				<p class="text-red-200/50 text-sm">
-					{data.rsvpCount} / 300 RSVPs so far
-				</p>
-			</div>
-
-			<a href="#features" class="self-start mt-4 animate-bounce">
-				<ArrowDown class="w-8 h-8 text-primary" />
-			</a>
-		</section>
-
-		<div class="w-full leading-none">
-			<svg
-				viewBox="0 0 1440 100"
-				preserveAspectRatio="none"
-				class="w-full h-24"
+	<div class="flex justify-center items-center pb-10 alchemy">
+		<div class="w-[clamp(200px, second-cont 100vw, 768px)]">
+			<h1
+				class="flex items-center gap-2 font-bold text-[clamp(24px,10vw,60px)]"
 			>
-				<path
-					d="M0,40 C200,90 400,10 600,50 C800,90 1000,20 1200,60 C1440,85 1440,55 1440,55 L1440,100 L0,100 Z"
-					fill="#1a0000"
-				/>
-				<path
-					d="M0,60 C150,30 350,80 550,45 C750,10 950,70 1150,40 C1400,20 1440,50 1440,50 L1440,100 L0,100 Z"
-					fill="#200000"
-					opacity="0.6"
-				/>
-			</svg>
+				<img src="/Alchemist.webp" alt="" class="aspect-square logo" />
+				<span class="text-[#ff2e2e] font alchemizefont">Alchemize</span>
+			</h1>
+			<div class="description">
+				<div class="flex flex-col justify-center w-full">
+					<p
+						class="flex flex-col gap-2 mt-1 text-gray-300 text-lg text-justify description"
+					>
+						<span class="font-bold text-[clamp(10px,3vw,30px)]"
+							>3 Themes, 3 Currencies and a Dynamic Shop</span
+						>
+						<span class="text-[clamp(8px,2vw,20px)]"
+							>Under Draft | Hackclub Ages 13-18</span
+						>
+					</p>
+					<div class="flex form">
+						<input
+							type="text"
+							placeholder="Enter your Email"
+							class="z-10 relative mt-5 pl-2 border border-red-500 rounded-l-md outline-none w-[clamp(200px,80vw,400px)] h-10 text-gray-400 email"
+						/>
+						<div
+							class="flex gap-1 mt-5 w-[clamp(200px,80vw,400px)] h-10 buttons"
+						>
+							<a href={authUrl} class="w-28 button">
+								<button
+									class="z-10 relative bg-red-600 hover:bg-red-500 ml-1 border border-red-600 w-full h-10 font-bold text-gray-200 text-md get-started"
+								>
+									Get Started
+								</button>
+							</a>
+							<a
+								href="https://hackclub.enterprise.slack.com/archives/C0ASY6R552R"
+								target="_blank"
+								class="w-28 button"
+							>
+								<button
+									class="z-10 relative bg-gray-600 hover:bg-gray-500 ml-1 border border-gray-600 rounded-r-md w-full h-10 font-bold text-gray-300 text-md hover:text-gray-300 slack"
+								>
+									Join Slack!!
+								</button>
+							</a>
+						</div>
+					</div>
+					<div class="flex items-center pt-3 rsvp">
+						<div class="border border-gray-700 rounded-full w-[clamp(200px,80vw,400px)] h-1 progress-bar">
+							<div class="bg-red-600 w-full h-full" style="width: {data.rsvpCount/3}%;"></div>
+						</div>
+						<span class="ml-2 text-gray-400 text-sm">{data.rsvpCount}/300 RSVPs So far</span>
+					</div>
+					<div class="rsvpLink">
+						Click Here to RSVP if you haven't already: <a href="https://rsvp.hackclub.community/alchemize-ysws" target="_blank" class="text-blue-500 hover:underline">RSVP</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="bottom-10 absolute flex items-center gap-2 text-gray-400 text-xl scroll-down">
+		<i class="fa-solid fa-computer-mouse"></i>
+		Scroll Down
+	</div>
+</div>
+<div class="top-0 -z-10 absolute w-screen h-screen">
+	<div class="-z-20 absolute w-full h-full img"></div>
+	<div class="-z-10 w-screen h-full ovr"></div>
+</div>
+
+<div
+	class="flex flex-col items-center bg-black how-to-participate pb-50 w-screen text-white"
+>
+	<h1 class="text-[#fc6565] text-5xl alchemizefont">How does it work?</h1>
+	<div class="gap-4 grid grid-cols-2 mt-10 hdiw">
+		<div
+			class="flex flex flex-col justify-center items-center border border-red-600 border-dashed rounded-md w-90 h-48 card"
+		>
+			<i class="mb-2 text-3xl fa-solid fa-code"></i>
+			<h2 class="font-bold text-3xl text-justify alchemizefont">
+				Create Project
+			</h2>
+			<p
+				class="mt-2 w-3/4 text-gray-300 text-sm text-center text-justify leading-5"
+			>
+				Make a general project, or Choose any theme from our 3 themes for your
+				project, and track your time with a Timing system like Hackatime
+			</p>
+		</div>
+		<div
+			class="flex flex flex-col justify-center items-center border border-red-600 border-dashed rounded-md w-90 h-48 card"
+		>
+			<i class="mb-2 text-3xl fa-solid fa-ship"></i>
+			<h2 class="font-bold text-3xl text-justify alchemizefont">Ship It</h2>
+			<p
+				class="mt-2 w-3/4 text-gray-300 text-sm text-center text-justify leading-5"
+			>
+				Ship your completed project, and let it get reviewed by our Master
+				Alchistants, once approved you will earn the currency of that theme.
+			</p>
+		</div>
+		<div
+			class="flex flex flex-col justify-center items-center border border-red-600 border-dashed rounded-md w-90 h-48 card"
+		>
+			<i class="mb-2 text-3xl fa-solid fa-flask"></i>
+			<h2 class="font-bold text-3xl text-justify alchemizefont">
+				Convert to Potion Mix
+			</h2>
+			<p
+				class="mt-2 w-3/4 text-gray-300 text-sm text-center text-justify leading-5"
+			>
+				Convert your earned currency to Potion Mix, and use it to buy items from
+				the shop. Converting 2 or more currency together gives you bonus.
+			</p>
 		</div>
 
 		<section
