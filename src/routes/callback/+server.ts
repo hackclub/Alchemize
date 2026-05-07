@@ -116,6 +116,28 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			path: "/",
 		})
 	}
+	const extraInfoData = await fetch("https://auth.hackclub.com/api/v1/me", {
+		headers: {
+			Authorization: `Bearer ${tokenBody.access_token}`,
+		},
+	})
+	const extraInfo = await extraInfoData.json()
+	if (!extraInfoData.ok) {
+		throw error(
+			extraInfoData.status,
+			extraInfo?.message ?? "Failed to fetch extra user info"
+		)
+	}
+	console.log(extraInfo)
+	if (extraInfo?.identity.slack_id){
+		cookies.set("slack_id", extraInfo.identity.slack_id, {
+	httpOnly: false,
+			secure: true,
+			sameSite: "lax",
+			path: "/",
+			maxAge: 60 * 60 * 24 * 30 * 12,
+		})
+	}
 	cookies.set("access_token", tokenBody.access_token, {
 		httpOnly: true,
 		secure: true,

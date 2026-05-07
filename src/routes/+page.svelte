@@ -11,7 +11,7 @@
 		document.cookie.split("; ").find(row => row.startsWith("id_token="))
 	const authUrl = hasIdToken
 		? `./dashboard`
-		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email&redirect_uri=${uri}`
+		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+slack_id&redirect_uri=${uri}`
 
 	onMount(() => {
 		const blob = document.getElementById("blob")
