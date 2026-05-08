@@ -106,9 +106,18 @@
 				log: project.fields.log,
 				hackatime: Math.floor(hackatimeSeconds / 60),
 				recordId: project.id,
+				name: project.fields.Name,
+				code: project.fields.code,
 			}),
 			credentials: "include",
 		})
+		console.log(JSON.stringify({
+				log: project.fields.log,
+				hackatime: Math.floor(hackatimeSeconds / 60),
+				recordId: project.id,
+				name: project.fields.Name,
+				code: project.fields.code,
+			}),)
 		alert(
 			response.ok
 				? "Project shipped successfully!"

@@ -1,5 +1,5 @@
 import type { RequestHandler } from "@sveltejs/kit"
-import { AIRTABLE, AIRTABLE_CLIENT } from "$env/static/private"
+import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from "$env/static/private"
 type Log = {
 	status: "ap" | "re" | "pe" //approved, rejected, pending
 	time: number //time in minutes
@@ -51,10 +51,10 @@ function updateLog(log: Log[], timeToAdd: number): Log[] {
 	//Case 2: if the last log in the log array has status "ap" and timeToAdd is greater than 0, then we will add a new log with status "pe" and time timeToAdd to the log array
 	//Case 3: If the last log in the log array has status "re" and timeToAdd is greater than 0 then we will pop the last log
 	//And then we will add a new log with status "pe" and time timeToAdd+oldTime to the log array(where oldTime is the time of the log that we just popped)
-    let lastLog = { status: "pe", time: 0 }
+	let lastLog = { status: "pe", time: 0 }
 	if (log.length != 0) {
-		
-        lastLog = log[log.length - 1]
+
+		lastLog = log[log.length - 1]
 	}
 	if (lastLog.status === "pe") {
 		lastLog.time += timeToAdd
@@ -71,13 +71,13 @@ function updateLog(log: Log[], timeToAdd: number): Log[] {
 		return log
 	}
 }
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
 	const json = await request.json()
 	const recordId = json.recordId
 	let unParsedLog = json.log
-    if (unParsedLog === ""){
-        unParsedLog = "pe000000"
-    }
+	if (unParsedLog === "") {
+		unParsedLog = "pe000000"
+	}
 	const parsedLog = parseLogSyntax(unParsedLog)
 	const loggedTime = calculateLoggedTime(parsedLog)
 	const timeToAdd = json.hackatime - loggedTime
@@ -119,6 +119,47 @@ export const POST: RequestHandler = async ({ request }) => {
 		})
 		return new Response("Failed to update log", { status: 500 })
 	}
+	const accessToken = cookies.get("access_token")
+	let slackId = cookies.get("slack_id")
+	if (!slackId || slackId === "") {
+		const extraInfoData = await fetch("https://auth.hackclub.com/api/v1/me", {
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		})
+		const extraInfo = await extraInfoData.json()
+		if (!extraInfoData.ok) {
+			console.error(
+				extraInfoData.status,
+				extraInfo?.message ?? "Failed to fetch extra user info"
+			)
+		}
+		console.log(extraInfo)
+		if (extraInfo?.identity.slack_id) {
+			slackId = extraInfo.identity.slack_id
+		}
+	}
+	const botResponse = await fetch("https://aoishik.qzz.io/ship", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${BOT_AUTH}`
+		},
+		body: JSON.stringify(
+			{ "user_id": slackId, "project_name": json.name, "project_link": json.code }
+		)
+	})
+	if (!botResponse.ok) {
+		console.warn(`Failed to send notification to bot for record ${recordId}:`, {
+			status: botResponse.status,
+			statusText: botResponse.statusText,
+			timestamp: new Date().toISOString(),
+			slackId,
+			projectName: json.name,
+			projectLink: json.code
+		})
+	}
+
 	return new Response("Log updated successfully", { status: 200 })
 }
 export const GET: RequestHandler = async () => {
