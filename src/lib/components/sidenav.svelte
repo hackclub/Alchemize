@@ -40,7 +40,7 @@
 <Dialog.Root>
 	<Dialog.Trigger
 		type="button"
-		class="top-5 right-5 absolute bg-chart-5/20 hover:bg-chart-5/40 p-2 border border-chart-5/50 rounded-full transition-colors x-999"
+		class="top-5 right-5 z-999 absolute bg-chart-5/20 hover:bg-chart-5/40 p-2 border border-chart-5/50 rounded-full transition-colors"
 	>
 		<CompassIcon class="w-6 h-6 text-chart-5" />
 	</Dialog.Trigger>
