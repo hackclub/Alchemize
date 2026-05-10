@@ -1,6 +1,5 @@
 import type { PageServerLoad } from './$types';
 import { AIRTABLE, AIRTABLE_CLIENT, START_DATE } from '$env/static/private';
-import looseJson from 'loose-json';
 
 export const load: PageServerLoad = async ({ cookies }) => {
     const at = cookies.get('access_token_new');
@@ -59,6 +58,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
         eligiblity: data.identity.ysws_eligible,
         name: data.identity.first_name,
         hackatimeVerified: hackatimeVerified === "true",
-        user: userData.records[0].fields
+        user: userData.records?.[0]?.fields ?? {}
     }
 };
