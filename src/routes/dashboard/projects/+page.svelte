@@ -111,13 +111,15 @@
 			}),
 			credentials: "include",
 		})
-		console.log(JSON.stringify({
+		console.log(
+			JSON.stringify({
 				log: project.fields.log,
 				hackatime: Math.floor(hackatimeSeconds / 60),
 				recordId: project.id,
 				name: project.fields.Name,
 				code: project.fields.code,
-			}),)
+			})
+		)
 		alert(
 			response.ok
 				? "Project shipped successfully!"
@@ -127,53 +129,59 @@
 	}
 </script>
 
-<main
-	class="bg-background h-screen w-screen flex flex-col items-center justify-center text-foreground gap-10 p-5"
->
-	<h1 class="text-4xl">Projects</h1>
-
+<main class="bg-gradbg h-screen w-screen flex flex-col items-center">
+	<div class="fixed inset-0 bg-black/60 z-10"></div>
 	<div
-		class="border-dashed border-chart-5 border-2 rounded-lg flex items-center justify-center bg-black/10 p-10 flex-col"
+		class="relative h-full w-full flex flex-col items-center z-50 justify-center text-foreground gap-10 p-5"
 	>
-		<div class="flex font-semibold text-chart-5 text-2xl gap-2">
-			<TriangleAlert />
-			<h1>Warning:</h1>
-		</div>
-		<p class="font-medium">
-			This is a work in progress! The hackatime start date is set to an
-			obscenely long future date so any projects will show as 0hr
-		</p>
-	</div>
+		<h1 class="text-4xl">Projects</h1>
 
-	<div class="flex items-start justify-start w-full h-full gap-5">
-		<button class="cursor-pointer" onclick={() => (newProjWindowOpened = true)}>
-			<div
-				class="w-48 h-48 border-red-500 border-dashed border flex flex-col items-center justify-center gap-3 rounded-lg hover:bg-red-950/20 transition-colors"
-			>
-				<i class="fa-solid fa-plus text-4xl"></i>
-				<h2 class="text-xl alchemizefont text-chart-5">New Project</h2>
-				<h2 class="text-md alchemizefont font-bold">WIP</h2>
+		<div
+			class="border-dashed border-chart-5 border-2 rounded-lg flex items-center justify-center bg-black/10 p-10 flex-col"
+		>
+			<div class="flex font-semibold text-chart-5 text-2xl gap-2">
+				<TriangleAlert />
+				<h1>Warning:</h1>
 			</div>
-		</button>
+			<p class="font-medium">
+				This is a work in progress! The hackatime start date is set to an
+				obscenely long future date so any projects will show as 0hr
+			</p>
+		</div>
 
-		{#each projects as project}
-			<button onclick={() => openUpdateProjWindow(project)}>
+		<div class="flex items-start justify-start w-full h-full gap-5">
+			<button
+				class="cursor-pointer"
+				onclick={() => (newProjWindowOpened = true)}
+			>
 				<div
-					class="border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg w-48 h-48 hover:bg-red-950/20 transition-colors"
+					class="w-48 h-48 border-red-500 border-dashed border flex flex-col items-center justify-center gap-3 rounded-lg hover:bg-red-950/20 transition-colors"
 				>
-					<span class="text-4xl alchemizefont text-chart-5 font-medium"
-						>{project.fields.Name}</span
-					>
-					<span class="text-lg">
-						{formatHours(
-							hackSecondsByName.get(
-								project.fields.hackatime.trim().toLowerCase()
-							)
-						)}
-					</span>
+					<i class="fa-solid fa-plus text-4xl"></i>
+					<h2 class="text-xl alchemizefont text-chart-5">New Project</h2>
+					<h2 class="text-md alchemizefont font-bold">WIP</h2>
 				</div>
 			</button>
-		{/each}
+
+			{#each projects as project}
+				<button onclick={() => openUpdateProjWindow(project)}>
+					<div
+						class="border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg w-48 h-48 hover:bg-red-950/20 transition-colors"
+					>
+						<span class="text-4xl alchemizefont text-chart-5 font-medium"
+							>{project.fields.Name}</span
+						>
+						<span class="text-lg">
+							{formatHours(
+								hackSecondsByName.get(
+									project.fields.hackatime.trim().toLowerCase()
+								)
+							)}
+						</span>
+					</div>
+				</button>
+			{/each}
+		</div>
 	</div>
 </main>
 

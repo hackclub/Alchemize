@@ -1,12 +1,13 @@
 <script lang="ts">
 	import Sidenav from "$lib/components/sidenav.svelte"
 	import { navigating } from "$app/stores"
+	import { page } from "$app/state"
 	import { browser } from "$app/environment"
 	import {
 		PUBLIC_HACKATIME_AUTH,
 		PUBLIC_HACKATIME_REDIRECT,
 		PUBLIC_HACKCLUB_AUTH,
-		PUBLIC_HACKCLUB_REDIRECT
+		PUBLIC_HACKCLUB_REDIRECT,
 	} from "$env/static/public"
 
 	let { children, data } = $props()
@@ -15,6 +16,7 @@
 	const reHackatime = $derived(data?.reHackatime ?? false)
 	const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
 	const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=openid+profile+email&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
+	const excludedRoutes = ["/dashboard"]
 	let unVerified = $state(true)
 	if (browser) {
 		const hackatimeVerifiedCookie = document.cookie
@@ -25,7 +27,6 @@
 		}
 	}
 	console.log(isAllowed)
-
 </script>
 
 <svelte:head><link rel="icon" href="/Alchemist.webp" /></svelte:head>
@@ -55,7 +56,9 @@
 	</div>
 {/if}
 <div class="root h-screen w-screen flex items-center justify-start text-white">
-	<Sidenav />
+	{#if !excludedRoutes.includes(page.url.pathname)}
+		<Sidenav />
+	{/if}
 	{#if unVerified}
 		<div
 			class="ovr h-screen w-screen bg-black absolute flex items-center flex-col justify-center top-0 left-0 backdrop-opacity-50 z-10"

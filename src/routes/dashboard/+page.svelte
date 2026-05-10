@@ -1,82 +1,150 @@
-<main class="root grad-bg flex items-center justify-center text-white flex-col">
-	<div class="image-container">
-		<div class="stage">
-			<img
-				src="/dashStatic/dashboard_bg.png"
-				alt="background"
-				class="background-image"
-			/>
-            <a href="/dashboard/exchange">
-            			<img
-				src="/dashStatic/Exchange.png"
-				alt="overlay"
-				class="ovrImg"
-				style="top: 730px; left: 680px; height: 445px;"
-			/></a>
-            <a href="/dashboard/projects">
-            			<img
-				src="/dashStatic/lab.png"
-				alt="overlay"
-				class="ovrImg"
-				style="top: 26px; left: 512px; height: 740px;"
-			/></a>
-            <a href="/dashboard/shop">
-                			<img
-				src="/dashStatic/shop.png"
-				alt="overlay"
-				class="ovrImg"
-				style="top: 620px; left: 202px; height: 440px;"
-			/>
-            </a>
+<main
+	class="flex gap-4 bg-gradbg p-4 w-screen h-screen overflow-hidden text-foreground"
+>
+	<div class="-z-10 fixed inset-0 bg-black/60"></div>
+
+	<div class="flex flex-col gap-4 w-full h-full">
+		<div
+			class="flex justify-between items-center bg-background/40 backdrop-blur px-6 py-4 border border-white/10 rounded-2xl"
+		>
+			<div class="flex items-center gap-4">
+				<div
+					class="bg-primary/40 border-2 border-primary rounded-full w-12 h-12"
+				></div>
+				<div>
+					<p class="font-alchemize text-foreground text-lg">Alchemist</p>
+					<p class="text-muted-foreground text-xs">alchemist@example.com</p>
+				</div>
+			</div>
+			<div
+				class="font-alchemize text-primary text-2xl flex items-center gap-x-4"
+			>
+				Alchemize
+				<img src="/Alchemist.webp" alt="" class="w-10 h-10" />
+			</div>
+		</div>
+
+		<div class="gap-4 grid grid-cols-3">
+			<div
+				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+			>
+				<p class="text-muted-foreground text-xs uppercase tracking-widest">
+					Hackatime
+				</p>
+				<div class="flex items-center gap-2">
+					<div class="bg-green-500 rounded-full w-2 h-2 animate-pulse"></div>
+					<span class="font-alchemize text-foreground text-lg">Connected</span>
+				</div>
+			</div>
+			<div
+				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+			>
+				<p class="text-muted-foreground text-xs uppercase tracking-widest">
+					GitHub
+				</p>
+				<div class="flex items-center gap-2">
+					<div class="bg-yellow-500 rounded-full w-2 h-2 animate-pulse"></div>
+					<span class="font-alchemize text-foreground text-lg">Not linked</span>
+				</div>
+			</div>
+			<div
+				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+			>
+				<p class="text-muted-foreground text-xs uppercase tracking-widest">
+					Projects
+				</p>
+				<span class="font-alchemize text-foreground text-3xl">0</span>
+			</div>
+		</div>
+
+		<div class="flex-1 gap-4 grid grid-cols-2 min-h-0">
+			<div
+				class="flex flex-col gap-4 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+			>
+				<h2 class="font-alchemize text-primary text-lg">Recent Projects</h2>
+				<div class="flex flex-col flex-1 gap-2 overflow-y-auto">
+					<div
+						class="bg-white/5 hover:bg-white/10 p-4 border border-white/5 rounded-xl transition-colors cursor-pointer"
+					>
+						<p class="font-alchemize text-foreground text-sm">
+							No projects yet
+						</p>
+						<p class="mt-1 text-muted-foreground text-xs">
+							Start building something!
+						</p>
+					</div>
+				</div>
+				<a
+					href="/dashboard/projects"
+					class="self-end text-primary text-xs hover:underline">View all →</a
+				>
+			</div>
+
+			<div class="flex flex-col gap-4">
+				<div
+					class="flex flex-col flex-1 gap-3 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+				>
+					<h2 class="font-alchemize text-primary text-lg">Quick Actions</h2>
+					<div class="gap-2 grid grid-cols-2">
+						<a
+							href="/dashboard/projects"
+							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+						>
+							<span class="text-2xl">⚗️</span>
+							<span class="font-alchemize text-foreground text-xs"
+								>Projects</span
+							>
+						</a>
+						<a
+							href="/dashboard/shop"
+							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+						>
+							<span class="text-2xl">🛒</span>
+							<span class="font-alchemize text-foreground text-xs">Shop</span>
+						</a>
+						<a
+							href="/dashboard/exchange"
+							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+						>
+							<span class="text-2xl">🔁</span>
+							<span class="font-alchemize text-foreground text-xs"
+								>Exchange</span
+							>
+						</a>
+						<a
+							href="/dashboard/projects"
+							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+						>
+							<span class="text-2xl">➕</span>
+							<span class="font-alchemize text-foreground text-xs"
+								>New Project</span
+							>
+						</a>
+					</div>
+				</div>
+
+				<div
+					class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+				>
+					<h2 class="font-alchemize text-primary text-lg">Currency</h2>
+					<div class="gap-2 grid grid-cols-2">
+						<div class="flex items-center gap-2">
+							<span class="text-lg">🔴</span>
+							<div>
+								<p class="text-muted-foreground text-xs">Redstone</p>
+								<p class="font-alchemize text-foreground">0</p>
+							</div>
+						</div>
+						<div class="flex items-center gap-2">
+							<span class="text-lg">🟡</span>
+							<div>
+								<p class="text-muted-foreground text-xs">Glowstone</p>
+								<p class="font-alchemize text-foreground">0</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </main>
-
-<style>
-
-	.grad-bg {
-		background: #000000;
-	}
-	.root {
-		width: 100%;
-		height: 100vh;
-	}
-
-	.image-container {
-		position: relative;
-		width: 100%;
-		height: 100vh;
-		max-width: 100%;
-		overflow: hidden;
-	}
-
-	.stage {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 2952px;
-		height: 1536px;
-		transform-origin: top left;
-		transform: scale(calc(100vh / 1536px));
-	}
-
-	.background-image {
-		width: 100%;
-		height: 100%;
-		display: block;
-		object-fit: cover;
-		object-position: left;
-	}
-
-	.ovrImg {
-		width: auto;
-
-		position: absolute;
-
-		transition: transform 0.3s ease-in-out;
-	}
-
-	.ovrImg:hover {
-		filter: brightness(1.4);
-	}
-</style>

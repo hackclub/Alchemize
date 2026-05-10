@@ -9,7 +9,6 @@
 	import Accordion from "$lib/components/accordion.svelte"
 	let rsvpCount: number | "Fetching" = $state("Fetching")
 
-
 	const clientId = PUBLIC_HACKCLUB_AUTH
 	const uri = encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)
 
@@ -22,7 +21,9 @@
 		: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email&redirect_uri=${uri}`
 
 	onMount(() => {
-	fetch("/rsvp").then(res => res.json()).then(data => rsvpCount = data.count)
+		fetch("/rsvp")
+			.then(res => res.json())
+			.then(data => (rsvpCount = data.count))
 
 		const blob = document.getElementById("blob")
 
@@ -45,9 +46,7 @@
 	id="blob"
 	class="z-20 fixed opacity-50 blur-[180px] size-64 pointer-events-none background-gradient"
 ></div>
-<div
-	class="relative bg-linear-to-br from-neutral-900 via-rose-950 to-red-900 w-screen min-h-screen overflow-x-hidden"
->
+<div class="relative bg-gradbg w-screen min-h-screen overflow-x-hidden">
 	<div class="top-0 left-0 -z-10 fixed bg-black/70 w-full h-full"></div>
 
 	<div class="streaks">
@@ -58,7 +57,9 @@
 	</div>
 
 	<main class="z-10 relative">
-		<section class="flex flex-col justify-center gap-y-8 px-[clamp(20px,3vw,64px)] min-h-screen relative">
+		<section
+			class="flex flex-col justify-center gap-y-8 px-[clamp(20px,3vw,64px)] min-h-screen relative"
+		>
 			<div class="flex items-center gap-4 justify-self-start relative">
 				<img src="/Alchemist.webp" alt="" class="w-16 h-16" />
 				<span
@@ -70,9 +71,13 @@
 
 			<h1 class="font-alchemize hero-title">ALCHEMIZE</h1>
 
-			<p class="text-red-200/80 text-[clamp(1rem,5.5vw,1.5rem)]  leading-relaxed">
+			<p
+				class="text-red-200/80 text-[clamp(1rem,5.5vw,1.5rem)] leading-relaxed"
+			>
 				Turn your code into prizes.<br />
-				<strong class="text-white text-[clamp(1rem,6.5vw,1.75rem)]">And you're invited.</strong>
+				<strong class="text-white text-[clamp(1rem,6.5vw,1.75rem)]"
+					>And you're invited.</strong
+				>
 				<br />
 				<span class="opacity-70 text-lg">Ages 13-18</span>
 			</p>
@@ -90,7 +95,9 @@
 				>
 					<div
 						class="bg-primary h-full transition-all duration-1000"
-						style="width: {((typeof rsvpCount === 'string' ? 289 : rsvpCount) / 300) * 100}%"
+						style="width: {((typeof rsvpCount === 'string' ? 289 : rsvpCount) /
+							300) *
+							100}%"
 					></div>
 				</div>
 				<p class="text-red-200/50 text-sm">
@@ -261,13 +268,15 @@
 					class="transition-all duration-300 ease-in-out delay-150 path-1"
 				></path></svg
 			>
-			<footer class="w-full px-20 absolute bottom-6"> Made By TheUtkarsh8939 and Coolcream with ❤️</footer>
+			<footer class="w-full px-20 absolute bottom-6">
+				Made By TheUtkarsh8939 and Coolcream with ❤️
+			</footer>
 		</div>
 	</main>
 </div>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+	@import url("https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap");
 
 	.background-gradient {
 		position: fixed;
@@ -349,7 +358,7 @@
 		justify-content: space-between;
 		max-width: 400px;
 		width: 50vw;
-		
+
 		background: var(--color-primary);
 		border: 3px solid #7f1d1d;
 		border-radius: 1rem;
