@@ -1,3 +1,63 @@
+<script lang="ts">
+import looseJson from 'loose-json';
+
+	const { data } = $props()
+	type HackatimeProject = {
+		name?: string
+		project_name?: string
+		project?: string
+		total_seconds?: number
+	}
+	interface Project {
+		id: string
+		createdTime: string
+		fields: {
+			Name: string
+			description: string
+			code?: string
+			demo?: string
+			type: string
+			update?: boolean
+			hackatime: string
+			journals: ""
+			languages: ""
+			log: ""
+			owner: string
+			status: string
+		}
+	}
+	interface UserCurrency {
+		redstone: number
+		glowstone: number
+		aqua_regia: number
+		potion_mix: number
+	}
+	import { formatHours, getHackatimeProjects } from "$lib/utils"
+
+	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
+
+	let projects: Project[] = $derived(data?.projects ?? [])
+	let hackSecondsByName = $derived(
+		new Map(
+			hacks.map(hack => [
+				(hack.name ?? "").trim().toLowerCase(),
+				hack.total_seconds ?? 0,
+			])
+		)
+	)
+	let userCurrencies = $derived(
+		looseJson(data.user?.currency ?? "{}")
+	) as UserCurrency
+	/**
+  {
+	"redstone": 0,
+	"glowstone": 0,
+	"aqua_regia": 0,
+	"potion_mix": 0,
+	}
+ */
+</script>
+
 <main
 	class="flex gap-4 bg-gradbg p-4 w-screen h-screen overflow-hidden text-foreground"
 >
@@ -12,8 +72,8 @@
 					class="bg-primary/40 border-2 border-primary rounded-full w-12 h-12"
 				></div>
 				<div>
-					<p class="font-alchemize text-foreground text-lg">Alchemist</p>
-					<p class="text-muted-foreground text-xs">alchemist@example.com</p>
+					<p class="font-alchemize text-foreground text-lg">Hi {data.name}</p>
+					<p class="text-muted-foreground text-xs">{data.email}</p>
 				</div>
 			</div>
 			<div
@@ -32,19 +92,31 @@
 					Hackatime
 				</p>
 				<div class="flex items-center gap-2">
-					<div class="bg-green-500 rounded-full w-2 h-2 animate-pulse"></div>
-					<span class="font-alchemize text-foreground text-lg">Connected</span>
+					<div
+						class="{data.hackatimeVerified
+							? 'bg-green-500'
+							: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
+					></div>
+					<span class="font-alchemize text-foreground text-lg"
+						>{data.hackatimeVerified ? "Connected" : "Not Connected"}</span
+					>
 				</div>
 			</div>
 			<div
 				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 			>
 				<p class="text-muted-foreground text-xs uppercase tracking-widest">
-					GitHub
+					YSWS
 				</p>
 				<div class="flex items-center gap-2">
-					<div class="bg-yellow-500 rounded-full w-2 h-2 animate-pulse"></div>
-					<span class="font-alchemize text-foreground text-lg">Not linked</span>
+					<div
+						class="{data.eligiblity
+							? 'bg-green-500'
+							: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
+					></div>
+					<span class="font-alchemize text-foreground text-lg"
+						>{data.eligiblity ? "Eligible" : "Not Eligible"}</span
+					>
 				</div>
 			</div>
 			<div
@@ -53,7 +125,9 @@
 				<p class="text-muted-foreground text-xs uppercase tracking-widest">
 					Projects
 				</p>
-				<span class="font-alchemize text-foreground text-3xl">0</span>
+				<span class="font-alchemize text-foreground text-3xl"
+					>{projects.length}</span
+				>
 			</div>
 		</div>
 
@@ -63,16 +137,26 @@
 			>
 				<h2 class="font-alchemize text-primary text-lg">Recent Projects</h2>
 				<div class="flex flex-col flex-1 gap-2 overflow-y-auto">
-					<div
-						class="bg-white/5 hover:bg-white/10 p-4 border border-white/5 rounded-xl transition-colors cursor-pointer"
-					>
-						<p class="font-alchemize text-foreground text-sm">
-							No projects yet
-						</p>
-						<p class="mt-1 text-muted-foreground text-xs">
-							Start building something!
-						</p>
-					</div>
+					{#each projects as project}
+						<div
+							class="bg-white/5 hover:bg-white/10 p-4 border border-white/5 rounded-xl transition-colors cursor-pointer"
+						>
+							<p class="font-alchemize text-foreground text-sm">
+								{project.fields.Name}
+							</p>
+							<p class="mt-1 text-muted-foreground text-xs">
+								{formatHours(
+									hackSecondsByName.get(
+										project.fields.hackatime.trim().toLowerCase()
+									) ?? 0
+								)} Hours
+								<br />
+								Last Updated: {new Date(
+									project.createdTime
+								).toLocaleDateString()}
+							</p>
+						</div>
+					{/each}
 				</div>
 				<a
 					href="/dashboard/projects"
@@ -90,7 +174,9 @@
 							href="/dashboard/projects"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl">⚗️</span>
+							<span class="text-2xl font-extralight"
+								><i class="fas fa-project-diagram"></i></span
+							>
 							<span class="font-alchemize text-foreground text-xs"
 								>Projects</span
 							>
@@ -99,14 +185,18 @@
 							href="/dashboard/shop"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl">🛒</span>
+							<span class="text-2xl font-extralight"
+								><i class="fas fa-shopping-cart"></i></span
+							>
 							<span class="font-alchemize text-foreground text-xs">Shop</span>
 						</a>
 						<a
 							href="/dashboard/exchange"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl">🔁</span>
+							<span class="text-2xl font-extralight"
+								><i class="fas fa-exchange-alt"></i></span
+							>
 							<span class="font-alchemize text-foreground text-xs"
 								>Exchange</span
 							>
@@ -115,7 +205,9 @@
 							href="/dashboard/projects"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl">➕</span>
+							<span class="text-2xl font-extralight"
+								><i class="fas fa-plus"></i></span
+							>
 							<span class="font-alchemize text-foreground text-xs"
 								>New Project</span
 							>
@@ -127,19 +219,32 @@
 					class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 				>
 					<h2 class="font-alchemize text-primary text-lg">Currency</h2>
-					<div class="gap-2 grid grid-cols-2">
-						<div class="flex items-center gap-2">
+					<div class="gap-2 flex justify-around">
+						<div class="flex grids grid-cols-3">
 							<span class="text-lg">🔴</span>
 							<div>
 								<p class="text-muted-foreground text-xs">Redstone</p>
-								<p class="font-alchemize text-foreground">0</p>
+								<p class="font-alchemize text-foreground">
+									{userCurrencies.redstone}
+								</p>
 							</div>
 						</div>
 						<div class="flex items-center gap-2">
 							<span class="text-lg">🟡</span>
 							<div>
 								<p class="text-muted-foreground text-xs">Glowstone</p>
-								<p class="font-alchemize text-foreground">0</p>
+								<p class="font-alchemize text-foreground">
+									{userCurrencies.glowstone}
+								</p>
+							</div>
+						</div>
+						<div class="flex items-center gap-2">
+							<span class="text-lg">🟢</span>
+							<div>
+								<p class="text-muted-foreground text-xs">Aqua Regia</p>
+								<p class="font-alchemize text-foreground">
+									{userCurrencies.aqua_regia}
+								</p>
 							</div>
 						</div>
 					</div>

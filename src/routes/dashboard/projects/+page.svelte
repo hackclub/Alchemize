@@ -1,7 +1,18 @@
 <script lang="ts">
 	import { TriangleAlert } from "lucide-svelte"
 	import ProjectDialog from "$lib/components/project-dialog.svelte"
+	import { formatHours, getHackatimeProjects } from "$lib/utils"
 
+	let projectBeingUpdated: Project | null = $state(null)
+	let { data } = $props()
+	let newProjWindowOpened = $state(false)
+	let updateProjWindowOpened = $state(false)
+	type HackatimeProject = {
+		name?: string
+		project_name?: string
+		project?: string
+		total_seconds?: number
+	}
 	interface Project {
 		id: string
 		createdTime: string
@@ -20,28 +31,7 @@
 			status: string
 		}
 	}
-
-	let projectBeingUpdated: Project | null = $state(null)
-	let { data } = $props()
-	let newProjWindowOpened = $state(false)
-	let updateProjWindowOpened = $state(false)
-
 	let projects: Project[] = $derived(data?.projects ?? [])
-
-	type HackatimeProject = {
-		name?: string
-		project_name?: string
-		project?: string
-		total_seconds?: number
-	}
-
-	function getHackatimeProjects(payload: unknown): HackatimeProject[] {
-		if (!payload || typeof payload !== "object") return []
-		const maybeProjects = (payload as { projects?: unknown }).projects
-		return Array.isArray(maybeProjects)
-			? (maybeProjects as HackatimeProject[])
-			: []
-	}
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 	console.log(data?.hacks)
@@ -71,11 +61,6 @@
 			])
 		)
 	)
-
-	function formatHours(totalSeconds: number | undefined): string {
-		const hours = (totalSeconds ?? 0) / 3600
-		return `${hours.toFixed(1)}hr`
-	}
 
 	function openUpdateProjWindow(project: Project) {
 		projectBeingUpdated = project
