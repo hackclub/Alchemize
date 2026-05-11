@@ -8,6 +8,7 @@
 
 	interface Project {
 		id: string
+		createdTime: string
 		fields: {
 			Name: string
 			description: string
@@ -16,9 +17,13 @@
 			type: string
 			update?: boolean
 			hackatime: string
+			journals: string
+			languages: string
+			log: string
+			owner: string
+			status: string
 		}
 	}
-
 	type HackatimeProject = {
 		name?: string
 		total_seconds?: number
@@ -39,7 +44,7 @@
 		onship?: () => void
 		showRotator?: boolean
 	} = $props()
-
+	console.log("log1", project)
 	const selectClass =
 		"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 </script>

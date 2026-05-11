@@ -24,9 +24,9 @@
 			type: string
 			update?: boolean
 			hackatime: string
-			journals: ""
-			languages: ""
-			log: ""
+			journals: string
+			languages: string
+			log: string
 			owner: string
 			status: string
 		}
@@ -34,7 +34,7 @@
 	let projects: Project[] = $derived(data?.projects ?? [])
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
-	console.log(data?.hacks)
+	console.log(data?.projects)
 	let usedHackatimes = $derived(
 		new Set(
 			projects
@@ -76,40 +76,20 @@
 			showRotator = false
 			return
 		}
-		const hackatimeSeconds = hackSecondsByName.get(
-			project.fields.hackatime.trim().toLowerCase()
-		)
-		if (hackatimeSeconds === undefined) {
-			alert("Error: Hackatime project not found. Please check the name.")
-			showRotator = false
-			return
-		}
 		const response = await fetch("/dashboard/projects/ship", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				log: project.fields.log,
-				hackatime: Math.floor(hackatimeSeconds / 60),
 				recordId: project.id,
-				name: project.fields.Name,
-				code: project.fields.code,
 			}),
 			credentials: "include",
 		})
-		console.log(
-			JSON.stringify({
-				log: project.fields.log,
-				hackatime: Math.floor(hackatimeSeconds / 60),
-				recordId: project.id,
-				name: project.fields.Name,
-				code: project.fields.code,
-			})
-		)
 		alert(
 			response.ok
 				? "Project shipped successfully!"
 				: `Error shipping project. Code: ${response.status} — contact @TheUtkarsh8939 on Slack`
 		)
+		console.log("Ship response:", await response.text())
 		showRotator = false
 	}
 </script>

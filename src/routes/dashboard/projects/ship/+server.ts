@@ -1,96 +1,140 @@
 import type { RequestHandler } from "@sveltejs/kit"
 import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from "$env/static/private"
-type Log = {
-	status: "ap" | "re" | "pe" //approved, rejected, pending
-	time: number //time in minutes
-}
-function parseLogSyntax(log: string): Log[] {
-	//LOG SYNTAX: The logs are the data showing past approvals and current state
-	//Each new log entry is seperated by a comma(,)
-	//Each log entry has 8 charecters, first two reperesent its status(it can be "ap" for approved, "re" for rejected, "pe" for pending)
-	//Rest of charectors reperesent time that the status represent, they are total number of minutes
-	//Example Log: "ap000010,pe003223"
-	//A log can only have one pending entry, and it has to be the last entry, and only one number of re entries can be there which must be the last entry
-	//Whenever log is appended lets say the log "ap000010,pe003223" is there and the project gets approved, then log will be updated to "ap000010,ap003223"
-	//If log is "ap000010,pe003223" and project gets rejected, then log will be updated to "ap000010,re003223"
-	//If log is "ap000010,re003223" and project gets updated again with 20 minutes, then log will be updated to "ap000010,pe003243"
-	const logEntries = log.split(",")
-	return logEntries.map(entry => {
-		const status = entry.substring(0, 2) as "ap" | "re" | "pe"
-		const time = parseInt(entry.substring(2), 10)
-		return { status, time }
-	})
-}
-function convertLogToString(log: Log): string {
-	//Takes a single log object and converts it to string in the format used in the database
-	//Example: {status: "ap", time: 10} will be converted to "ap000010"
-	const timeString = log.time.toString().padStart(6, "0")
-	return `${log.status}${timeString}`
-}
-function convertLogArrayToString(logArray: Log[]): string {
-	//Takes an array of log objects and converts it to a string in the format used in the database
-	//Example: [{status: "ap", time: 10}, {status: "pe", time: 3223}] will be converted to "ap000010,pe003223"
-	return logArray.map(convertLogToString).join(",")
-}
-function calculateLoggedTime(log: Log[]): number {
-	//Calculates the total logged time in minutes from the log array(all logs are counted)
-	//IF last log has status "re" then we will not count the time of that log because it represents the time when the project got rejected and after that no more time can be logged until the project gets updated again
-	if (log.length === 0) {
-		return 0
-	}
-	if (log[log.length - 1].status === "re") {
-		// Exclude the time of the last log if it's rejected
-		return log.slice(0, -1).reduce((total, entry) => total + entry.time, 0)
-	}
-	return log.reduce((total, entry) => total + entry.time, 0)
-}
-function updateLog(log: Log[], timeToAdd: number): Log[] {
-	const newStatus = "pe"
-	//Three cases:
-	//Case 1: if the last log in the log array has status "pe", then we will update its time by adding timeToAdd to it(newTime = oldTime + timeToAdd)
-	//Case 2: if the last log in the log array has status "ap" and timeToAdd is greater than 0, then we will add a new log with status "pe" and time timeToAdd to the log array
-	//Case 3: If the last log in the log array has status "re" and timeToAdd is greater than 0 then we will pop the last log
-	//And then we will add a new log with status "pe" and time timeToAdd+oldTime to the log array(where oldTime is the time of the log that we just popped)
-	let lastLog = { status: "pe", time: 0 }
-	if (log.length != 0) {
+import {START_DATE} from "$env/static/private"
+import { getDataFromAccessToken } from "$lib/utils"
 
-		lastLog = log[log.length - 1]
-	}
-	if (lastLog.status === "pe") {
-		lastLog.time += timeToAdd
-		return log
-	} else if (lastLog.status === "ap" && timeToAdd > 0) {
-		log.push({ status: newStatus, time: timeToAdd })
-		return log
-	} else if (lastLog.status === "re" && timeToAdd > 0) {
-		const oldTime = lastLog.time
-		log.pop()
-		log.push({ status: newStatus, time: timeToAdd + oldTime })
-		return log
-	} else {
-		return log
+/* REQUEST BODY
+	-Hackatime Access token(Now derived from Cookies)
+	-Record ID
+	-Hackclub Access Token (for fetching slackID and verifying ownership, Now derived from Cookies)
+*/
+type Log = {
+	status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
+	timestamp: string
+	deltaTime: number //in minutes
+	message: string
+}
+function parseLog(logJson: string): Log[] {
+	try {
+		return JSON.parse(logJson) as Log[]
+	} catch (error) {
+		console.error("Invalid log JSON:", error)
+		throw new Error("Failed to parse log data")
 	}
 }
-export const POST: RequestHandler = async ({ request, cookies }) => {
-	const json = await request.json()
-	const recordId = json.recordId
-	let unParsedLog = json.log
-	if (unParsedLog === "") {
-		unParsedLog = "pe000000"
+async function getProject(recordId: string) {
+	const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${encodeURIComponent(recordId)}`, {
+		headers: {
+			Authorization: `Bearer ${AIRTABLE}`,
+			"Content-Type": "application/json"
+		},
+		method: "GET"
+	})
+	if (!response.ok) {
+		console.error(`Failed to fetch project ${recordId}:`, response.status)
+		throw new Error(`Airtable error: ${response.status}`)
 	}
-	const parsedLog = parseLogSyntax(unParsedLog)
-	const loggedTime = calculateLoggedTime(parsedLog)
-	const timeToAdd = json.hackatime - loggedTime
-	if (timeToAdd < 0) {
-		return new Response("Logged time cannot be more than hackatime", {
-			status: 400,
-		})
+	const data = await response.json()
+	if (!data.fields) {
+		throw new Error("Invalid project structure")
+	}
+	return data
+}
+async function getHackatimeProject(accessToken: string, hackatimeProjectName: string) {
+	const hackatimes = await fetch(`https://hackatime.hackclub.com/api/v1/authenticated/projects?include_archived=false&start=${START_DATE}`,{
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			"Content-Type": 'application/json'
+		}
+	})
+	if (!hackatimes.ok) {
+		console.error("Failed to fetch Hackatime projects:", hackatimes.status)
+		throw new Error(`Hackatime API error: ${hackatimes.status}`)
+	}
+	const hackatimeData = await hackatimes.json()
+	if (!Array.isArray(hackatimeData.projects)) {
+		throw new Error("Invalid Hackatime response structure")
+	}
+	const project = hackatimeData.projects.find((hack: any) => hack.name === hackatimeProjectName)
+	if (!project) {
+		console.warn(`Project "${hackatimeProjectName}" not found in Hackatime`)
+		throw new Error(`Project not found: ${hackatimeProjectName}`)
+	}
+	return project
+}
+function updateLog(log: Log[], deltaTime: number): Log[] {
+	//4 cases:
+	//1. If the log is empty, create a new log with status pending
+	//2. If the last log is approved, create a new log with status pending
+	//3. If the last log is rejected, convert that log to pending with the new timestamp and message and add delta time to the exisiting delta time
+	//4. If the last log is pending, update the timestamp, message and add delta time to the existing delta time
+	if (log.length === 0) {
+		return [{
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime,
+			message: "shipped"
+		}]
+	}
+	const lastLog = log[log.length - 1]
+	if (lastLog.status === 1) {
+		return [...log, {
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime,
+			message: "shipped"
+		}]
+	}
+	else if (lastLog.status === 0 || lastLog.status === 2) {
+		const newDeltaTime = lastLog.deltaTime + deltaTime
+		return [...log.slice(0, -1), {
+			...lastLog,
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime: newDeltaTime,
+			message: "shipped"
+		}]
+	}else{
+		return log
+	}
+
+}
+function calculateRecordedTime(log: Log[]): number {
+	let totalTime = 0
+	for (const entry of log) {
+		totalTime += entry.deltaTime
+	}
+	return totalTime
+}
+export const POST: RequestHandler = async ({ request,cookies }) => {
+	const { recordId } = await request.json()
+	const accessToken = cookies.get('access_token_new')
+	const hackatimeToken = cookies.get('hackatime_token')
+	if (!hackatimeToken || !recordId || !accessToken) {
+		return new Response("Missing required fields", { status: 400 })
+	}
+	const projectData = await getProject(recordId)
+	const hackatimeProject = await getHackatimeProject(hackatimeToken, projectData.fields.hackatime)
+	const previousLogs= parseLog(projectData.fields.log || "[]")
+	const recordedTime = calculateRecordedTime(previousLogs)
+	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
+	const deltaTime = hackatimeTime - recordedTime
+	if (deltaTime <= 0) {
+		return new Response("No new time recorded since last ship", { status: 400 })
+	}
+	//Confirm ownership by comparing email from access token with project owner email
+	const userData = await getDataFromAccessToken(accessToken)
+	if(projectData.fields.owner){
+		if (userData.email !== projectData.fields.owner) {
+		return new Response("Unauthorized: You do not own this project", { status: 403 })
+	}
+	}else{
+		console.warn(`Missing/Malformed owner email for project ${recordId}. Proceeding without ownership verification.`)
 	}
 	const currentTime = Date.now()
-	const updatedLog = updateLog(parsedLog, timeToAdd)
-	const logString = convertLogArrayToString(updatedLog)
+	const updatedLog = updateLog(previousLogs, deltaTime)
 	const response = await fetch(
-		`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${recordId}`,
+		`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${encodeURIComponent(recordId)}`,
 		{
 			method: "PATCH",
 			headers: {
@@ -99,45 +143,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			},
 			body: JSON.stringify({
 				fields: {
-					log: logString,
+					log: JSON.stringify(updatedLog),
 					status: `pending_${currentTime}`,
 				},
 			}),
 		}
 	)
-	//Error handling
 	if (!response.ok) {
-		const errorData = await response.json()
-		const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-		const errorText =
-			errorData.error?.message || "An error occurred while updating the log"
-		console.error("Log update failed:", {
-			status: response.status,
-			errorCode,
-			errorText,
-			timestamp: new Date().toISOString(),
-		})
-		return new Response("Failed to update log", { status: 500 })
-	}
-	const accessToken = cookies.get("access_token")
-	let slackId = cookies.get("slack_id")
-	if (!slackId || slackId === "") {
-		const extraInfoData = await fetch("https://auth.hackclub.com/api/v1/me", {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		})
-		const extraInfo = await extraInfoData.json()
-		if (!extraInfoData.ok) {
-			console.error(
-				extraInfoData.status,
-				extraInfo?.message ?? "Failed to fetch extra user info"
-			)
-		}
-		console.log(extraInfo)
-		if (extraInfo?.identity.slack_id) {
-			slackId = extraInfo.identity.slack_id
-		}
+		console.error(`Failed to update project ${recordId}:`, response.status, await response.json())
+		return new Response("Failed to update project log", { status: 500 })
 	}
 	const botResponse = await fetch("https://aoishik.qzz.io/ship", {
 		method: "POST",
@@ -146,7 +160,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			"Authorization": `Bearer ${BOT_AUTH}`
 		},
 		body: JSON.stringify(
-			{ "user_id": slackId, "project_name": json.name, "project_link": json.code }
+			{ "user_id": userData.slack_id, "project_name": projectData.fields.Name, "project_link": projectData.fields.code }
 		)
 	})
 	if (!botResponse.ok) {
@@ -154,13 +168,13 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 			status: botResponse.status,
 			statusText: botResponse.statusText,
 			timestamp: new Date().toISOString(),
-			slackId,
-			projectName: json.name,
-			projectLink: json.code
+			slackId: userData.slack_id,
+			projectName: projectData.fields.Name,
+			projectLink: projectData.fields.code
 		})
+		return new Response("Project shipped but failed to send notification", { status: 207 })
 	}
-
-	return new Response("Log updated successfully", { status: 200 })
+	return new Response("shipped", { status: 201 })
 }
 export const GET: RequestHandler = async () => {
 	return new Response("You should not be here! go away", { status: 403 })

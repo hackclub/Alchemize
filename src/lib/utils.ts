@@ -1,6 +1,10 @@
 interface Data {
     id: string,
     email: string,
+    slack_id?: string
+    first_name?: string
+    last_name?: string
+    verification_status?: string
 }
 
 type HackatimeProject = {
@@ -27,7 +31,11 @@ export const getDataFromAccessToken = async (accessToken: string): Promise<Data>
     }
     return {
         id: data.identity.id,
-        email: data.identity.primary_email
+        email: data.identity.primary_email,
+        verification_status: data.identity.verification_status,
+        first_name: data.identity.first_name,
+        last_name: data.identity.last_name,
+        slack_id: data.identity.slack_id
     }
 }
 export function formatHours(totalSeconds: number | undefined): string {
