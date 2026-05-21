@@ -5,6 +5,7 @@
 		FlaskConical,
 		Rocket,
 		ShoppingCart,
+		Users,
 		X,
 	} from "lucide-svelte"
 	import { onMount } from "svelte"
@@ -108,17 +109,32 @@
 				<span class="opacity-70 text-lg">Ages 13-18</span>
 			</p>
 
-			<a href={authUrl} class="cta-btn" onclick={() => (showRotator = true)}>
-				<span class="cta-text">GET STARTED</span>
-				{#if showRotator}
-					<div
-						class="w-7 h-7 border-4 border-gray-500 border-t-white rounded-full animate-spin"
-					></div>
-				{/if}
-				<div class="cta-chevrons">
-					<span>›</span><span>›</span><span>›</span>
+			<div class="flex items-center gap-x-2">
+				<a href={authUrl} class="cta-btn" onclick={() => (showRotator = true)}>
+					<span class="cta-text">GET STARTED</span>
+					{#if showRotator}
+						<div
+							class="w-7 h-7 border-4 border-gray-500 border-t-white rounded-full animate-spin"
+						></div>
+					{:else}
+						<div class="cta-chevrons">
+							<span>›</span><span>›</span><span>›</span>
+						</div>
+					{/if}
+				</a>
+				<!-- MAKE THIS DIV BELoW APPEAR ONLy FOR LOGGED IN USERS VERY IMP. -->
+				<div class="group flex h-full items-center gap-x-3">
+					<a href="/dashboard/refer" class="refer-btn">
+						<Users class="h-7 w-7" />
+						<p>Refer!</p>
+					</a>
+					<p
+						class="group-hover:opacity-100 opacity-0 transition animate-out text-sm bg-background/60 p-3 rounded-2xl"
+					>
+						Refer more people for cool rewards!
+					</p>
 				</div>
-			</a>
+			</div>
 
 			<div class="flex flex-col gap-2 w-[clamp(120px,50vw,384px)]">
 				<div
@@ -438,7 +454,25 @@
 			box-shadow 0.2s ease;
 	}
 
-	.cta-btn:hover {
+	.refer-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		width: 7vw;
+		min-height: 11vh;
+
+		background: var(--color-primary);
+		border: 3px solid #7f1d1d;
+		border-radius: 1rem;
+		text-decoration: none;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	.cta-btn:hover,
+	.refer-btn:hover {
 		transform: scale(1.02);
 		box-shadow: 0 0 40px rgba(185, 28, 28, 0.5);
 	}

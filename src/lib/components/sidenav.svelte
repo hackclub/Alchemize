@@ -7,15 +7,17 @@
 		Blocks,
 		ShoppingBag,
 		ArrowLeftRight,
+		Users,
 	} from "lucide-svelte"
 
+	// {
+	// 		href: "/dashboard",
+	// 		label: "Home",
+	// 		icon: Home,
+	// 		description: "Your dashboard overview",
+	// 	},
+
 	const navItems = [
-		{
-			href: "/dashboard",
-			label: "Home",
-			icon: Home,
-			description: "Your dashboard overview",
-		},
 		{
 			href: "/dashboard/projects",
 			label: "Projects",
@@ -65,13 +67,49 @@
 				</p>
 			</div>
 		</Dialog.Header>
+		<div class="gap-3 grid grid-cols-2 px-6">
+			<Dialog.Close>
+				<a href={"/dashboard"} class="group">
+					<div
+						class="flex gap-1 hover:bg-red-950/20 p-4 border border-red-500/20 hover:border-red-500/60 rounded-lg transition-all"
+					>
+						<div class="p-2">
+							<Home class="w-6 h-6 text-chart-5" />
+						</div>
+						<div class="flex flex-col items-start">
+							<p class="font-semibold text-foreground text-lg">Home</p>
+							<p class="text-muted-foreground text-xs">
+								Your dashboard overview
+							</p>
+						</div>
+					</div>
+				</a>
+			</Dialog.Close>
 
-		<div class="gap-3 grid grid-cols-2 p-6">
+			<Dialog.Close>
+				<a href={"/dashboard/refer"} class="group">
+					<div
+						class="flex gap-1 hover:bg-red-950/20 p-4 border border-red-500/20 hover:border-red-500/60 rounded-lg transition-all"
+					>
+						<div class="p-2">
+							<Users class="w-6 h-6 text-chart-5" />
+						</div>
+						<div class="flex flex-col items-start">
+							<p class="font-semibold text-foreground text-lg">Refer</p>
+							<p class="text-muted-foreground text-xs">
+								Refer people for cool rewards
+							</p>
+						</div>
+					</div>
+				</a>
+			</Dialog.Close>
+		</div>
+		<div class="gap-3 grid grid-cols-3 px-6 pb-6">
 			{#each navItems as item}
 				<Dialog.Close>
 					<a href={item.href} class="group">
 						<div
-							class="flex gap-4 hover:bg-red-950/20 p-4 border border-red-500/20 hover:border-red-500/60 rounded-lg transition-all"
+							class="flex gap-1 hover:bg-red-950/20 p-4 border border-red-500/20 hover:border-red-500/60 rounded-lg transition-all"
 						>
 							<div class="p-2">
 								<item.icon class="w-6 h-6 text-chart-5" />

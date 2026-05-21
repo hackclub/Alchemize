@@ -1,6 +1,6 @@
 <script lang="ts">
-//@ts-ignore
-import looseJson from 'loose-json';
+	//@ts-ignore
+	import looseJson from "loose-json"
 	const { data } = $props()
 	type HackatimeProject = {
 		name?: string
@@ -33,6 +33,7 @@ import looseJson from 'loose-json';
 		potion_mix: number
 	}
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
+	import { ArrowRightLeft, Blocks, ShoppingBasket, Users } from "lucide-svelte"
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 
@@ -164,53 +165,45 @@ import looseJson from 'loose-json';
 				>
 			</div>
 
-			<div class="flex flex-col gap-4">
+			<div class="flex flex-col gap-5">
 				<div
 					class="flex flex-col flex-1 gap-3 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 				>
-					<h2 class="font-alchemize text-primary text-lg">Quick Actions</h2>
+					<h2 class="font-alchemize text-primary text-xl">Quick Actions</h2>
 					<div class="gap-2 grid grid-cols-2">
 						<a
 							href="/dashboard/projects"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl font-extralight"
-								><i class="fas fa-project-diagram"></i></span
-							>
-							<span class="font-alchemize text-foreground text-xs"
-								>Projects</span
-							>
+							<Blocks class="w-7 h-7 font-extralight" />
+							<span class="font-alchemize text-foreground text-sm">
+								Projects
+							</span>
 						</a>
 						<a
 							href="/dashboard/shop"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl font-extralight"
-								><i class="fas fa-shopping-cart"></i></span
-							>
-							<span class="font-alchemize text-foreground text-xs">Shop</span>
+							<ShoppingBasket class="w-7 h-7 font-extralight" />
+							<span class="font-alchemize text-foreground text-sm">Shop</span>
 						</a>
 						<a
 							href="/dashboard/exchange"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl font-extralight"
-								><i class="fas fa-exchange-alt"></i></span
-							>
-							<span class="font-alchemize text-foreground text-xs"
-								>Exchange</span
-							>
+							<ArrowRightLeft class="w-7 h-7 font-extralight" />
+							<span class="font-alchemize text-foreground text-sm">
+								Exchange
+							</span>
 						</a>
 						<a
-							href="/dashboard/projects"
+							href="/dashboard/refer"
 							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
 						>
-							<span class="text-2xl font-extralight"
-								><i class="fas fa-plus"></i></span
-							>
-							<span class="font-alchemize text-foreground text-xs"
-								>New Project</span
-							>
+							<Users class="w-7 h-7 font-extralight" />
+							<span class="font-alchemize text-foreground text-sm">
+								Refer!
+							</span>
 						</a>
 					</div>
 				</div>
