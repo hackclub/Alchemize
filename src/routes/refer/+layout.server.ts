@@ -9,7 +9,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
     const accessToken = cookies.get('access_token_new');
 
     const airtableUserRecordId = cookies.get('airtable_user_record_id');
-    const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
+    
     const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
 
     if (!accessToken || !airtableUserRecordId || accessToken === "" || airtableUserRecordId === "") {
