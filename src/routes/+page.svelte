@@ -31,6 +31,11 @@
 			? `./dashboard`
 			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 	)
+	let referUrl = $derived(
+		hasaccessToken
+			? `./refer`
+			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+	)
 	onMount(() => {
 		hasaccessToken =
 			document.cookie.split("; ").find(row => row.startsWith("slack_id=")) !==
@@ -38,6 +43,13 @@
 
 		authUrl = hasaccessToken
 			? `./dashboard`
+			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		fetch("/rsvp")
+			.then(res => res.json())
+			.then(data => (rsvpCount = data.count))
+
+		referUrl = hasaccessToken
+			? `./refer`
 			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
@@ -123,19 +135,17 @@
 					{/if}
 				</a>
 				<!-- MAKE THIS DIV BELoW APPEAR ONLy FOR LOGGED IN USERS VERY IMP. -->
-				{#if authUrl === "./dashboard"}
-					<div class="group flex h-full items-center gap-x-3">
-						<a href="/refer" class="refer-btn">
-							<Users class="h-7 w-7" />
-							<p>Refer!</p>
-						</a>
-						<p
-							class="group-hover:opacity-100 opacity-0 transition animate-out text-sm bg-background/60 p-3 rounded-2xl"
-						>
-							Refer more people for cool rewards!
-						</p>
-					</div>
-				{/if}
+				<div class="group flex h-full items-center gap-x-3">
+					<a href={referUrl} class="refer-btn">
+						<Users class="h-7 w-7" />
+						<p>Refer!</p>
+					</a>
+					<p
+						class="group-hover:opacity-100 opacity-0 transition animate-out text-sm bg-background/60 p-3 rounded-2xl"
+					>
+						Refer more people for cool rewards!
+					</p>
+				</div>
 			</div>
 
 			<div class="flex flex-col gap-2 w-[clamp(120px,50vw,384px)]">
