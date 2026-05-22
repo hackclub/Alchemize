@@ -14,9 +14,6 @@
   font-weight: normal;
   font-style: normal;
 }
-.font-alchemize {
-    font-family: 'Comic Sans', sans-serif;
-}
 body{
     overflow-x: hidden;
     width: 100vw;
@@ -41,6 +38,7 @@ body{
 	@theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Inter Variable', sans-serif;
+    --font-alchemize: 'Comic Sans', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --background-image-gradbg: linear-gradient(to bottom right, var(--color-neutral-900), var(--color-rose-950), var(--color-red-900));
     --color-sidebar-border: var(--sidebar-border);
