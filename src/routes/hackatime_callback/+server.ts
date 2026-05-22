@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	const redirectUri = env.HACKATIME_REDIRECT ?? env.PUBLIC_HACKATIME_REDIRECT;
 	const airtableClient = env.AIRTABLE_CLIENT;
 	const airtableSecret = env.AIRTABLE;
-    console.log(clientId, clientSecret, redirectUri, airtableClient, airtableSecret);
+    // console.log(clientId, clientSecret, redirectUri, airtableClient, airtableSecret);
 	if (!clientId || !clientSecret || !redirectUri) {
 		throw error(500, 'Missing Hackatime OAuth environment variables');
 	}
@@ -41,9 +41,11 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			grant_type: 'authorization_code'
 		})
 	});
-
-	const tokenBody = await tokenResponse.json().catch(() => null);
+	
+	const tokenBody = await tokenResponse.json()
 	if (!tokenResponse.ok || !tokenBody?.access_token) {
+		console.error('Hackatime token exchange failed:', tokenBody);
+
 		throw error(tokenResponse.status || 400, tokenBody?.message ?? 'Hackatime token exchange failed');
 	}
 

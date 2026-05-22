@@ -124,7 +124,7 @@
 				</a>
 				<!-- MAKE THIS DIV BELoW APPEAR ONLy FOR LOGGED IN USERS VERY IMP. -->
 				<div class="group flex h-full items-center gap-x-3">
-					<a href="/dashboard/refer" class="refer-btn">
+					<a href="/refer" class="refer-btn">
 						<Users class="h-7 w-7" />
 						<p>Refer!</p>
 					</a>
@@ -143,12 +143,12 @@
 					<div
 						class="bg-primary h-full transition-all duration-1000"
 						style="width: {((typeof rsvpCount === 'string' ? 289 : rsvpCount) /
-							300) *
+							210) *
 							100}%"
 					></div>
 				</div>
 				<p class="text-red-200/50 text-sm">
-					{rsvpCount} / 300 RSVPs so far
+					{rsvpCount} / ??? RSVPs so far
 				</p>
 			</div>
 
@@ -460,7 +460,8 @@
 		justify-content: center;
 		flex-direction: column;
 		width: 7vw;
-		min-height: 11vh;
+		/* min-height: 11vh; */
+		padding:10px 0px;
 
 		background: var(--color-primary);
 		border: 3px solid #7f1d1d;

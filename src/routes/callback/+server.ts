@@ -2,9 +2,21 @@ import { env } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { jwtDecode } from "jwt-decode"
-import { use } from "marked"
+
+const XORdecrypt = (textInp: string) => {
+	const tb = Buffer.from(textInp, 'base64');
+	const kb = Buffer.from(env.USERID_ENCRYPTION_KEY, "hex");
+	const out = Buffer.alloc(tb.length)
+
+	for (let i = 0; i < tb.length; i++) {
+		out[i] = tb[i] ^ kb[i % kb.length]
+	}
+	return out.toString('utf-8');
+}
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get("code")
+	const referCookie = cookies.get("refer")
+
 	let userHackatime = ""
 	if (!code) {
 		throw error(400, "Missing authorization code")
@@ -102,6 +114,50 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 				)
 			}
 			userRecordId = createData.id
+
+			if (referCookie) {
+				const getMeResponse = await fetch("https://auth.hackclub.com/api/v1/me", {
+					headers: {
+						Authorization: `Bearer ${tokenBody.access_token}`,
+					},
+				})
+				if (!getMeResponse.ok) {
+					const errorData = await getMeResponse.json()
+					console.log(errorData)
+					console.warn("Failed to fetch user info from Hack Club API, but user was created successfully")
+				}
+				const meData = await getMeResponse.json()
+				const verification_status = meData?.identity?.verification_status
+				const ysws_eligible = meData?.identity?.ysws_eligible
+				if (ysws_eligible) {
+					const referer = XORdecrypt(referCookie)
+					const createReferRecordResponse = await fetch(
+						`https://api.airtable.com/v0/${airtableClient}/refers`,
+						{
+							method: "POST",
+							headers: {
+								Authorization: `Bearer ${airtableSecret}`,
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								fields: {
+									referedEmail: decodedToken.email,
+									referer: referer,
+									yswsEligible: "true",
+									verified: verification_status,
+									referedName: meData?.identity?.first_name ?? "Unknown",
+								},
+							}),
+						}
+					)
+					if (!createReferRecordResponse.ok) {
+						const createReferRecordData = await createReferRecordResponse.json()
+						console.log(createReferRecordData)
+						console.warn("Failed to create refer record in Airtable, but user was created successfully")
+					}
+				}
+				cookies.delete("refer", { path: "/" })
+			}
 		} else {
 			userRecordId = airtableData.records[0].id
 			userHackatime = airtableData.records[0].fields.hackatime
@@ -129,9 +185,9 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		)
 	}
 	console.log(extraInfo)
-	if (extraInfo?.identity.slack_id){
+	if (extraInfo?.identity.slack_id) {
 		cookies.set("slack_id", extraInfo.identity.slack_id, {
-	httpOnly: false,
+			httpOnly: false,
 			secure: true,
 			sameSite: "lax",
 			path: "/",
