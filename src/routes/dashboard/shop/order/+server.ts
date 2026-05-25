@@ -1,5 +1,5 @@
 import type { RequestHandler } from "@sveltejs/kit"
-import { AIRTABLE, AIRTABLE_CLIENT } from '$env/static/private';
+import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from '$env/static/private';
 import itemsJson from "./../items.json"
 import looseJson from 'loose-json'
 interface RequestBody {
@@ -13,12 +13,12 @@ interface Item {
     cdnImage: string;
     itemPrice: number;
 }
-	interface UserCurrency {
-		redstone: number
-		glowstone: number
-		aqua_regia: number
-		potion_mix: number
-	}
+interface UserCurrency {
+    redstone: number
+    glowstone: number
+    aqua_regia: number
+    potion_mix: number
+}
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const body: RequestBody = await request.json();
     const items: Item[] = itemsJson as Item[];
@@ -31,10 +31,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         return new Response("Unauthorized", { status: 401 })
     }
     const fetchRes = await fetch("https://auth.hackclub.com/api/v1/me", {
-        headers: { 
+        headers: {
             Authorization: `Bearer ${at}`,
         },
-        method: "GET" 
+        method: "GET"
     })
     if (!fetchRes.ok) {
         return new Response("Failed to fetch user data", { status: 500 })
@@ -106,6 +106,26 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!purchaseRecord.ok) {
         console.log("Failed to create purchase record:", await purchaseRecord.text());
         return new Response("Failed to create purchase record", { status: 500 })
+    }
+    const botResponse = await fetch("https://aoishik.qzz.io/fulfill_pending", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${BOT_AUTH}`
+        },
+        body: JSON.stringify(
+            { "user_id": data.identity?.slack_id, "order_id": "< _Some random ID_ >", "item_name": item.name, "qty": `${body.quantity}`, "cost": `${totalPrice} Potion Mix` }
+        )
+    })
+    if (!botResponse.ok) {
+        console.warn(`Failed to send notification to bot for fulfillment ${item.name}:`, {
+            status: botResponse.status,
+            statusText: botResponse.statusText,
+            timestamp: new Date().toISOString(),
+            slackId: data.identity?.slack_id,
+            itemName: item.name
+        })
+        return new Response("Project shipped but failed to send notification", { status: 207 })
     }
     return new Response("ok")
 }
