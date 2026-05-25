@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/button/button.svelte"
 	import * as Dialog from "$lib/components/ui/dialog"
-
+	let qty = $state(1)
+	
 	type ShopItem = {
 		name: string
-		shortDescription: string
-		longDescription: string
+		description: string
 		price: number
 		image: string
 	}
@@ -14,17 +14,19 @@
 		open = $bindable(false),
 		item = {
 			name: "",
-			shortDescription: "",
-			longDescription: "",
+			description: "",
 			price: 0,
 			image: "",
 		},
-		onConfirm = () => {},
+		currency,
+		onConfirm = (qty: number) => {},
 	}: {
 		open: boolean
-		item: ShopItem
-		onConfirm: () => void
+		item: ShopItem,
+		currency: number,
+		onConfirm: (qty: number) => void
 	} = $props()
+	let disabled = $derived(currency < qty*item.price)
 </script>
 
 <Dialog.Root bind:open>
@@ -47,7 +49,7 @@
 					<div
 						class="mt-2 text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap"
 					>
-						{item.longDescription}
+						{item.description}
 					</div>
 				</div>
 			</div>
@@ -59,31 +61,18 @@
 					<div class="space-y-1 text-right">
 						<p class="text-xl">
 							Item price: <span class="text-primary font-bold">
-								{item.price}</span
+								{qty*item.price}</span
 							>
 							Potion Mixes
 						</p>
 						<p class="text-xl">
-							Current balance: <span class="text-primary font-bold"> 800</span>
+							Current balance: <span class="text-primary font-bold"> {currency}</span>
 							Potion Mixes
 						</p>
+						<div class="flex mt-4 items-center justify-center h-10 gap-5 text-white text-xl"><span>Quantity:</span> <input type="number" name="" id="" bind:value={qty} class="border-red-800 text-white w-20 p-2 border outline-none rounded-lg" on:input={(e) => (qty = parseInt((e.target as HTMLInputElement).value) || 1)}></div>
 					</div>
 					<div class="flex flex-col gap-y-2 w-full p-2">
-						<div
-							class="text-sm font-mono bg-muted text-muted-foreground py-3 px-2 w-full text-right rounded-xl"
-						>
-							preloaded address from hc auth goes here
-						</div>
-						<p class="text-xs text-muted-foreground text-right">
-							Not the right address? Change it from
-							<a
-								href="https://auth.hackclub.com/addresses"
-								class="text-primary hover:text-primary/70"
-								target="_blank"
-							>
-								HC auth
-							</a>
-						</p>
+						
 					</div>
 				</div>
 
@@ -98,10 +87,11 @@
 
 					<Button
 						onclick={() => {
-							onConfirm()
+							onConfirm(qty)
 							open = false
 						}}
 						class="py-6 px-15 text-lg hover:bg-primary/80"
+						disabled={disabled}
 					>
 						Buy
 					</Button>
