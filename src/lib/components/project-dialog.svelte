@@ -7,6 +7,21 @@
 	import { Label } from "$lib/components/ui/label"
 	import { Button } from "$lib/components/ui/button"
 
+	type Log = {
+		status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
+		timestamp: string
+		deltaTime: number //in minutes
+		message: message[]
+		submmitedToHQ: boolean
+	}
+
+	type message = {
+		userExternal: string
+		internalNote: string
+		justification: string
+		timestamp: string
+		reviewerName?: string
+	}
 	interface Project {
 		id: string
 		createdTime: string
@@ -45,7 +60,19 @@
 		onship?: () => void
 		showRotator?: boolean
 	} = $props()
-	console.log("log1", project)
+	// console.log("log1", project)
+	const log = $derived.by(() => {
+		const logJson = project?.fields.log || "[]"
+		try {
+			return JSON.parse(logJson) as Log[]
+		} catch {
+			return []
+		}
+	})
+	const shippedTime = $derived.by(() =>
+		log.reduce((total, entry) => total + entry.deltaTime, 0)
+	)
+	const hoursShipped = $derived(Math.floor((shippedTime * 10) / 60) / 10)
 	const selectClass =
 		"flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 </script>
@@ -62,23 +89,43 @@
 						: `Update ${project?.fields.Name}`}
 				</span>
 				{#if mode === "update"}
-					<Button
-						variant="outline"
-						class="border-orange-700 border-dashed gap-3"
-						onclick={onship}
-					>
-						<i class="fa-solid fa-ship"></i>
-						{#if showRotator}
-							<div
-								class="w-4 h-4 border-4 border-gray-600 border-t-white rounded-full animate-spin"
-							></div>
-						{/if}
-						Ship
-					</Button>
+					<div class=" flex items-center justify-center gap-4">
+						<span class=" text-sm">Shipped Time: {hoursShipped} Hours</span>
+
+						<Button
+							variant="outline"
+							class="border-orange-700 border-dashed gap-3"
+							onclick={onship}
+						>
+							<i class="fa-solid fa-ship"></i>
+							{#if showRotator}
+								<div
+									class="w-4 h-4 border-4 border-gray-600 border-t-white rounded-full animate-spin"
+								></div>
+							{/if}
+							Ship
+						</Button>
+					</div>
 				{/if}
 			</Dialog.Title>
 		</Dialog.Header>
-
+		{#if mode === "update"}
+			<div class="previousReviews w-1/2 px-4 gap-4 flex flex-col">
+			{#each log as entry}
+				{#each entry.message as msg, i}
+					{#if msg.reviewerName != ""}
+					
+						<div
+							class="reviewEntry border-gray-700 border w-full px-2 py-2 rounded-sm rounded-r-lg {i+1 === entry.message.length ? (entry.status === 1 ? "border-l-green-700" : "border-l-red-700") : "border-l-red-700"} border-l-5"
+						>
+							<p class=" pr-30 text-gray-300 text-lg">{msg.userExternal}</p>
+							<h1 class="text-xs text-gray-400">By {msg.reviewerName} at {new Date(msg.timestamp).toLocaleString()}</h1>
+						</div>
+					{/if}
+				{/each}
+			{/each}
+		</div>
+		{/if}
 		<div class="overflow-y-auto flex-1 px-6 pb-6">
 			<form
 				method="POST"

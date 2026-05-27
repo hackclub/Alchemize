@@ -12,14 +12,24 @@ type Log = {
 	status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
 	timestamp: string
 	deltaTime: number //in minutes
-	message: string
+	message: message[],
+	submmitedToHQ: boolean
+}
+
+type message = {
+	userExternal: string,
+	internalNote: string,
+	justification: string,
+	timestamp: string,
+	reviewerName?: string
 }
 function parseLog(logJson: string): Log[] {
 	try {
 		return JSON.parse(logJson) as Log[]
 	} catch (error) {
 		console.error("Invalid log JSON:", error)
-		throw new Error("Failed to parse log data")
+		// throw new Error("Failed to parse log data")
+		return [] as Log[]
 	}
 }
 async function getProject(recordId: string) {
@@ -73,7 +83,8 @@ function updateLog(log: Log[], deltaTime: number): Log[] {
 			status: 0,
 			timestamp: new Date().toISOString(),
 			deltaTime,
-			message: "shipped"
+			message: [{ userExternal: "", internalNote: "", justification: "", timestamp: new Date().toISOString(), reviewerName: "" }],
+			submmitedToHQ: false
 		}]
 	}
 	const lastLog = log[log.length - 1]
@@ -82,7 +93,8 @@ function updateLog(log: Log[], deltaTime: number): Log[] {
 			status: 0,
 			timestamp: new Date().toISOString(),
 			deltaTime,
-			message: "shipped"
+			message: [{ userExternal: "", internalNote: "", justification: "", timestamp: new Date().toISOString(), reviewerName: "" }],
+			submmitedToHQ: false
 		}]
 	}
 	else if (lastLog.status === 0 || lastLog.status === 2) {
@@ -92,7 +104,8 @@ function updateLog(log: Log[], deltaTime: number): Log[] {
 			status: 0,
 			timestamp: new Date().toISOString(),
 			deltaTime: newDeltaTime,
-			message: "shipped"
+			message: [...lastLog.message, { userExternal: "", internalNote: "", justification: "", timestamp: new Date().toISOString(), reviewerName: "" }],
+			submmitedToHQ: false
 		}]
 	}else{
 		return log

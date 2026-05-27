@@ -111,7 +111,9 @@ export const actions = {
                     update: oldProject,
                     journals: "",
                     owner: email,
-                    Theme: theme
+                    Theme: theme,
+                    address:"",
+                    birthdate:"",
                 }
             })
         });

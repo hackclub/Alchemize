@@ -1,24 +1,43 @@
-type Log = {
-    status: "ap" | "re" | "pe", //approved, rejected, pending
-    time: number, //time in minutes
+interface Log {
+    status: number, //0 pending, 1 approved, 2 rejected
+    timestamp: string,
+    deltaTime: number,
+    message: string[]
 }
-function parseLogSyntax(log: string): Log[] {
-    //LOG SYNTAX: The logs are the data showing past approvals and current state
-    //Each new log entry is seperated by a comma(,)
-    //Each log entry has 8 charecters, first two reperesent its status(it can be "ap" for approved, "re" for rejected, "pe" for pending)
-    //Rest of charectors reperesent time that the status represent, they are total number of minutes
-    //Example Log: "ap000010,pe003223"
-    //A log can only have one pending entry, and it has to be the last entry, and only one number of re entries can be there which must be the last entry
-    //Whenever log is appended lets say the log "ap000010,pe003223" is there and the project gets approved, then log will be updated to "ap000010,ap003223"
-    //If log is "ap000010,pe003223" and project gets rejected, then log will be updated to "ap000010,re003223"
-    //If log is "ap000010,re003223" and project gets updated again with 20 minutes, then log will be updated to "ap000010,pe003243"
-    const logEntries = log.split(',');
-    return logEntries.map(entry => {
-        const status = entry.substring(0, 2) as "ap" | "re" | "pe";
-        const time = parseInt(entry.substring(2), 10);
-        return { status, time };
-    });
+function updateLog(log: Log[], deltaTime: number): Log[] {
+	//4 cases:
+	//1. If the log is empty, create a new log with status pending
+	//2. If the last log is approved, create a new log with status pending
+	//3. If the last log is rejected, convert that log to pending with the new timestamp and message and add delta time to the exisiting delta time
+	//4. If the last log is pending, update the timestamp, message and add delta time to the existing delta time
+	if (log.length === 0) {
+		return [{
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime,
+			message: ["shipped"]
+		}]
+	}
+	const lastLog = log[log.length - 1]
+	if (lastLog.status === 1) {
+		return [...log, {
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime,
+			message: ["shipped"]
+		}]
+	}
+	else if (lastLog.status === 0 || lastLog.status === 2) {
+		const newDeltaTime = lastLog.deltaTime + deltaTime
+		return [...log.slice(0, -1), {
+			...lastLog,
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime: newDeltaTime,
+			message: [...lastLog.message, "shipped"]
+		}]
+	}else{
+		return log
+	}
+
 }
-console.log("case 1:", parseLogSyntax("ap000010,pe003223"));
-console.log("case 2:", parseLogSyntax("ap000010,re003223"));
-console.log("case 3:", parseLogSyntax("ap000010,pe003243"));
