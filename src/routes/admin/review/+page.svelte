@@ -4,53 +4,7 @@
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
 	import ProjectDetailsDialog from "$lib/components/projectdetails-dialog.svelte"
 	import { invalidateAll } from "$app/navigation"
-	type Log = {
-		status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
-		timestamp: string
-		deltaTime: number //in minutes
-		message: message[]
-		submmitedToHQ: boolean
-	}
-
-	type message = {
-		userExternal: string
-		internalNote: string
-		justification: string
-		timestamp: string
-		reviewerName?: string
-	}
-	interface Project {
-		name: string
-		hours: number
-		submittedBy: string
-		type: string
-		category: string
-		description: string
-		log: Log[]
-		demo?: string
-		code?: string
-		readme?: string
-	}
-	interface AirtableProject {
-		id: string
-		createdTime: string
-		fields: {
-			Name: string
-			description: string
-			code?: string
-			demo?: string
-			type: string
-			update?: boolean
-			hackatime: string
-			journals: string
-			languages: string
-			log: string
-			owner: string
-			status: string
-			slackId: string
-			Theme: string
-		}
-	}
+	import type { Project, AirtableProject, Log } from '$lib/types'
 	let { data } = $props()
 	console.log(data)
 	let detailsOpen = $state(false)
@@ -67,7 +21,7 @@
 	}
 	const openProject = (projectId: string) => {
 		invalidateAll()
-		const nextProject = projects.find(item => item.id === projectId)
+		const nextProject = projects.find((item: AirtableProject) => item.id === projectId)
 		if (nextProject) {
 			project = {
 				name: nextProject.fields.Name,

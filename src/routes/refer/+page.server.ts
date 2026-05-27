@@ -2,25 +2,11 @@
 import { USERID_ENCRYPTION_KEY, BASE_URL, AIRTABLE_CLIENT, AIRTABLE, SLACK_BOT_TOKEN } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import {WebClient} from "@slack/web-api"
+import type { AirtableReferRecord, Refers } from '$lib/types';
 
 
 
 
-interface AirtableReferRecord {
-    id: string;
-    createdTime: string;
-    fields: {
-        referedEmail: string;
-        referer: string;
-        yswsEligible: string
-        verified: string;
-        referedName: string;
-    }
-}
-interface Refers {
-    referer: string;
-    referedName: string;
-}
 const XORencrypt = (textInp: string) => {
     const tb = Buffer.from(textInp, 'utf-8');
     const kb = Buffer.from(USERID_ENCRYPTION_KEY, "hex");

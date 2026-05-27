@@ -2,27 +2,12 @@ import type { RequestHandler } from "@sveltejs/kit"
 import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from "$env/static/private"
 import {START_DATE} from "$env/static/private"
 import { getDataFromAccessToken } from "$lib/utils"
-
+import type { Log } from "$lib/types"
 /* REQUEST BODY
 	-Hackatime Access token(Now derived from Cookies)
 	-Record ID
 	-Hackclub Access Token (for fetching slackID and verifying ownership, Now derived from Cookies)
 */
-type Log = {
-	status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
-	timestamp: string
-	deltaTime: number //in minutes
-	message: message[],
-	submmitedToHQ: boolean
-}
-
-type message = {
-	userExternal: string,
-	internalNote: string,
-	justification: string,
-	timestamp: string,
-	reviewerName?: string
-}
 
 function parseLog(logJson: string): Log[] {
 	try {

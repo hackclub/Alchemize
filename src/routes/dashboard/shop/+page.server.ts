@@ -1,14 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { AIRTABLE, AIRTABLE_CLIENT } from '$env/static/private';
 import itemsJson from "./items.json"
-
-interface Item {
-    itemID: string;
-    name: string;
-    description: string;
-    cdnImage: string;
-    itemPrice: number;
-}
+import type { Item } from "$lib/types"
 export const load: PageServerLoad = async ({ cookies }) => {
     const items: Item[] = itemsJson as Item[];
     const at = cookies.get('access_token_new');

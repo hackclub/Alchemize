@@ -2,23 +2,12 @@ import type { RequestHandler } from "@sveltejs/kit"
 import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from '$env/static/private';
 import itemsJson from "./../items.json"
 import looseJson from 'loose-json'
+import type { Item, UserCurrency } from "$lib/types"
 interface RequestBody {
     itemId: string;
     quantity: number;
 }
-interface Item {
-    itemID: string;
-    name: string;
-    description: string;
-    cdnImage: string;
-    itemPrice: number;
-}
-interface UserCurrency {
-    redstone: number
-    glowstone: number
-    aqua_regia: number
-    potion_mix: number
-}
+
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const body: RequestBody = await request.json();
     const items: Item[] = itemsJson as Item[];

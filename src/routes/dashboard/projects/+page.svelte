@@ -2,8 +2,8 @@
 	import { TriangleAlert } from "lucide-svelte"
 	import ProjectDialog from "$lib/components/project-dialog.svelte"
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
-
-	let projectBeingUpdated: Project | null = $state(null)
+	import type {AirtableProject} from "$lib/types"
+	let projectBeingUpdated: AirtableProject | null = $state(null)
 	let { data } = $props()
 	let newProjWindowOpened = $state(false)
 	let updateProjWindowOpened = $state(false)
@@ -13,25 +13,8 @@
 		project?: string
 		total_seconds?: number
 	}
-	interface Project {
-		id: string
-		createdTime: string
-		fields: {
-			Name: string
-			description: string
-			code?: string
-			demo?: string
-			type: string
-			update?: boolean
-			hackatime: string
-			journals: string
-			languages: string
-			log: string
-			owner: string
-			status: string
-		}
-	}
-	let projects: Project[] = $derived(data?.projects ?? [])
+	
+	let projects: AirtableProject[] = $derived(data?.projects ?? [])
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 	let usedHackatimes = $derived(
@@ -61,7 +44,7 @@
 		)
 	)
 
-	function openUpdateProjWindow(project: Project) {
+	function openUpdateProjWindow(project: AirtableProject) {
 		projectBeingUpdated = project
 		updateProjWindowOpened = true
 	}
