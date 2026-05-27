@@ -54,9 +54,3 @@
 		class=" flex flex-col justify-around h-2/3 absolute border-r border-gray-500 border-dashed ml-5"
 	></div>
 </div>
-
-<style>
-	main input {
-		width: 60px;
-	}
-</style>

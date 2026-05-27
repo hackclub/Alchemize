@@ -33,7 +33,13 @@
 		potion_mix: number
 	}
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
-	import { ArrowRightLeft, Blocks, ShoppingBasket, Users } from "lucide-svelte"
+	import {
+		ArrowRightLeft,
+		Blocks,
+		ShieldUser,
+		ShoppingBasket,
+		Users,
+	} from "lucide-svelte"
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 
@@ -84,88 +90,83 @@
 				<img src="/Alchemist.webp" alt="" class="w-10 h-10" />
 			</div>
 		</div>
-
-		<div class="gap-4 grid grid-cols-3">
+		<div class="flex items-start justify-start gap-x-4">
 			<div
-				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+				class="flex flex-col items-center justify-center gap-4 w-[50%] h-full"
 			>
-				<p class="text-muted-foreground text-xs uppercase tracking-widest">
-					Hackatime
-				</p>
-				<div class="flex items-center gap-2">
+				<div class="gap-4 grid grid-cols-2 w-full">
 					<div
-						class="{data.hackatimeVerified
-							? 'bg-green-500'
-							: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
-					></div>
-					<span class="font-alchemize text-foreground text-lg"
-						>{data.hackatimeVerified ? "Connected" : "Not Connected"}</span
+						class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 					>
-				</div>
-			</div>
-			<div
-				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
-			>
-				<p class="text-muted-foreground text-xs uppercase tracking-widest">
-					YSWS
-				</p>
-				<div class="flex items-center gap-2">
-					<div
-						class="{data.eligiblity
-							? 'bg-green-500'
-							: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
-					></div>
-					<span class="font-alchemize text-foreground text-lg"
-						>{data.eligiblity ? "Eligible" : "Not Eligible"}</span
-					>
-				</div>
-			</div>
-			<div
-				class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
-			>
-				<p class="text-muted-foreground text-xs uppercase tracking-widest">
-					Projects
-				</p>
-				<span class="font-alchemize text-foreground text-3xl"
-					>{projects.length}</span
-				>
-			</div>
-		</div>
-
-		<div class="flex-1 gap-4 grid grid-cols-2 min-h-0">
-			<div
-				class="flex flex-col gap-4 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
-			>
-				<h2 class="font-alchemize text-primary text-lg">Recent Projects</h2>
-				<div class="flex flex-col flex-1 gap-2 overflow-y-auto">
-					{#each projects as project}
-						<div
-							class="bg-white/5 hover:bg-white/10 p-4 border border-white/5 rounded-xl transition-colors cursor-pointer"
-						>
-							<p class="font-alchemize text-foreground text-sm">
-								{project.fields.Name}
-							</p>
-							<p class="mt-1 text-muted-foreground text-xs">
-								{formatHours(
-									hackSecondsByName.get(
-										project.fields.hackatime?.trim().toLowerCase()
-									) ?? 0
-								)} Hours
-								<br />
-								Last Updated: {new Date(
-									project.createdTime
-								).toLocaleDateString()}
-							</p>
+						<p class="text-muted-foreground text-xs uppercase tracking-widest">
+							Hackatime
+						</p>
+						<div class="flex items-center gap-2">
+							<div
+								class="{data.hackatimeVerified
+									? 'bg-green-500'
+									: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
+							></div>
+							<span class="font-alchemize text-foreground text-lg"
+								>{data.hackatimeVerified ? "Connected" : "Not Connected"}</span
+							>
 						</div>
-					{/each}
+					</div>
+					<div
+						class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+					>
+						<p class="text-muted-foreground text-xs uppercase tracking-widest">
+							YSWS
+						</p>
+						<div class="flex items-center gap-2">
+							<div
+								class="{data.eligiblity
+									? 'bg-green-500'
+									: 'bg-red-500'} rounded-full w-2 h-2 animate-pulse"
+							></div>
+							<span class="font-alchemize text-foreground text-lg"
+								>{data.eligiblity ? "Eligible" : "Not Eligible"}</span
+							>
+						</div>
+					</div>
 				</div>
-				<a
-					href="/dashboard/projects"
-					class="self-end text-primary text-xs hover:underline">View all →</a
-				>
+				<div class="w-full h-full">
+					<div
+						class="h-full w-full flex flex-col gap-4 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+					>
+						<h2 class="font-alchemize text-primary text-lg">Recent Projects</h2>
+						<div class="flex flex-col flex-1 gap-2 overflow-y-auto">
+							{#each projects as project}
+								<div
+									class="bg-white/5 hover:bg-white/10 p-4 border border-white/5 rounded-xl transition-colors cursor-pointer"
+								>
+									<p class="font-alchemize text-foreground text-sm">
+										{project.fields.Name}
+									</p>
+									<p class="mt-1 text-muted-foreground text-xs">
+										{formatHours(
+											hackSecondsByName.get(
+												project.fields.hackatime?.trim().toLowerCase()
+											) ?? 0
+										)} Hours
+										<br />
+										Last Updated: {new Date(
+											project.createdTime
+										).toLocaleDateString()}
+									</p>
+								</div>
+							{/each}
+						</div>
+						<a
+							href="/dashboard/projects"
+							class="self-end text-primary text-xs hover:underline"
+							>View all →</a
+						>
+					</div>
+				</div>
 			</div>
 
-			<div class="flex flex-col gap-5">
+			<div class="flex flex-col gap-5 h-full w-[50%]">
 				<div
 					class="flex flex-col flex-1 gap-3 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 				>
@@ -203,6 +204,15 @@
 							<Users class="w-7 h-7 font-extralight" />
 							<span class="font-alchemize text-foreground text-sm">
 								Refer!
+							</span>
+						</a>
+						<a
+							href="/admin"
+							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+						>
+							<ShieldUser class="w-7 h-7 font-extralight" />
+							<span class="font-alchemize text-foreground text-sm">
+								Admin
 							</span>
 						</a>
 					</div>
