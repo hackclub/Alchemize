@@ -114,7 +114,7 @@
 			>
 				{#if !project.name}
 					<div
-						class="w-full h-full flex items-center justify-center text-primary font-bold font-alchemize text-4xl"
+						class="w-full h-full flex items-center justify-center text-blue-900 font-bold font-alchemize text-4xl"
 					>
 						Open a project to review it!
 					</div>
@@ -124,7 +124,7 @@
 						<div class="top-sect w-full p-1 flex items-center justify-between">
 							<div class="text flex flex-col items-start justify-start gap-y-1">
 								<div class="flex items-center gap-x-2">
-									<h1 class="text-2xl text-primary">
+									<h1 class="text-2xl text-admin-text">
 										{project.name}: ({project.hours} hours)
 									</h1>
 									<Button onclick={() => (detailsOpen = true)}>Details</Button>
@@ -137,21 +137,21 @@
 							<div class="links flex items-center justify-center gap-x-5">
 								<a
 									href={project.demo}
-									class="hover:scale-104 transition px-2 py-0.5 bg-primary/30 rounded-md cursor-pointer"
+									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
 									target="_blank"
 								>
 									Demo
 								</a>
 								<a
 									href={project.code}
-									class="hover:scale-104 transition px-2 py-0.5 bg-primary/30 rounded-md cursor-pointer"
+									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
 									target="_blank"
 								>
 									Repo
 								</a>
 								<a
 									href={project.readme}
-									class="hover:scale-104 transition px-2 py-0.5 bg-primary/30 rounded-md cursor-pointer"
+									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
 									target="_blank"
 								>
 									Readme

@@ -62,6 +62,11 @@
 		<Dialog.Header
 			class="flex flex-row justify-center items-center gap-3 px-6 py-4 border-blue-500/20 border-b"
 		>
+			<img
+				src="/Alchemize-Admin.png"
+				alt=""
+				class="h-14 object-contain shrink-0"
+			/>
 			<div>
 				<Dialog.Title class="font-bold text-indigo-900 text-2xl">
 					Alchemize Admin

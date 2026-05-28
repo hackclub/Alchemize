@@ -12,15 +12,15 @@
 <div
 	class="login w-screen h-screen flex items-center justify-center flex-col gap-y-4"
 >
-	<img src="/Alchemize.png" alt="alchemize" class="h-40" />
-	<h1 class="text-5xl font-bold font-alchemize text-primary">
+	<img src="/Alchemize-Admin.png" alt="alchemize" class="h-40" />
+	<h1 class="text-5xl font-bold font-alchemize text-admin-text">
 		Alchemize Admin
 	</h1>
 	<Button
 		onclick={() => {
 			window.location.href = authUrl
 		}}
-		class="bg-primary px-15 py-5 text-lg hover:scale-105"
+		class="bg-admin-primary px-15 py-5 text-lg hover:scale-105"
 	>
 		Login with Hack Club
 	</Button>

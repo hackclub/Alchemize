@@ -6,7 +6,7 @@
 	const excludedRoutes = ["/admin", "/admin/login"]
 </script>
 
-<div class="bg-gradbg fixed w-screen h-screen -z-10">
+<div class="bg-admin fixed w-screen h-screen -z-10">
 	<div class="fixed inset-0 bg-black/60 -z-20"></div>
 	<div class="bg fixed w-screen h-screen -z-10"></div>
 </div>
