@@ -124,7 +124,7 @@
 						<div class="top-sect w-full p-1 flex items-center justify-between">
 							<div class="text flex flex-col items-start justify-start gap-y-1">
 								<div class="flex items-center gap-x-2">
-									<h1 class="text-2xl text-admin-text">
+									<h1 class="text-2xl text-admin-text font-bold">
 										{project.name}: ({project.hours} hours)
 									</h1>
 									<Button onclick={() => (detailsOpen = true)}>Details</Button>
