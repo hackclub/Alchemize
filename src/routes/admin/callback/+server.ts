@@ -56,7 +56,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
             tokenBody?.message ?? "Token exchange failed"
         )
     }
-    const decodedToken = jwt.decode(tokenBody.id_token) 
+    const decodedToken = jwt.decode(tokenBody.id_token) as { slack_id: string, email: string, name: string } | null
     const airtableRes = await fetch(`https://api.airtable.com/v0/${airtableClient}/admins?filterByFormula={slackId}="${decodedToken?.slack_id}"`, {
         headers: {
             Authorization: `Bearer ${airtableSecret}`,

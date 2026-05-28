@@ -24,6 +24,8 @@
 		demo?: string
 		code?: string
 		readme?: string
+		hackatime: string,
+		update?: boolean
 	}
 	export interface AirtableProject {
 		id: string
@@ -73,3 +75,12 @@
         referer: string;
         referedName: string;
     }
+	export interface AdminJWT{
+		 slackId: string
+        email: string
+        name: string
+        roles: string,
+        isReviewer: boolean,
+        isSuperAdmin: boolean,
+        isFulfiller: boolean,
+	}

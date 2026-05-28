@@ -19,6 +19,20 @@
 		}
 		return totalTime
 	}
+	let autogenChangelog = $state("")
+	const generateChangelog = (project: Project)=>{
+		const hackatimeLine = `User tracked ${project.hours} hours on Hackatime project: ${project.hackatime}.\n`
+		const isUpdateLine = project.update ? "This submission is an update to a previous one.\n" : "This is the user's first submission for this project.\n"
+		const delta ="Delta is: "+  (project.log.length > 1 ? project.log[project.log.length - 1].deltaTime : project.hours) + " hours\n"
+		let changes = ""
+		
+		project.log[project.log.length - 1].message.forEach((msg)=>{
+			if(msg.reviewerName === "user"){
+				changes += `User's Logs: ${msg.userExternal}\n`
+			}
+		})
+		return `${hackatimeLine}${isUpdateLine}${delta}${changes}`
+	}
 	const openProject = (projectId: string) => {
 		invalidateAll()
 		const nextProject = projects.find(
@@ -27,19 +41,23 @@
 		if (nextProject) {
 			project = {
 				name: nextProject.fields.Name,
-				hours: calculateRecordedTime(
+				hours: Math.floor(calculateRecordedTime(
 					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
-				),
+				)/60),
 				submittedBy: nextProject.fields.slackId,
 				type: nextProject.fields.type,
 				category: nextProject.fields.Theme,
 				description: nextProject.fields.description,
-				log: JSON.parse(nextProject.fields.log ?? "[]"),
+				log: JSON.parse(nextProject.fields.log ?? "[]") as Log[],
 				demo: nextProject.fields.demo,
 				code: nextProject.fields.code,
 				readme: nextProject.fields.code,
+				update: nextProject.fields.update,
+				hackatime: nextProject.fields.hackatime
 			} as Project
+			autogenChangelog = generateChangelog(project)
 		}
+		generateChangelog(project)
 		console.log(project)
 	}
 	let mode = $state(0) // 0 = all, 1 = pending, 2 = approved, 3 = rejected
@@ -127,7 +145,7 @@
 									<h1 class="text-2xl text-admin-text">
 										{project.name}: ({project.hours} hours)
 									</h1>
-									<Button onclick={() => (detailsOpen = true)}>Details</Button>
+									<Button onclick={() => (detailsOpen = true)} class="bg-admin-primary">Details</Button>
 								</div>
 								<p class="text-xs text-muted-foreground">
 									Submitted by: {project.submittedBy}, Type: {project.type},
@@ -189,13 +207,14 @@
 								>
 									<div class="flex items-center justify-between w-full">
 										<h2 class="text-muted-foreground text-lg">
-											Justification:
+											Override hours (optional)
 										</h2>
 										<Input class="w-[20%]" type="number" defaultValue="4" />
 									</div>
 									<Textarea
 										class=" h-36"
 										placeholder="Justification for Approval (Mandatory)"
+										bind:value={autogenChangelog}
 									/>
 								</div>
 								<div class="buttons grid grid-cols-2 gap-x-3 w-full mt-3">
@@ -230,54 +249,82 @@
 								>
 									<h2 class="text-muted-foreground">Certification History</h2>
 									<div
-										class="p-2 border rounded-lg space-y-3 max-w-full overflow-y-auto"
+										class="p-2 border rounded-lg space-y-3 max-w-full overflow-y-auto w-full"
 									>
-										<div class="p-2 border rounded-lg">
-											<div class="flex items-center gap-2 justify-between">
-												<div class="flex items-center gap-x-1">
-													<div
-														class="avatar w-6 h-6 rounded-full bg-gray-600"
-													></div>
-													<div class="text-sm font-bold">Admin User</div>
-												</div>
-												<div class="text-xs bg-green-800 px-2 py-1 rounded">
-													Approved
-												</div>
-											</div>
-											<p class="feedback text-xs text-gray-300 user-not mt-2">
-												Great project! Loved the creativity and execution.
-											</p>
-											<p
-												class="notes text-xs text-gray-500 overrideJustification"
-											>
-												Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-												Donec vel justo eget felis facilisis fermentum. Donec
-												congue lacinia dui, lorem ipsum dolor sit amet
-											</p>
-										</div>
-										<div class="p-2 border rounded-lg">
-											<div class="flex items-center gap-2 justify-between">
-												<div class="flex items-center gap-x-1">
-													<div
-														class="avatar w-6 h-6 rounded-full bg-gray-600"
-													></div>
-													<div class="text-sm font-bold">Admin User 2</div>
-												</div>
-												<div class="text-xs bg-red-800 px-2 py-1 rounded">
-													Rejected
-												</div>
-											</div>
-											<p class="feedback text-xs text-gray-300 user-not mt-2">
-												Doesnt work. Please fix it.
-											</p>
-											<p
-												class="notes text-xs text-gray-500 overrideJustification"
-											>
-												Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-												Donec vel justo eget felis facilisis fermentum. Donec
-												congue lacinia dui, lorem ipsum dolor sit amet
-											</p>
-										</div>
+										{#each [...project.log].reverse() as LogEntry}
+											{#each [...LogEntry.message].reverse() as msg, i}
+												{#if msg.reviewerName != "user"}
+													<div class="p-2 border rounded-lg w-full">
+														<div
+															class="flex items-center gap-2 justify-between"
+														>
+															<div class="flex items-center gap-x-1">
+																<div
+																	class="avatar w-6 h-6 rounded-full bg-gray-600"
+																></div>
+																<div class="text-sm font-bold">
+																	{msg.reviewerName}
+																</div>
+															</div>
+															<div
+																class="text-xs {i ===
+																0
+																	? LogEntry.status === 1
+																		? 'bg-green-800'
+																		: 'bg-red-800'
+																	: 'bg-red-800'} px-2 py-1 rounded"
+															>
+																{i ===
+																0
+																	? LogEntry.status === 1
+																		? "Approved"
+																		: "Rejected"
+																	: "Rejected"}
+															</div>
+														</div>
+														<p
+															class="feedback text-xs text-gray-300 user-not mt-2"
+														>
+															{msg.userExternal}
+														</p>
+														<p
+															class="notes text-xs text-gray-500 overrideJustification"
+														>
+
+															{msg.internalNote}
+														</p>
+													</div>
+												{:else}
+													<div class="p-2 border rounded-lg w-full">
+														<div
+															class="flex items-center gap-2 justify-between"
+														>
+															<div class="flex items-center gap-x-1">
+																<div
+																	class="avatar w-6 h-6 rounded-full bg-gray-600"
+																></div>
+																<div class="text-sm font-bold">
+																	Author
+																</div>
+															</div>
+															<div class="text-xs bg-amber-600 px-2 py-1 rounded">
+																Ship
+															</div>
+														</div>
+														<p
+															class="feedback text-xs text-gray-300 user-not mt-2"
+														>
+															SHIP at {new Date(msg.timestamp).toLocaleString()}
+														</p>
+														<p
+															class="notes text-xs text-gray-500 overrideJustification"
+														>
+															{msg.userExternal}
+														</p>
+													</div>
+												{/if}
+											{/each}
+										{/each}
 									</div>
 								</div>
 							</div>
