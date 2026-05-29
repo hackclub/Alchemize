@@ -65,5 +65,5 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
         })
         return error(500, "Failed to update project log")
     }
-    return new Response("Log updated successfully", { status: 200 })
+    return new Response(JSON.stringify({ message: "Log updated successfully", newLog: updatedLog }), { status: 200 })
 }

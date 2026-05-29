@@ -14,6 +14,7 @@
 		reviewerName?: string
 	}
 	export interface Project {
+		id: string
 		name: string
 		hours: number
 		submittedBy: string

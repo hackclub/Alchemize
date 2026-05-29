@@ -5,12 +5,16 @@
 	import ProjectDetailsDialog from "$lib/components/projectdetails-dialog.svelte"
 	import { invalidateAll } from "$app/navigation"
 	import type { Project, AirtableProject, Log } from "$lib/types"
+	import { updated } from "$app/state"
 	let { data } = $props()
 	console.log(data)
 	let detailsOpen = $state(false)
 	let projects = $derived(data?.projects ?? [])
 	console.log(projects)
-
+	let userExternal = $state("")
+	let internalNote = $state("")
+	let overrideHours = $state(0)
+	let justification = $state("")
 	let project = $state({} as Project)
 	function calculateRecordedTime(log: Log[]): number {
 		let totalTime = 0
@@ -23,7 +27,9 @@
 	const generateChangelog = (project: Project)=>{
 		const hackatimeLine = `User tracked ${project.hours} hours on Hackatime project: ${project.hackatime}.\n`
 		const isUpdateLine = project.update ? "This submission is an update to a previous one.\n" : "This is the user's first submission for this project.\n"
-		const delta ="Delta is: "+  (project.log.length > 1 ? project.log[project.log.length - 1].deltaTime : project.hours) + " hours\n"
+		const time = (project.log.length > 1 ? project.log[project.log.length - 1].deltaTime : project.hours)
+		const delta ="Delta is: "+  time + " hours \t Adjustment: Subtracted " + (-overrideHours) + " hours from delta(New hours: " + (time + overrideHours) + ").\n"
+
 		let changes = ""
 		
 		project.log[project.log.length - 1].message.forEach((msg)=>{
@@ -33,13 +39,21 @@
 		})
 		return `${hackatimeLine}${isUpdateLine}${delta}${changes}`
 	}
+
+	$effect(() => {
+		if (project.name) {
+			autogenChangelog = generateChangelog(project)
+		}
+		console.log(overrideHours)
+	})
 	const openProject = (projectId: string) => {
 		invalidateAll()
-		const nextProject = projects.find(
+		const nextProject: AirtableProject = projects.find(
 			(item: AirtableProject) => item.id === projectId
 		)
 		if (nextProject) {
 			project = {
+				id: nextProject.id,
 				name: nextProject.fields.Name,
 				hours: Math.floor(calculateRecordedTime(
 					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
@@ -66,6 +80,29 @@
 		if (project.fields.status.startsWith("approved") && mode === 2) return true
 		if (project.fields.status.startsWith("rejected") && mode === 3) return true
 		if (mode === 0) return true
+	}
+	const rejectProject = async (project: Project, feedback: string, internalNote: string, overrideHours: number, justification: string) => {
+		const response = await fetch("/admin/review/reject", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				recordId: project.id,
+				log: JSON.stringify(project.log),
+				internalNote,
+				userExternal: feedback,
+				justification: autogenChangelog,
+				decreaseTime: -overrideHours,
+			}),
+		})
+		if (!response.ok) {
+			alert("Failed to reject project. Please referesh")
+			console.error("Failed to reject project", await response.text())
+			return new Response("Failed to reject project", { status: 500 })
+		}
+		const { newLog } = await response.json()
+		project.log = newLog
 	}
 	// let project = null
 </script>
@@ -189,6 +226,7 @@
 									<Textarea
 										class="resize-none h-12"
 										placeholder="User Feedback"
+										bind:value={userExternal}
 									/>
 								</div>
 								<div
@@ -200,6 +238,7 @@
 									<Textarea
 										class="resize-none h-12"
 										placeholder="Internal reviewer notes..."
+										bind:value={internalNote}
 									/>
 								</div>
 								<div
@@ -209,7 +248,7 @@
 										<h2 class="text-muted-foreground text-lg">
 											Override hours (optional)
 										</h2>
-										<Input class="w-[20%]" type="number" defaultValue="4" />
+										<Input class="w-[20%]" type="number" bind:value={overrideHours} max="0" />
 									</div>
 									<Textarea
 										class=" h-36"
@@ -224,6 +263,7 @@
 										Approve
 									</button>
 									<button
+										onclick={() => rejectProject(project, userExternal, internalNote, overrideHours, autogenChangelog)}
 										class="py-1 px-2 text-lg hover:scale-102 rounded-md bg-rose-800"
 									>
 										Reject
