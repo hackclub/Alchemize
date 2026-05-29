@@ -2,8 +2,9 @@
 	import { TriangleAlert } from "lucide-svelte"
 	import ProjectDialog from "$lib/components/project-dialog.svelte"
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
-	import {invalidate, invalidateAll} from "$app/navigation"
-	import type {AirtableProject} from "$lib/types"
+	import { invalidate, invalidateAll } from "$app/navigation"
+	import { loaderStore } from "$lib/stores/loader"
+	import type { AirtableProject } from "$lib/types"
 	let projectBeingUpdated: AirtableProject | null = $state(null)
 	let { data } = $props()
 	let newProjWindowOpened = $state(false)
@@ -14,8 +15,11 @@
 		project?: string
 		total_seconds?: number
 	}
-	
-	let projects: AirtableProject[] = $derived(data?.projects ?? [])
+
+	let projects: AirtableProject[] = $state(data?.projects ?? [])
+	$effect(() => {
+		projects = data?.projects ?? []
+	})
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 	let usedHackatimes = $derived(
@@ -49,7 +53,7 @@
 		projectBeingUpdated = project
 		updateProjWindowOpened = true
 	}
-
+	console.log("Projects:", projects)
 	let showRotator = $state(false)
 
 	async function shipProject(changelog: string) {
@@ -77,39 +81,65 @@
 				? "Project shipped successfully!"
 				: `Error shipping project. Code: ${response.status} — contact @TheUtkarsh8939 on Slack`
 		)
-		console.log("Ship response:", await response.text())
+		const responseData = await response.json()
+		console.log("Ship response:", responseData)
+		if (projectBeingUpdated) {
+			const updatedFields = {
+				...projectBeingUpdated.fields,
+				...(responseData.newLog ? { log: JSON.stringify(responseData.newLog) } : {}),
+				...(responseData.newStatus ? { status: responseData.newStatus } : {}),
+			}
+			const updatedProject = {
+				...projectBeingUpdated,
+				fields: updatedFields,
+			}
+			projectBeingUpdated = updatedProject
+			projects = projects.map(project =>
+				project.id === updatedProject.id ? updatedProject : project
+			)
+		}
 		invalidateAll()
 		showRotator = false
 	}
 	function applyBadge(project: AirtableProject) {
-		if(project.fields.status.startsWith("pending")){
+		if (project.fields.status.startsWith("pending")) {
 			return {
-				class:"badge h-5 text-xs w-20 bg-amber-800 flex items-center justify-center rounded-full border-l border-l-amber-500",
-				title:"Pending"
+				class:
+					"badge h-5 text-xs w-20 bg-amber-800 flex items-center justify-center rounded-full border-l border-l-amber-500",
+				title: "Pending",
 			}
-		}else if(project.fields.status.startsWith("rejected")){
+		} else if (project.fields.status.startsWith("rejected")) {
 			return {
-				class:"badge h-5 text-xs w-30 bg-red-800 flex items-center justify-center rounded-full border-l border-l-red-500",
-				title:"Changes Needed"
+				class:
+					"badge h-5 text-xs w-30 bg-red-800 flex items-center justify-center rounded-full border-l border-l-red-500",
+				title: "Changes Needed",
 			}
-		}else if(project.fields.status.startsWith("approved")){
+		} else if (project.fields.status.startsWith("approved")) {
 			return {
-				class:"badge h-5 text-xs w-20 bg-green-800 flex items-center justify-center rounded-full border-l border-l-green-500",
-				title:"Approved"
+				class:
+					"badge h-5 text-xs w-20 bg-green-800 flex items-center justify-center rounded-full border-l border-l-green-500",
+				title: "Approved",
 			}
-		}else if(project.fields.status.startsWith("unshipped")){
+		} else if (project.fields.status.startsWith("unshipped")) {
 			return {
-				class:"badge h-5 text-xs w-20 bg-blue-800 flex items-center justify-center rounded-full border-l border-l-blue-500",
-				title:"Unshipped"
+				class:
+					"badge h-5 text-xs w-20 bg-blue-800 flex items-center justify-center rounded-full border-l border-l-blue-500",
+				title: "Unshipped",
 			}
 		}
-			return {
-				class:"badge h-5 text-xs w-20 bg-blue-800 flex items-center justify-center rounded-full border-l border-l-blue-500",
-				title:"Unshipped"
-			}
+		return {
+			class:
+				"badge h-5 text-xs w-20 bg-blue-800 flex items-center justify-center rounded-full border-l border-l-blue-500",
+			title: "Unshipped",
+		}
 	}
-	function invalidater(){
-		invalidate(".")
+	async function invalidater() {
+		loaderStore.set(true)
+		try {
+			await invalidateAll()
+		} finally {
+			loaderStore.set(false)
+		}
 	}
 </script>
 
@@ -150,9 +180,10 @@
 			{#each projects as project}
 				<button onclick={() => openUpdateProjWindow(project)}>
 					<div
-						class="border-red-500 border-dashed border flex flex-col items-center justify-center gap-5 rounded-lg w-48 h-48 hover:bg-red-950/20 transition-colors"
+						class="border-red-500 border-dashed border  @container flex flex-col items-center justify-center gap-5 rounded-lg w-48 h-48 hover:bg-red-950/20 transition-colors"
 					>
-						<span class="text-4xl alchemizefont text-chart-5 font-medium"
+						<span class="text-[15cqi] text-center h-auto alchemizefont text-wrap text-chart-5 font-medium"
+
 							>{project.fields.Name}</span
 						>
 						<span class="text-lg">
@@ -162,7 +193,10 @@
 								)
 							)}
 						</span>
-						<div class={applyBadge(project).class} title={applyBadge(project).title}>
+						<div
+							class={applyBadge(project).class}
+							title={applyBadge(project).title}
+						>
 							{applyBadge(project).title}
 						</div>
 					</div>
@@ -172,7 +206,13 @@
 	</div>
 </main>
 
-<ProjectDialog bind:open={newProjWindowOpened} mode="create" {availableHacks} {invalidater} onship={() => {}} />
+<ProjectDialog
+	bind:open={newProjWindowOpened}
+	mode="create"
+	{availableHacks}
+	{invalidater}
+	onship={() => {}}
+/>
 
 <ProjectDialog
 	bind:open={updateProjWindowOpened}

@@ -158,6 +158,7 @@
 					showSecondRotator = true
 					return async ({ result }) => {
 						showSecondRotator = false
+						invalidater?.()
 					}
 				}}
 			>

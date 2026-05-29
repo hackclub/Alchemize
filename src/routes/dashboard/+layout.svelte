@@ -3,6 +3,7 @@
 	import { navigating } from "$app/stores"
 	import { page } from "$app/state"
 	import { browser } from "$app/environment"
+	import { loaderStore } from "$lib/stores/loader"
 	import {
 		PUBLIC_HACKATIME_AUTH,
 		PUBLIC_HACKATIME_REDIRECT,
@@ -31,10 +32,9 @@
 
 <svelte:head><link rel="icon" href="/Alchemist.webp" /></svelte:head>
 
-{#if $navigating}
+{#if $navigating || $loaderStore}
 	<div
-		class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-none"
-	>
+		class="fixed inset-0 bg-black/70 flex items-center justify-center z-80 backdrop-blur-none"	>
 		<div class="flex flex-col items-center gap-4">
 			<div
 				class="w-12 h-12 border-4 border-gray-600 border-t-red-600 rounded-full animate-spin"

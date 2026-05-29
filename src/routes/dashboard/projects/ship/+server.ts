@@ -173,8 +173,8 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
 		})
 		return new Response("Project shipped but failed to send notification", { status: 207 })
 	}
-	return new Response("shipped", { status: 201 })
+	return new Response(JSON.stringify({ message: "Project shipped successfully!", newLog: updatedLog, newStatus: `pending_${currentTime}` }), { status: 201 })
 }
 export const GET: RequestHandler = async () => {
-	return new Response("You should not be here! go away", { status: 403 })
+	return new Response("You should not be here! go away", { status: 401 })
 }
