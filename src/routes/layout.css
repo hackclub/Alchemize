@@ -39,7 +39,7 @@ body{
     --font-sans: 'Inter Variable', sans-serif;
     --font-alchemize: 'Comic Sans', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
-    --background-image-gradbg: linear-gradient(to bottom right, var(--color-neutral-900), var(--color-rose-950), var(--color-red-900));
+    --background-image-gradbg: linear-gradient(to bottom right, var(--color-neutral-950), #311017, #4c0519);
     --background-image-admin: linear-gradient(
       to bottom right,
       var(--color-neutral-900),
@@ -133,10 +133,8 @@ body{
     --popover-foreground: oklch(0.987 0.002 197.1);
     --primary: oklch(0.455 0.188 13.697);
     --admin-primary: oklch(0.62 0.19 275);
-  --admin-primary-hover: oklch(0.68 0.18 275);
-
-  --admin-text: oklch(0.92 0.02 255);
- 
+    --admin-primary-hover: oklch(0.68 0.18 275);
+    --admin-text: oklch(0.92 0.02 255);
     --primary-foreground: oklch(0.969 0.015 12.422);
     --secondary: oklch(0.274 0.006 286.033);
     --secondary-foreground: oklch(0.985 0 0);
