@@ -124,6 +124,8 @@ body{
 }
 
 	:root {
+    --admin-bg: var(--color-blue-950);
+    --admin2-bg: var(--color-sky-900);
     --background: oklch(0.148 0.004 228.8);
     --foreground: oklch(0.987 0.002 197.1);
     --radius: 0.625rem;
@@ -133,7 +135,7 @@ body{
     --popover-foreground: oklch(0.987 0.002 197.1);
     --primary: oklch(0.455 0.188 13.697);
     --admin-primary: oklch(0.62 0.19 275);
-    --admin-primary-hover: oklch(0.68 0.18 275);
+    --admin-primary-hover: oklch(67.58% 0.17211 274.981);
     --admin-text: oklch(0.92 0.02 255);
     --primary-foreground: oklch(0.969 0.015 12.422);
     --secondary: oklch(0.274 0.006 286.033);
