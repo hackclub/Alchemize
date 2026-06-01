@@ -1,5 +1,6 @@
 import type { Log, UserCurrency, AdminJWT } from "$lib/types";
 import { AIRTABLE, AIRTABLE_CLIENT, THEME_MAPS_TO_CURRENCY , ADMIN_JWT_SECRET} from "$env/static/private"
+import {themeCurrencyMaps} from "$lib/themeCurrencyMaps"
 import type { RequestHandler } from "./$types";
 import {error} from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
@@ -63,7 +64,7 @@ async function updateUserCurrency(amount: number, userEmailId: string, currencyT
     }
 }
 const themeToKeys = (theme: string): keyof UserCurrency => {
-    const themeMap = JSON.parse(THEME_MAPS_TO_CURRENCY) as Record<string, keyof UserCurrency>
+    const themeMap = themeCurrencyMaps as Record<string, keyof UserCurrency>
     return themeMap[theme]
 };
 export const POST: RequestHandler = async ({ request, cookies }) => {
