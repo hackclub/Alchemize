@@ -111,14 +111,11 @@
 					<FlaskConical class="h-15 w-15 text-primary " />
 				</div>
 				<div class="flex flex-col items-center justify-start gap-y-2">
-					<h2 class="text-muted-foreground text-xs">
-						Requires 1 of each stone per potion mix
-					</h2>
 					<Button
 						class="px-10 py-6  font-alchemize shadow-black rounded-full text-xl hover:scale-102 transition"
 					>
 						<!-- sounds cool eh? -->
-						Begin Transformation
+						Convert...
 					</Button>
 				</div>
 			</div>
