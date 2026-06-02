@@ -27,7 +27,8 @@ export interface Project {
 	code?: string
 	readme?: string
 	hackatime: string,
-	update?: boolean
+	update?: boolean,
+
 }
 export interface AirtableProject {
 	id: string

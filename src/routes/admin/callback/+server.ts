@@ -14,6 +14,7 @@ interface TokenPayload extends AirtableUser {
     isReviewer: boolean;
     isSuperAdmin: boolean;
     isFulfiller: boolean;
+    isT2Reviewer: boolean;
 }
 export const GET: RequestHandler = async ({ url, cookies }) => {
     const code = url.searchParams.get("code")
@@ -80,6 +81,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         isReviewer: fields.roles.split(",").includes("reviewer"),
         isSuperAdmin: fields.roles.split(",").includes("super_admin"),
         isFulfiller: fields.roles.split(",").includes("fulfiller"),
+        isT2Reviewer: fields.roles.split(",").includes("t2_reviewer"),
+
     }
     const jwtToken = jwt.sign(payload, ADMIN_JWT_SECRET, { expiresIn: "6h" })
     cookies.set("admin_access_token", tokenBody.access_token, {

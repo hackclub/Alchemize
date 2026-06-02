@@ -24,16 +24,28 @@
 		return totalTime
 	}
 	let autogenChangelog = $state("")
-	const generateChangelog = (project: Project)=>{
+	const generateChangelog = (project: Project) => {
 		const hackatimeLine = `User tracked ${project.hours} hours on Hackatime project: ${project.hackatime}.\n`
-		const isUpdateLine = project.update ? "This submission is an update to a previous one.\n" : "This is the user's first submission for this project.\n"
-		const time = (project.log.length > 1 ? project.log[project.log.length - 1].deltaTime : project.hours)
-		const delta ="Delta is: "+  time + " hours \t Adjustment: Subtracted " + (overrideHours) + " hours from delta(New hours: " + (time - overrideHours) + ").\n"
+		const isUpdateLine = project.update
+			? "This submission is an update to a previous one.\n"
+			: "This is the user's first submission for this project.\n"
+		const time =
+			project.log.length > 1
+				? Math.floor(project.log[project.log.length - 1].deltaTime / 60)
+				: project.hours
+		const delta =
+			"Delta is: " +
+			time +
+			" hours \t Adjustment: Subtracted " +
+			overrideHours +
+			" hours from delta(New hours: " +
+			(time - overrideHours) +
+			").\n"
 
 		let changes = ""
-		
-		project.log[project.log.length - 1].message.forEach((msg)=>{
-			if(msg.reviewerName === "user"){
+
+		project.log[project.log.length - 1].message.forEach(msg => {
+			if (msg.reviewerName === "user") {
 				changes += `User's Logs: ${msg.userExternal}\n`
 			}
 		})
@@ -55,9 +67,11 @@
 			project = {
 				id: nextProject.id,
 				name: nextProject.fields.Name,
-				hours: Math.floor(calculateRecordedTime(
-					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
-				)/60),
+				hours: Math.floor(
+					calculateRecordedTime(
+						JSON.parse(nextProject.fields.log ?? "[]") as Log[]
+					) / 60
+				),
 				submittedBy: nextProject.fields.slackId,
 				type: nextProject.fields.type,
 				category: nextProject.fields.Theme,
@@ -82,7 +96,16 @@
 		if (project.fields.status.startsWith("rejected") && mode === 3) return true
 		if (mode === 0) return true
 	}
-	const rejectProject = async (project: Project, feedback: string, internalNote: string, overrideHours: number, justification: string) => {
+	let rejectLoader = $state(false)
+	let acceptLoader = $state(false)
+	const rejectProject = async (
+		project: Project,
+		feedback: string,
+		internalNote: string,
+		overrideHours: number,
+		justification: string
+	) => {
+		rejectLoader = true
 		const response = await fetch("/admin/review/reject", {
 			method: "POST",
 			headers: {
@@ -104,18 +127,26 @@
 		}
 		const { newLog } = await response.json()
 		project.log = newLog
+		rejectLoader = false
 	}
-	const acceptProject = async (project: Project, feedback: string, internalNote: string, overrideHours: number, justification: string) => {
-					console.log({
-				recordId: project.id,
-				log: JSON.stringify(project.log),
-				internalNote,
-				userExternal: feedback,
-				justification: autogenChangelog,
-				decreaseTime: overrideHours,
-				theme: project.category,
-				userEmailId: project.owner,
-			})
+	const acceptProject = async (
+		project: Project,
+		feedback: string,
+		internalNote: string,
+		overrideHours: number,
+		justification: string
+	) => {
+		acceptLoader = true
+		console.log({
+			recordId: project.id,
+			log: JSON.stringify(project.log),
+			internalNote,
+			userExternal: feedback,
+			justification: autogenChangelog,
+			decreaseTime: overrideHours,
+			theme: project.category,
+			userEmailId: project.owner,
+		})
 		const response = await fetch("/admin/review/accept", {
 			method: "POST",
 			headers: {
@@ -140,6 +171,7 @@
 		}
 		const { newLog } = await response.json()
 		project.log = newLog
+		acceptLoader = false
 	}
 	// let project = null
 </script>
@@ -219,7 +251,10 @@
 									<h1 class="text-2xl text-admin-text font-bold">
 										{project.name}: ({project.hours} hours)
 									</h1>
-									<Button onclick={() => (detailsOpen = true)} class="bg-admin-primary">Details</Button>
+									<Button
+										onclick={() => (detailsOpen = true)}
+										class="bg-admin-primary">Details</Button
+									>
 								</div>
 								<p class="text-xs text-muted-foreground">
 									Submitted by: {project.submittedBy}, Type: {project.type},
@@ -285,7 +320,12 @@
 										<h2 class="text-muted-foreground text-lg">
 											Override hours (optional)
 										</h2>
-										<Input class="w-[20%]" type="number" bind:value={overrideHours} min="0" />
+										<Input
+											class="w-[20%]"
+											type="number"
+											bind:value={overrideHours}
+											min="0"
+										/>
 									</div>
 									<Textarea
 										class=" h-36"
@@ -295,15 +335,39 @@
 								</div>
 								<div class="buttons grid grid-cols-2 gap-x-3 w-full mt-3">
 									<button
-										class="py-1 px-2 text-lg hover:scale-102 rounded-md bg-green-800"
-										onclick={() => acceptProject(project, userExternal, internalNote, overrideHours, autogenChangelog)}
+										class="py-1 px-2 text-lg hover:scale-102 rounded-md flex items-center gap-x-2 bg-green-800 justify-center"
+										onclick={() =>
+											acceptProject(
+												project,
+												userExternal,
+												internalNote,
+												overrideHours,
+												autogenChangelog
+											)}
 									>
+										{#if acceptLoader}
+											<div
+												class="loader border-3 border-gray-500 border-t-white rounded-full animate-spin h-5 w-5"
+											></div>
+										{/if}
 										Approve
 									</button>
 									<button
-										onclick={() => rejectProject(project, userExternal, internalNote, overrideHours, autogenChangelog)}
+										onclick={() =>
+											rejectProject(
+												project,
+												userExternal,
+												internalNote,
+												overrideHours,
+												autogenChangelog
+											)}
 										class="py-1 px-2 text-lg hover:scale-102 rounded-md bg-rose-800"
 									>
+										{#if rejectLoader}
+											<div
+												class="loader border-3 border-gray-500 border-t-white rounded-full animate-spin h-5 w-5"
+											></div>
+										{/if}
 										Reject
 									</button>
 								</div>
@@ -345,15 +409,13 @@
 																</div>
 															</div>
 															<div
-																class="text-xs {i ===
-																0
+																class="text-xs {i === 0
 																	? LogEntry.status === 1
 																		? 'bg-green-800'
 																		: 'bg-red-800'
 																	: 'bg-red-800'} px-2 py-1 rounded"
 															>
-																{i ===
-																0
+																{i === 0
 																	? LogEntry.status === 1
 																		? "Approved"
 																		: "Rejected"
@@ -368,7 +430,6 @@
 														<p
 															class="notes text-xs text-gray-500 overrideJustification"
 														>
-
 															{msg.internalNote}
 														</p>
 													</div>
@@ -381,11 +442,11 @@
 																<div
 																	class="avatar w-6 h-6 rounded-full bg-gray-600"
 																></div>
-																<div class="text-sm font-bold">
-																	Author
-																</div>
+																<div class="text-sm font-bold">Author</div>
 															</div>
-															<div class="text-xs bg-amber-600 px-2 py-1 rounded">
+															<div
+																class="text-xs bg-amber-600 px-2 py-1 rounded"
+															>
 																Ship
 															</div>
 														</div>

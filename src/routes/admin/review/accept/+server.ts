@@ -84,7 +84,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     const approver = decoded.name
 
     const { recordId, log, userExternal, internalNote, justification, decreaseTime, userEmailId, theme} = await request.json()
-    if (!recordId || !log || !userExternal || !internalNote || !justification || !userEmailId || !theme) {
+    if (!recordId || !log || !userExternal  || !justification || !userEmailId || !theme) {
         return new Response("Missing required fields", { status: 400 })
     }
     const oldLog = JSON.parse(log) as Log[]

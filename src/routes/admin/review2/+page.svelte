@@ -3,10 +3,48 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
-	import type { Project } from "$lib/types"
+	import type { Project, Log, AirtableProject } from "$lib/types"
 	let detailsOpen = $state(false)
-
+	let { data } = $props()
+	let airtableProjects = data.projects as AirtableProject[]
 	let project = $state({} as Project)
+	let justificationOpen = $state(false)
+	const wasEverApproved = (project: AirtableProject) => {
+		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
+		const logs = JSON.parse(project.fields.log || "[]") as Log[]
+		return logs.some(log => log.status === 1 && !log.submmitedToHQ)
+	}
+	let currentProject = $state({} as Project)
+	function calculateRecordedTime(log: Log[]): number {
+		let totalTime = 0
+		for (const entry of log) {
+			totalTime += entry.deltaTime
+		}
+		return totalTime
+	}
+	const setCurrentProject = (nextProject: AirtableProject) => {
+		currentProject = {
+			id: nextProject.id,
+			name: nextProject.fields.Name,
+			hours: Math.floor(
+				calculateRecordedTime(
+					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
+				) / 60
+			),
+			submittedBy: nextProject.fields.slackId,
+			type: nextProject.fields.type,
+			category: nextProject.fields.Theme,
+			description: nextProject.fields.description,
+			log: JSON.parse(nextProject.fields.log ?? "[]") as Log[],
+			demo: nextProject.fields.demo,
+			code: nextProject.fields.code,
+			readme: nextProject.fields.code,
+			update: nextProject.fields.update,
+			hackatime: nextProject.fields.hackatime,
+			owner: nextProject.fields.owner,
+		}
+		console.log("Current project set to log:", currentProject.log)
+	}
 </script>
 
 <main class="w-screen h-screen">
@@ -17,17 +55,24 @@
 		<aside
 			class="sidebar w-1/4 h-full rounded-2xl bg-black/20 border-2 overflow-y-auto p-2"
 		>
-			<button
-				class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
-			>
-				<h1 class="text-xl font-bold w-full flex items-center h-10 px-2">
-					Project
-				</h1>
-				<div class="flex px-2 gap-4 items-end h-6">
-					<h2 class="creator text-sm text-gray-500">SlackId</h2>
-					<div class="theme text-xs">Theme</div>
-				</div>
-			</button>
+			{#each airtableProjects as project}
+				{#if wasEverApproved(project)}
+					<button
+						onclick={() => setCurrentProject(project)}
+						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
+					>
+						<h1 class="text-xl font-bold w-full flex items-center h-10 px-2">
+							{project.fields.Name}
+						</h1>
+						<div class="flex px-2 gap-4 items-end h-6">
+							<h2 class="creator text-sm text-gray-500">
+								{project.fields.slackId}
+							</h2>
+							<div class="theme text-xs">{project.fields.Theme}</div>
+						</div>
+					</button>
+				{/if}
+			{/each}
 		</aside>
 		<div
 			class="w-full max-h-full h-full flex flex-col items-center justify-start gap-y-5"
@@ -65,7 +110,7 @@
 						<div class="text flex flex-col items-start justify-start gap-y-1">
 							<div class="flex items-center gap-x-2">
 								<h1 class="text-2xl text-admin-text font-bold">
-									Project: (5hrs)
+									{currentProject.name}: ({currentProject.hours}hrs)
 								</h1>
 								<Button
 									onclick={() => (detailsOpen = true)}
@@ -105,32 +150,32 @@
 				</div>
 				<div class="max-h-full w-full overflow-y-auto flex gap-x-3">
 					<div class="flex flex-col gap-y-5 max-h-full w-[50%] p-2">
-						<div class="flex flex-col items-start justify-start gap-y-1 w-full">
+						<div
+							class="flex flex-col items-start justify-start gap-y-2 w-full border-b"
+						>
 							<h2 class="text-muted-foreground">What is this project about?</h2>
 							<Textarea
-								class="resize-none h-24 overflow-y-auto	"
-								placeholder="This project is about..."
+								class="resize-none h-30 overflow-y-auto	"
+								placeholder="Gimme a nice brief description of the project.."
 							/>
 						</div>
-						<div class="flex flex-col items-start justify-start gap-y-1 w-full">
+						<div class="flex items-center gap-3 justify-start gap-y-1 w-full">
 							<h2 class="text-muted-foreground text-sm">
-								How many git commits are there? Are they detailed enough? Do you
-								think they match the logged amount of hours?
+								How many git commits are there?
 							</h2>
-							<Textarea
-								class="resize-none h-45 overflow-y-auto	"
-								placeholder="There are 18 commits for 12 hours logged... I think they are detailed enough..."
+							<Input
+								type="number"
+								class="resize-none h-10 w-40 overflow-y-auto	"
+								placeholder="Commits?"
 							/>
 						</div>
-					</div>
-					<div class="flex flex-col gap-y-5 h-full">
 						<div class="flex flex-col items-start justify-start gap-y-1 w-full">
 							<h2 class="text-muted-foreground text-sm">
 								If this project was submitted before, what are the changes in
 								this submission?
 							</h2>
 							<Textarea
-								class="resize-none h-32 overflow-y-auto	"
+								class="resize-none h-30 overflow-y-auto	"
 								placeholder="The changes are..."
 							/>
 						</div>
@@ -144,13 +189,48 @@
 								<Input class="w-[20%]" type="number" value={2} min="0" />
 							</div>
 							<Textarea
-								class="resize-none overflow-y-auto h-35"
+								class="resize-none overflow-y-auto h-30"
 								placeholder="Reason for overriding..."
 							/>
 						</div>
+						<div class="controls flex gap-x-3">
+							<Button
+								class="bg-red-900 w-[45%]"
+								onclick={() => (justificationOpen = true)}
+							>
+								View Generated Justification
+							</Button>
+							<Button class="bg-green-900 w-[45%]">Push to Airtable</Button>
+						</div>
+					</div>
+
+					<div class="flex flex-col gap-y-5 h-full w-[50%]">
+						<h2 class="text-muted-foreground">Previous Changelogs</h2>
+						<div class="previous-changelogs w-full overflow-y-scroll gap-y-4 flex flex-col">
+							{#each currentProject.log as log}
+								<div class="p-2 border rounded-lg w-full">
+								<div class="flex items-center gap-2 justify-between">
+									<div class="flex items-center gap-x-1">
+										<div class="avatar w-6 h-6 rounded-full bg-gray-600"></div>
+										<div class="text-sm font-bold">Hello</div>
+									</div>
+									<div class="text-xs bg-green-800 px-2 py-1 rounded">
+										Approved
+									</div>
+								</div>
+								<p class="feedback text-xs text-gray-300 user-not mt-2">
+									{log.message.at(-1)?.userExternal}
+								</p>
+								<p class="notes whitespace-pre-wrap text-xs text-gray-500 overrideJustification">
+									{log.message.at(-1)?.internalNote} <br/>
+									{log.message.at(-1)?.justification}
+								</p>
+							</div>
+							{/each}
+						</div>
 					</div>
 				</div>
-				<div class="w-full flex flex-col gap-y-2 p-2">
+				<!-- <div class="w-full flex flex-col gap-y-2 p-2">
 					<h2 class="text-muted-foreground text-sm">
 						Autogenerated justification:
 					</h2>
@@ -159,10 +239,30 @@
 						readonly
 						value="This project is about....There are ___ commits.....The commits are detailed....20 minuted were cut...."
 					/>
-				</div>
+				</div> -->
 			</div>
 		</div>
 	</div>
 </main>
 
 <ProjectDetailsDialog bind:open={detailsOpen} {project} />
+{#if justificationOpen}
+	<div
+		class="generatedJustificationOverlay w-screen h-screen absolute top-0 bg-black/80 z-50 flex items-center justify-center"
+	>
+		<div class="w-1/2 h-1/2 bg-background rounded-lg p-5 flex flex-col gap-y-5">
+			<h1 class="text-xl font-bold">Generated Justification</h1>
+			<Textarea
+				class="resize-none overflow-y-auto h-full"
+				readonly
+				value="This project is about....There are ___ commits.....The commits are detailed....20 minuted were cut...."
+			/>
+			<Button
+				onclick={() => (justificationOpen = false)}
+				class="bg-red-900 w-full"
+			>
+				Close
+			</Button>
+		</div>
+	</div>
+{/if}
