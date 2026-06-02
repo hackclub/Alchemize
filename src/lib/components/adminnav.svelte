@@ -41,7 +41,7 @@
 			description: "Tier 1 review Dash",
 		},
 		{
-			href: "/admin/review3",
+			href: "/admin/review2",
 			label: "T2 Review",
 			icon: UserStar,
 			description: "Tier 2 review Dash",
