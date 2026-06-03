@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/neon-http'
 import { eq } from 'drizzle-orm'
 import { integer, pgTable, varchar,  } from "drizzle-orm/pg-core";
 import { DATABASE_URL} from '$env/static/private'
+import type {UserCurrency} from './types'
 // Schemas
 export const userTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -73,22 +74,16 @@ const db = drizzle(DATABASE_URL); //Database Connection
 // Database Compatiblity Layer
 export const getUserByEmail = async (email: string): Promise<DBResponse> => {
     const users = await db.select().from(userTable).where(eq(userTable.email, email));
-    if (users.length === 0) {
-        return {
-            ok: false,
-            status: 404,
-            json: async () => ({ message: "User not found" }),
-            text: async () => "User not found",
-        }
-    }
+    const records = users.map(user => ({ id: user.id + "", fields: user }));
     return {
         ok: true,
         status: 200,
-        json: async () => ({id: users[0].id + "", fields: users[0]} as airtableReplication),
-        text: async () => JSON.stringify({id: users[0].id + "", fields: users[0]} as airtableReplication),
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
     }
 }
 export const createNewUser = async (email: string, userid: string): Promise<DBResponse> => {
+    const currency = JSON.stringify({redstone:0,glowstone:0,aqua_regia:0,potion_mix:0} as UserCurrency)
     const newUser = await db.insert(userTable).values({email, userid: userid, hackatime: "", currency: ""}).returning();
     return {
         ok: true,
@@ -104,5 +99,22 @@ export const createReferRecord = async (referedEmail: string, referer: string, y
         status: 201,
         json: async () => ({id: newRefer[0].id + "", fields: {referedEmail, referer, yswsEligible, verified, referedName}} as airtableReplication),
         text: async () => JSON.stringify({id: newRefer[0].id + "", fields: {referedEmail, referer, yswsEligible, verified, referedName}} as airtableReplication),
+    } as DBResponse;
+}
+export const patchUserHackatime = async (email: string, hackatimeToken: string): Promise<DBResponse> => {
+    const updatedUser = await db.update(userTable).set({hackatime: hackatimeToken}).where(eq(userTable.email, email)).returning();
+    if (updatedUser.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({message: "User not found"}),
+            text: async () => JSON.stringify({message: "User not found"}),
+        }
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({id: updatedUser[0].id + "", fields: updatedUser[0]} as airtableReplication),
+        text: async () => JSON.stringify({id: updatedUser[0].id + "", fields: updatedUser[0]} as airtableReplication),
     } as DBResponse;
 }

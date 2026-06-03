@@ -3,7 +3,7 @@ import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { jwtDecode } from 'jwt-decode';
 import { getDataFromAccessToken } from '$lib/utils';
-
+import { getUserByEmail, patchUserHackatime } from '$lib/db';
 type IdTokenClaims = {
 	email?: string;
 };
@@ -49,24 +49,16 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		throw error(tokenResponse.status || 400, tokenBody?.message ?? 'Hackatime token exchange failed');
 	}
 
-	let userRecordId = cookies.get('airtable_user_record_id') ?? '';
 
-	if (!userRecordId) {
+
+
 		const at = cookies.get('access_token_new') ?? cookies.get('access_token');
 		if (!at) {
 			throw error(401, 'Missing access token cookie');
 		}
 		const email = (await getDataFromAccessToken(at)).email;
 
-		const filterByFormula = encodeURIComponent(`{email}="${email}"`);
-		const userLookupResponse = await fetch(
-			`https://api.airtable.com/v0/${airtableClient}/Users?filterByFormula=${filterByFormula}`,
-			{
-				headers: {
-					Authorization: `Bearer ${airtableSecret}`
-				}
-			}
-		);
+		const userLookupResponse = await getUserByEmail(email);
 
 		const userLookupBody = await userLookupResponse.json().catch(() => null);
 		if (!userLookupResponse.ok) {
@@ -78,32 +70,14 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			throw error(404, 'Airtable user not found');
 		}
 
-		userRecordId = record.id;
-		cookies.set('airtable_user_record_id', userRecordId, {
-			httpOnly: true,
-			secure: true,
-			sameSite: 'lax',
-			path: '/',
-			maxAge: 60 * 60 * 24 * 30
-		});
-	}
 
-	const patchResponse = await fetch(`https://api.airtable.com/v0/${airtableClient}/Users/${userRecordId}`, {
-		method: 'PATCH',
-		headers: {
-			Authorization: `Bearer ${airtableSecret}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			fields: {
-				hackatime: tokenBody.access_token
-			}
-		})
-	});
+	
+
+	const patchResponse = await patchUserHackatime(email, tokenBody.access_token);
 
 	const patchBody = await patchResponse.json().catch(() => null);
 	if (!patchResponse.ok) {
-		throw error(patchResponse.status, patchBody?.error?.message ?? 'Failed to update Airtable user');
+		throw error(patchResponse.status, patchBody?.error?.message ?? 'Failed to update Postgress user');
 	}
 
 	cookies.set('hackatime_token', tokenBody.access_token, {
