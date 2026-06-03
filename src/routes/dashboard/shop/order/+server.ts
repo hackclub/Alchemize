@@ -3,6 +3,7 @@ import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from '$env/static/private';
 import itemsJson from "./../items.json"
 import looseJson from 'loose-json'
 import type { Item, UserCurrency } from "$lib/types"
+import { createOrder, getUserByEmail, patchUserCurrency } from "$lib/db";
 interface RequestBody {
     itemId: string;
     quantity: number;
@@ -52,12 +53,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!uid || !email) {
         return new Response("Unauthorized", { status: 401 })
     }
-    const userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Users?filterByFormula={userid}="${uid}"`, {
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        }
-    });
+    const userResponse = await getUserByEmail(email);
     if (!userResponse.ok) {
         return new Response("Failed to fetch user data from Airtable", { status: 500 })
     }
@@ -75,41 +71,22 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         return new Response("Insufficient currency: " + hasThatCurrency + " < " + totalPrice, { status: 400 })
     }
     const updatedCurrency = purchaseItem(item, body.quantity, currentCurrency);
-    const updatedUserResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Users/${userRecord.id}`, {
-        method: "PATCH",
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        },
-        body: JSON.stringify({
-            fields: {
-                "currency": JSON.stringify(updatedCurrency)
-            }
-        })
-    });
+    const updatedUserResponse = await patchUserCurrency(email, updatedCurrency);
+
     if (!updatedUserResponse.ok) {
         console.log("Failed to update user currency:", await updatedUserResponse.text());
         return new Response("Failed to update user currency", { status: 500 })
     }
-    const purchaseRecord = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/orders`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        },
-        body: JSON.stringify({
-            fields: {
+    const purchaseRecord = await createOrder({
                 orderItem: item.name,
                 itemID: item.itemID,
                 qty: body.quantity,
                 ordererEmail: email,
                 ordererUid: uid,
                 status: "pending",
-                fullfiller: "",
+                fulfiller: "",
                 moreData: ""
-            }
-        })
-    });
+            })
     if (!purchaseRecord.ok) {
         console.log("Failed to create purchase record:", await purchaseRecord.text());
         return new Response("Failed to create purchase record", { status: 500 })

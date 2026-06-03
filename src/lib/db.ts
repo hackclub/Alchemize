@@ -1,15 +1,15 @@
 import { drizzle } from 'drizzle-orm/neon-http'
 import { eq } from 'drizzle-orm'
-import { integer, pgTable, varchar,  } from "drizzle-orm/pg-core";
-import { DATABASE_URL} from '$env/static/private'
-import type {UserCurrency, Log} from './types'
+import { integer, pgTable, varchar, } from "drizzle-orm/pg-core";
+import { DATABASE_URL } from '$env/static/private'
+import type { UserCurrency, Log } from './types'
 // Schemas
 export const userTable = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userid: varchar({ length: 255 }).notNull(),
-  email: varchar({ length: 455 }).notNull(),
-  hackatime: varchar({ length: 1000 }).notNull(),
-  currency: varchar({ length: 2000 }).notNull(),
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userid: varchar({ length: 255 }).notNull(),
+    email: varchar({ length: 455 }).notNull(),
+    hackatime: varchar({ length: 1000 }).notNull(),
+    currency: varchar({ length: 2000 }).notNull(),
 })
 export const projectTable = pgTable("projects", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -65,10 +65,10 @@ export interface DBResponse {
     json: () => Promise<any>;
     text: () => Promise<string>;
 }
-export interface airtableReplication{
+export interface airtableReplication {
     id: string
-    fields:any
-} 
+    fields: any
+}
 const db = drizzle(DATABASE_URL); //Database Connection
 
 // Database Compatiblity Layer
@@ -83,39 +83,39 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
     }
 }
 export const createNewUser = async (email: string, userid: string): Promise<DBResponse> => {
-    const currency = JSON.stringify({redstone:0,glowstone:0,aqua_regia:0,potion_mix:0} as UserCurrency)
-    const newUser = await db.insert(userTable).values({email, userid: userid, hackatime: "", currency: currency}).returning();
+    const currency = JSON.stringify({ redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 } as UserCurrency)
+    const newUser = await db.insert(userTable).values({ email, userid: userid, hackatime: "", currency: currency }).returning();
     return {
         ok: true,
         status: 201,
-        json: async () => ({id: newUser[0].id + "", fields: {email, userid, hackatime: "", currency: ""}} as airtableReplication),
-        text: async () => JSON.stringify({id: newUser[0].id + "", fields: {email, userid, hackatime: "", currency: ""}} as airtableReplication),
+        json: async () => ({ id: newUser[0].id + "", fields: { email, userid, hackatime: "", currency: "" } } as airtableReplication),
+        text: async () => JSON.stringify({ id: newUser[0].id + "", fields: { email, userid, hackatime: "", currency: "" } } as airtableReplication),
     } as DBResponse;
 }
 export const createReferRecord = async (referedEmail: string, referer: string, yswsEligible: string, verified: string, referedName: string): Promise<DBResponse> => {
-    const newRefer = await db.insert(refersTable).values({referedEmail, referer, yswsEligible, verified, referedName}).returning();
+    const newRefer = await db.insert(refersTable).values({ referedEmail, referer, yswsEligible, verified, referedName }).returning();
     return {
         ok: true,
         status: 201,
-        json: async () => ({id: newRefer[0].id + "", fields: {referedEmail, referer, yswsEligible, verified, referedName}} as airtableReplication),
-        text: async () => JSON.stringify({id: newRefer[0].id + "", fields: {referedEmail, referer, yswsEligible, verified, referedName}} as airtableReplication),
+        json: async () => ({ id: newRefer[0].id + "", fields: { referedEmail, referer, yswsEligible, verified, referedName } } as airtableReplication),
+        text: async () => JSON.stringify({ id: newRefer[0].id + "", fields: { referedEmail, referer, yswsEligible, verified, referedName } } as airtableReplication),
     } as DBResponse;
 }
 export const patchUserHackatime = async (email: string, hackatimeToken: string): Promise<DBResponse> => {
-    const updatedUser = await db.update(userTable).set({hackatime: hackatimeToken}).where(eq(userTable.email, email)).returning();
+    const updatedUser = await db.update(userTable).set({ hackatime: hackatimeToken }).where(eq(userTable.email, email)).returning();
     if (updatedUser.length === 0) {
         return {
             ok: false,
             status: 404,
-            json: async () => ({message: "User not found"}),
-            text: async () => JSON.stringify({message: "User not found"}),
+            json: async () => ({ message: "User not found" }),
+            text: async () => JSON.stringify({ message: "User not found" }),
         }
     }
     return {
         ok: true,
         status: 200,
-        json: async () => ({id: updatedUser[0].id + "", fields: updatedUser[0]} as airtableReplication),
-        text: async () => JSON.stringify({id: updatedUser[0].id + "", fields: updatedUser[0]} as airtableReplication),
+        json: async () => ({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
     } as DBResponse;
 }
 export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => {
@@ -126,20 +126,20 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
         status: 200,
         json: async () => ({ records }),
         text: async () => JSON.stringify({ records }),
-    }as DBResponse;
-} 
+    } as DBResponse;
+}
 export const createProject = async (projectData: any): Promise<DBResponse> => {
-    const {Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId} = projectData
-    const newProject = await db.insert(projectTable).values({Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId}).returning();
+    const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId } = projectData
+    const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId }).returning();
     return {
         ok: true,
         status: 201,
-        json: async () => ({id: newProject[0].id + "", fields: newProject[0]} as airtableReplication),
-        text: async () => JSON.stringify({id: newProject[0].id + "", fields: newProject[0]} as airtableReplication),
+        json: async () => ({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
     } as DBResponse;
 }
 export const updateProject = async (projectId: string, projectData: any): Promise<DBResponse> => {
-  
+
     const allowedUpdates: Record<string, any> = {
         Name: projectData.Name,
         description: projectData.description,
@@ -155,7 +155,7 @@ export const updateProject = async (projectId: string, projectData: any): Promis
         Object.entries(allowedUpdates).filter(([_, value]) => value !== undefined && value !== "")
     );
 
-   
+
     if (Object.keys(updatePayload).length === 0) {
         return {
             ok: false,
@@ -166,10 +166,10 @@ export const updateProject = async (projectId: string, projectData: any): Promis
     }
 
     try {
-        
+
         const updatedProject = await db
             .update(projectTable)
-            .set(updatePayload) 
+            .set(updatePayload)
             .where(eq(projectTable.id, parseInt(projectId)))
             .returning();
 
@@ -224,7 +224,7 @@ export const patchProjectForShip = async (projectId: string, log: Log[], status:
     try {
         const updatedProject = await db
             .update(projectTable)
-            .set(updatePayload) 
+            .set(updatePayload)
             .where(eq(projectTable.id, parseInt(projectId)))
             .returning();
         if (updatedProject.length === 0) {
@@ -251,3 +251,34 @@ export const patchProjectForShip = async (projectId: string, log: Log[], status:
         };
     }
 };
+export const createOrder = async (orderData: any): Promise<DBResponse> => {
+    const { orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData } = orderData
+    const newOrder = await db.insert(ordersTable).values({ orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData }).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({ id: newOrder[0].id + "", fields: newOrder[0] } as airtableReplication),
+        text: async () => JSON.stringify({
+            id: newOrder
+            [0].id + "", fields: newOrder[0]
+        } as airtableReplication),
+    } as DBResponse;
+}
+export const patchUserCurrency = async (email: string, currency: UserCurrency): Promise<DBResponse> => {
+    const currencyString = JSON.stringify(currency);
+    const updatedUser = await db.update(userTable).set({ currency: currencyString }).where(eq(userTable.email, email)).returning();
+    if (updatedUser.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "User not found" }),
+            text: async () => JSON.stringify({ message: "User not found" }),
+        }
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
+    } as DBResponse;
+}
