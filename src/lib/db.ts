@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/neon-http'
 import { eq } from 'drizzle-orm'
 import { integer, pgTable, varchar,  } from "drizzle-orm/pg-core";
 import { DATABASE_URL} from '$env/static/private'
-import type {UserCurrency} from './types'
+import type {UserCurrency, Log} from './types'
 // Schemas
 export const userTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -84,7 +84,7 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
 }
 export const createNewUser = async (email: string, userid: string): Promise<DBResponse> => {
     const currency = JSON.stringify({redstone:0,glowstone:0,aqua_regia:0,potion_mix:0} as UserCurrency)
-    const newUser = await db.insert(userTable).values({email, userid: userid, hackatime: "", currency: ""}).returning();
+    const newUser = await db.insert(userTable).values({email, userid: userid, hackatime: "", currency: currency}).returning();
     return {
         ok: true,
         status: 201,
@@ -118,3 +118,136 @@ export const patchUserHackatime = async (email: string, hackatimeToken: string):
         text: async () => JSON.stringify({id: updatedUser[0].id + "", fields: updatedUser[0]} as airtableReplication),
     } as DBResponse;
 }
+export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => {
+    const projects = await db.select().from(projectTable).where(eq(projectTable.owner, owner));
+    const records = projects.map(project => ({ id: project.id + "", fields: project }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    }as DBResponse;
+} 
+export const createProject = async (projectData: any): Promise<DBResponse> => {
+    const {Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId} = projectData
+    const newProject = await db.insert(projectTable).values({Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId}).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({id: newProject[0].id + "", fields: newProject[0]} as airtableReplication),
+        text: async () => JSON.stringify({id: newProject[0].id + "", fields: newProject[0]} as airtableReplication),
+    } as DBResponse;
+}
+export const updateProject = async (projectId: string, projectData: any): Promise<DBResponse> => {
+  
+    const allowedUpdates: Record<string, any> = {
+        Name: projectData.Name,
+        description: projectData.description,
+        type: projectData.type,
+        demo: projectData.demo,
+        code: projectData.code,
+        hackatime: projectData.hackatime,
+        update: projectData.update,
+    };
+
+
+    const updatePayload = Object.fromEntries(
+        Object.entries(allowedUpdates).filter(([_, value]) => value !== undefined && value !== "")
+    );
+
+   
+    if (Object.keys(updatePayload).length === 0) {
+        return {
+            ok: false,
+            status: 400,
+            json: async () => ({ message: "No valid fields provided for update" }),
+            text: async () => JSON.stringify({ message: "No valid fields provided for update" }),
+        };
+    }
+
+    try {
+        
+        const updatedProject = await db
+            .update(projectTable)
+            .set(updatePayload) 
+            .where(eq(projectTable.id, parseInt(projectId)))
+            .returning();
+
+        if (updatedProject.length === 0) {
+            return {
+                ok: false,
+                status: 404,
+                json: async () => ({ message: "Project not found" }),
+                text: async () => JSON.stringify({ message: "Project not found" }),
+            };
+        }
+
+        return {
+            ok: true,
+            status: 200,
+            json: async () => ({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
+            text: async () => JSON.stringify({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
+        } as DBResponse;
+
+    } catch (error) {
+        console.error("Database write failed:", error);
+        return {
+            ok: false,
+            status: 500,
+            json: async () => ({ message: "Database update failed" }),
+            text: async () => JSON.stringify({ message: "Database update failed" }),
+        };
+    }
+};
+export const getProjectById = async (projectId: string): Promise<DBResponse> => {
+    const project = await db.select().from(projectTable).where(eq(projectTable.id, parseInt(projectId)));
+    if (project.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Project not found" }),
+            text: async () => JSON.stringify({ message: "Project not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: project[0].id + "", fields: project[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: project[0].id + "", fields: project[0] } as airtableReplication),
+    } as DBResponse;
+};
+export const patchProjectForShip = async (projectId: string, log: Log[], status: string): Promise<DBResponse> => {
+    const updatePayload = {
+        log: JSON.stringify(log),
+        status: status
+    };
+    try {
+        const updatedProject = await db
+            .update(projectTable)
+            .set(updatePayload) 
+            .where(eq(projectTable.id, parseInt(projectId)))
+            .returning();
+        if (updatedProject.length === 0) {
+            return {
+                ok: false,
+                status: 404,
+                json: async () => ({ message: "Project not found" }),
+                text: async () => JSON.stringify({ message: "Project not found" }),
+            };
+        }
+        return {
+            ok: true,
+            status: 200,
+            json: async () => ({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
+            text: async () => JSON.stringify({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
+        } as DBResponse;
+    } catch (error) {
+        console.error("Database write failed:", error);
+        return {
+            ok: false,
+            status: 500,
+            json: async () => ({ message: "Database update failed" }),
+            text: async () => JSON.stringify({ message: "Database update failed" }),
+        };
+    }
+};

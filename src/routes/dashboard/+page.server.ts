@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { AIRTABLE, AIRTABLE_CLIENT, START_DATE } from '$env/static/private';
-
+import { getProjectsByOwner, getUserByEmail } from '$lib/db';
 export const load: PageServerLoad = async ({ cookies }) => {
     const at = cookies.get('access_token_new');
     const hackatimeVerified = cookies.get('hackatime_verified');
@@ -37,18 +37,9 @@ export const load: PageServerLoad = async ({ cookies }) => {
             projects: []
         }
     }
-    let projectsResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects?filterByFormula={owner}="${encodeURIComponent(data.identity.primary_email)}"`, {
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        }
-    });
-    let userResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Users?filterByFormula={email}="${encodeURIComponent(data.identity.primary_email)}"`, {
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        }
-    });
+    let projectsResponse = await getProjectsByOwner(data.identity.primary_email);
+    let userResponse = await getUserByEmail(data.identity.primary_email);
+
     const projectsData = await projectsResponse.json();
     const userData = await userResponse.json();
     let admin = false

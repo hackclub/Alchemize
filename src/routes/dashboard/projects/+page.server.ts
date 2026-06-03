@@ -3,6 +3,7 @@ import { AIRTABLE, AIRTABLE_CLIENT } from '$env/static/private';
 import { jwtDecode } from 'jwt-decode';
 import { env } from '$env/dynamic/private';
 import { getDataFromAccessToken } from '$lib/utils';
+import { getProjectsByOwner, createProject, updateProject } from '$lib/db';
 export const actions = {
 	create: async (event) => {
 
@@ -22,33 +23,25 @@ export const actions = {
         const oldProject = formData.get('projectUpdate') as string;
         const hackatimeProject = formData.get('hackatime') as string;
         const theme = formData.get('theme') as string;
-        const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects`, {
-			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${AIRTABLE}`,
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				fields: {
-					Name: projectName,
-					description: projectDescription,
-					type: projectType,
-					demo: projectUrl,
-					code: projectCode,
-                    status:"unshipped",
-                    log:"",
-                    hackatime: hackatimeProject,
-                    languages:"",
-                    update:oldProject,
-                    journals:"",
-                    owner: email,
-                    Theme: theme,
-                    address:"",
-                    birthdate:"",
-                    slackId: slackId,
-				}
-			})
-		});
+        const response = await createProject({
+            Name: projectName,
+            description: projectDescription,
+            type: projectType,
+            demo: projectUrl,
+            code: projectCode,
+            status: "unshipped",
+            log: "",
+            hackatime: hackatimeProject,
+            languages: "",
+            update: oldProject,
+            journals: "",
+            owner: email,
+            Theme: theme,
+            address: "",
+            birthdate: "",
+            slackId: slackId
+        });
+       
 
         // Error handling
         if (!response.ok) {
@@ -95,30 +88,15 @@ export const actions = {
         const hackatimeProject = formData.get('hackatime') as string;
         const theme = formData.get('theme') as string;
         const recordId = formData.get('recordId') as string;
-        const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${recordId}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${AIRTABLE}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                fields: {
-                    Name: projectName,
-                    description: projectDescription,
-                    type: projectType,
-                    demo: projectUrl,
-                    code: projectCode,
-                    status: "unshipped",
-                    log: "",
-                    hackatime: hackatimeProject,
-                    languages: "",
-                    update: oldProject,
-                    journals: "",
-                    owner: email,
-                    Theme: theme,
-
-                }
-            })
+        const response = await updateProject(recordId, {
+            Name: projectName,
+            description: projectDescription,
+            type: projectType,
+            demo: projectUrl,
+            code: projectCode,
+            hackatime: hackatimeProject,
+            update: oldProject,
+            Theme: theme
         });
 
         // Error handling
@@ -175,12 +153,7 @@ export const load:PageServerLoad = async ({cookies})=>{
             projects: []
         }
     }
-    let projectsResponse = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects?filterByFormula={owner}="${encodeURIComponent(email)}"`, {
-        headers: {
-            Authorization: `Bearer ${AIRTABLE}`,
-            "Content-Type": 'application/json'
-        }
-    });
+    let projectsResponse = await getProjectsByOwner(email);
     const projectsData = await projectsResponse.json();
   
     return {

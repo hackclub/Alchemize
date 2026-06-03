@@ -3,6 +3,7 @@ import { AIRTABLE, AIRTABLE_CLIENT, BOT_AUTH } from "$env/static/private"
 import {START_DATE} from "$env/static/private"
 import { getDataFromAccessToken } from "$lib/utils"
 import type { Log } from "$lib/types"
+import { getProjectById, patchProjectForShip } from "$lib/db"
 /* REQUEST BODY
 	-Hackatime Access token(Now derived from Cookies)
 	-Record ID
@@ -19,13 +20,7 @@ function parseLog(logJson: string): Log[] {
 	}
 }
 async function getProject(recordId: string) {
-	const response = await fetch(`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${encodeURIComponent(recordId)}`, {
-		headers: {
-			Authorization: `Bearer ${AIRTABLE}`,
-			"Content-Type": "application/json"
-		},
-		method: "GET"
-	})
+	const response = await getProjectById(recordId)
 	if (!response.ok) {
 		console.error(`Failed to fetch project ${recordId}:`, response.status)
 		throw new Error(`Airtable error: ${response.status}`)
@@ -132,22 +127,7 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
 	}
 	const currentTime = Date.now()
 	const updatedLog = updateLog(previousLogs, deltaTime, changelog)
-	const response = await fetch(
-		`https://api.airtable.com/v0/${AIRTABLE_CLIENT}/Projects/${encodeURIComponent(recordId)}`,
-		{
-			method: "PATCH",
-			headers: {
-				Authorization: `Bearer ${AIRTABLE}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				fields: {
-					log: JSON.stringify(updatedLog),
-					status: `pending_${currentTime}`,
-				},
-			}),
-		}
-	)
+	const response = await patchProjectForShip(recordId, updatedLog, `pending_${currentTime}`)
 	if (!response.ok) {
 		console.error(`Failed to update project ${recordId}:`, response.status, await response.json())
 		return new Response("Failed to update project log", { status: 500 })
