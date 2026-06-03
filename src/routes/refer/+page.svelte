@@ -15,6 +15,7 @@
 	//Sort counts by value in descending order
 	let sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1])
 	async function onCopy() {
+		if (!linkText) return
 		try {
 			await navigator.clipboard.writeText(linkText)
 			console.log("Copied:", linkText)

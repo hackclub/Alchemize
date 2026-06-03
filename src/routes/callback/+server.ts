@@ -2,7 +2,7 @@ import { env } from "$env/dynamic/private"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { jwtDecode } from "jwt-decode"
-
+import { createNewUser, getUserByEmail, createReferRecord } from "$lib/db"
 const XORdecrypt = (textInp: string) => {
 	const tb = Buffer.from(textInp, 'base64');
 	const kb = Buffer.from(env.USERID_ENCRYPTION_KEY, "hex");
@@ -64,14 +64,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		if (!email) {
 			throw error(400, "Email not found in ID token")
 		}
-		const airtableResponse = await fetch(
-			`https://api.airtable.com/v0/${airtableClient}/Users?filterByFormula={email}="${encodeURIComponent(email)}"`,
-			{
-				headers: {
-					Authorization: `Bearer ${airtableSecret}`,
-				},
-			}
-		)
+		const airtableResponse = await getUserByEmail(email)
 		const airtableData = await airtableResponse.json()
 		if (!airtableResponse.ok) {
 			throw error(
@@ -82,29 +75,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		let userRecordId: string
 		if (airtableData.records.length === 0) {
 			// Create new user
-			const createResponse = await fetch(
-				`https://api.airtable.com/v0/${airtableClient}/Users`,
-				{
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${airtableSecret}`,
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						fields: {
-							userid: decodedToken.sub,
-							email: decodedToken.email,
-							hackatime: "",
-							currency: `{
-							"redstone": 0,
-							"glowstone": 0,
-							"aqua_regia": 0,
-							"potion_mix": 0,
-						}`,
-						},
-					}),
-				}
-			)
+			const createResponse = await createNewUser(email, decodedToken.sub)
 			const createData = await createResponse.json()
 			if (!createResponse.ok) {
 				console.log(createData)
@@ -131,25 +102,14 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 				const ysws_eligible = meData?.identity?.ysws_eligible
 				if (ysws_eligible) {
 					const referer = XORdecrypt(referCookie)
-					const createReferRecordResponse = await fetch(
-						`https://api.airtable.com/v0/${airtableClient}/refers`,
-						{
-							method: "POST",
-							headers: {
-								Authorization: `Bearer ${airtableSecret}`,
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({
-								fields: {
-									referedEmail: decodedToken.email,
-									referer: referer,
-									yswsEligible: "true",
-									verified: verification_status,
-									referedName: meData?.identity?.first_name ?? "Unknown",
-								},
-							}),
-						}
+					const createReferRecordResponse = await createReferRecord(
+						decodedToken.email,
+						referer,
+						"true",
+						verification_status,
+						meData?.identity?.first_name ?? "Unknown"
 					)
+							
 					if (!createReferRecordResponse.ok) {
 						const createReferRecordData = await createReferRecordResponse.json()
 						console.log(createReferRecordData)

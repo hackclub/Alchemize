@@ -27,7 +27,7 @@
 			<g clip-path="url(#clip0)">
 				<mask
 					id="mask0"
-					mask-type="alpha"
+					style="mask-type: alpha"
 					maskUnits="userSpaceOnUse"
 					x="0"
 					y="0"

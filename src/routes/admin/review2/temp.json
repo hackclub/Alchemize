@@ -36,7 +36,7 @@
 		"submmitedToHQ": false
 	},
 	{
-		"status": 1,
+		"status": 0,
 		"timestamp": "2026-06-02T09:02:46.025Z",
 		"deltaTime": 178,
 		"message": [
@@ -47,12 +47,12 @@
 				"timestamp": "2026-06-02T08:45:30.994Z",
 				"reviewerName": "user"
 			},
-			{
-				"userExternal": "Nice",
+            {
+				"userExternal": "FIX",
 				"internalNote": "",
-				"justification": "User tracked 40 hours on Hackatime project: Alchemize.\nThis is the user's first submission for this project.\nDelta is: 2 hours \t Adjustment: Subtracted 0 hours from delta(New hours: 2).\nUser's Logs: Meow Meow\n",
-				"timestamp": "2026-06-02T09:02:46.025Z",
-				"reviewerName": "Utkarsh"
+				"justification": "",
+				"timestamp": "2026-05-30T08:57:06.383Z",
+				"reviewerName": "user"
 			}
 		],
 		"submmitedToHQ": false

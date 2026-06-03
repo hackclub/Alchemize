@@ -45,6 +45,25 @@
 		}
 		console.log("Current project set to log:", currentProject.log)
 	}
+	let template = $derived(`The user tracked x hours on x hackatime project
+${currentProject.update || currentProject.log.length > 0 ? `This project is an update to an existing project`:`This is the first submission of this project`}
+Delta:x hours, Adjustmet: Subtract x hours
+{Insert t2 Reviewer description}
+Changelog:{changelog written by t2 Reviewer}
+There are x git commits and approximately x commits/hr
+{Reason for adjustment written by t2 Reviewer}
+
+User written logs
+Change log: {insert ship changelog}
+Delta:{delta of the changelog}
+Approved by:{T1 reviewer name}
+
+...... (Insert more)
+
+Full review log available at link:{insert link here}
+
+Signed by {T2 reviewer}
+ `)
 </script>
 
 <main class="w-screen h-screen">
@@ -206,26 +225,32 @@
 
 					<div class="flex flex-col gap-y-5 h-full w-[50%]">
 						<h2 class="text-muted-foreground">Previous Changelogs</h2>
-						<div class="previous-changelogs w-full overflow-y-scroll gap-y-4 flex flex-col">
+						<div
+							class="previous-changelogs w-full overflow-y-scroll gap-y-4 flex flex-col"
+						>
 							{#each currentProject.log as log}
 								<div class="p-2 border rounded-lg w-full">
-								<div class="flex items-center gap-2 justify-between">
-									<div class="flex items-center gap-x-1">
-										<div class="avatar w-6 h-6 rounded-full bg-gray-600"></div>
-										<div class="text-sm font-bold">Hello</div>
+									<div class="flex items-center gap-2 justify-between">
+										<div class="flex items-center gap-x-1">
+											<div
+												class="avatar w-6 h-6 rounded-full bg-gray-600"
+											></div>
+											<div class="text-sm font-bold">Hello</div>
+										</div>
+										<div class="text-xs bg-green-800 px-2 py-1 rounded">
+											Approved
+										</div>
 									</div>
-									<div class="text-xs bg-green-800 px-2 py-1 rounded">
-										Approved
-									</div>
+									<p class="feedback text-xs text-gray-300 user-not mt-2">
+										{log.message.at(-1)?.userExternal}
+									</p>
+									<p
+										class="notes whitespace-pre-wrap text-xs text-gray-500 overrideJustification"
+									>
+										{log.message.at(-1)?.internalNote} <br />
+										{log.message.at(-1)?.justification}
+									</p>
 								</div>
-								<p class="feedback text-xs text-gray-300 user-not mt-2">
-									{log.message.at(-1)?.userExternal}
-								</p>
-								<p class="notes whitespace-pre-wrap text-xs text-gray-500 overrideJustification">
-									{log.message.at(-1)?.internalNote} <br/>
-									{log.message.at(-1)?.justification}
-								</p>
-							</div>
 							{/each}
 						</div>
 					</div>
