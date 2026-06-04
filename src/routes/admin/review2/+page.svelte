@@ -63,7 +63,7 @@
 				for (const message of entry.message) {
 					userLogs += `User written logs: ${message.userExternal} \n`
 				}
-				let deltaTime = `Delta: ${Math.floor(entry.deltaTime/60)} hours`
+				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours`
 				let finalEnry = `${userLogs}${deltaTime} \nApproved by: ${approvedBy} \n\n`
 				logs += finalEnry
 			}
@@ -71,10 +71,9 @@
 		return logs
 	}
 	let template = $state("")
+	let loader = $state(false)
 	const generateFullJustification = () => {
-		
-		template =
-			`The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
+		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
 ${currentProject.update || currentProject.log.length > 0 ? `This project is an update to an existing project` : `This is the first submission of this project`}
 Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours
 ${projectDescription}
@@ -101,6 +100,29 @@ Signed by ${data.name}, T2 Reviewer
 			generateFullJustification()
 		}
 	})
+	const sendToDatabase = async () => {
+		const response = await fetch("/admin/review2/sendToAirtable", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				projectId: currentProject.id,
+				justification: template,
+				subtraction,
+			}),
+		})
+		if (response.ok) {
+			alert("Project sent to HQ successfully")
+			loader = false
+		} else {
+			alert("Failed to send project to HQ")
+			loader = false
+		}
+	}
+	const areAllPushedToHQ = (log: Log[]): boolean => {
+		return log.every(entry => entry.submmitedToHQ || entry.status !== 1)
+	}
 </script>
 
 <main class="w-screen h-screen">
@@ -112,7 +134,7 @@ Signed by ${data.name}, T2 Reviewer
 			class="sidebar w-1/4 h-full rounded-2xl bg-black/20 border-2 overflow-y-auto p-2"
 		>
 			{#each airtableProjects as project}
-				{#if wasEverApproved(project)}
+				{#if wasEverApproved(project)&& !areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[])}
 					<button
 						onclick={() => setCurrentProject(project)}
 						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
@@ -253,7 +275,13 @@ Signed by ${data.name}, T2 Reviewer
 									<h2 class="text-muted-foreground text-lg">
 										Override hours (optional)
 									</h2>
-									<Input class="w-[20%]" type="number" min="0" bind:value={subtraction} oninput={generateFullJustification} />
+									<Input
+										class="w-[20%]"
+										type="number"
+										min="0"
+										bind:value={subtraction}
+										oninput={generateFullJustification}
+									/>
 								</div>
 								<Textarea
 									class="resize-none overflow-y-auto h-30"
@@ -270,7 +298,14 @@ Signed by ${data.name}, T2 Reviewer
 								>
 									View Generated Justification
 								</Button>
-								<Button class="bg-green-900 w-[45%]">Push to Airtable</Button>
+								<Button class="bg-green-900 w-[45%]" onclick={sendToDatabase}>
+									{#if loader}
+										<div
+											class="rotatingspinner border-2 border-gray-800 border-t-white rounded-full w-4 h-4 animate-spin"
+										></div>
+									{/if}
+									Push to Airtable
+								</Button>
 							</div>
 						</div>
 
@@ -327,22 +362,22 @@ Signed by ${data.name}, T2 Reviewer
 
 <ProjectDetailsDialog bind:open={detailsOpen} project={currentProject} />
 {#if justificationOpen}
-<div
-	class="generatedJustificationOverlay w-screen h-screen absolute top-0 bg-black/80 z-50 flex items-center justify-center"
->
-	<div class="w-1/2 h-1/2 bg-background rounded-lg p-5 flex flex-col gap-y-5">
-		<h1 class="text-xl font-bold">Generated Justification</h1>
-		<Textarea
-			class="resize-none overflow-y-auto h-full"
-			readonly
-			bind:value={template}
-		/>
-		<Button
-			onclick={() => (justificationOpen = false)}
-			class="bg-red-900 w-full"
-		>
-			Close
-		</Button>
+	<div
+		class="generatedJustificationOverlay w-screen h-screen absolute top-0 bg-black/80 z-50 flex items-center justify-center"
+	>
+		<div class="w-1/2 h-1/2 bg-background rounded-lg p-5 flex flex-col gap-y-5">
+			<h1 class="text-xl font-bold">Generated Justification</h1>
+			<Textarea
+				class="resize-none overflow-y-auto h-full"
+				readonly
+				bind:value={template}
+			/>
+			<Button
+				onclick={() => (justificationOpen = false)}
+				class="bg-red-900 w-full"
+			>
+				Close
+			</Button>
+		</div>
 	</div>
-</div>
 {/if}

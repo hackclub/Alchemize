@@ -28,6 +28,8 @@ export interface Project {
 	readme?: string
 	hackatime: string,
 	update?: boolean,
+	screenshot?: string
+
 
 }
 export interface AirtableProject {
@@ -48,7 +50,23 @@ export interface AirtableProject {
 		status: string
 		slackId: string
 		Theme: string
+		screenshot: string
 	}
+}
+export interface AdminProjectView extends AirtableProject {
+	fields: AirtableProject['fields'] & {
+		firstName: string
+		lastName: string
+		address: string
+		birthdate: string
+	}
+}
+export interface AdminProjectViewNormal extends Project {
+	firstName: string
+	lastName: string
+	address: string
+	birthdate: string
+	Theme: string
 }
 export interface Item {
 	itemID: string;

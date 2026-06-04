@@ -118,6 +118,9 @@
 				userExternal: feedback,
 				justification: autogenChangelog,
 				decreaseTime: overrideHours,
+				slackId: project.submittedBy,
+				projectName: project.name,
+				projectLink: project.code,
 			}),
 		})
 		if (!response.ok) {
@@ -146,6 +149,9 @@
 			decreaseTime: overrideHours,
 			theme: project.category,
 			userEmailId: project.owner,
+			slackId: project.submittedBy,
+			projectName: project.name,
+			projectLink: project.code,
 		})
 		const response = await fetch("/admin/review/accept", {
 			method: "POST",
@@ -162,6 +168,10 @@
 				decreaseTime: overrideHours,
 				theme: project.category,
 				userEmailId: project.owner,
+				slackId: project.submittedBy,
+				projectName: project.name,
+				projectLink: project.code,
+				
 			}),
 		})
 		if (!response.ok) {

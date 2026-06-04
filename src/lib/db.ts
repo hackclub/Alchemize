@@ -355,3 +355,30 @@ export const getAllUsers = async (): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+export const addToJustifications = async (justificationData: {
+    projectId: string,
+    email: string,
+    demo: string,
+    code: string,
+    screenshot: string,
+    description: string,
+    address: string,
+    city: string,
+    state: string,
+    country: string,
+    zip: string,
+    birthdate: string,
+    overrideHoursSpent: string,
+    justification: string,
+    firstName: string,
+    lastName: string
+}): Promise<DBResponse> => {
+    const { projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName } = justificationData
+    const newJustification = await db.insert(justifications).values({ projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName }).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({ id: newJustification[0].id + "", fields: newJustification[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newJustification[0].id + "", fields: newJustification[0] } as airtableReplication),
+    } as DBResponse;
+}

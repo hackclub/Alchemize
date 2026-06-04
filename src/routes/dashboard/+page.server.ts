@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { AIRTABLE, AIRTABLE_CLIENT, START_DATE } from '$env/static/private';
+import {  START_DATE } from '$env/static/private';
 import { getProjectsByOwner, getUserByEmail } from '$lib/db';
 export const load: PageServerLoad = async ({ cookies }) => {
     const at = cookies.get('access_token_new');

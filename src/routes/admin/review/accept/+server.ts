@@ -1,8 +1,8 @@
 import type { Log, UserCurrency, AdminJWT } from "$lib/types";
-import { ADMIN_JWT_SECRET} from "$env/static/private"
-import {themeCurrencyMaps} from "$lib/themeCurrencyMaps"
+import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
+import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
 import type { RequestHandler } from "./$types";
-import {error} from "@sveltejs/kit"
+import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
 import { getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
 
@@ -70,8 +70,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const approver = decoded.name
 
-    const { recordId, log, userExternal, internalNote, justification, decreaseTime, userEmailId, theme} = await request.json()
-    if (!recordId || !log || !userExternal  || !justification || !userEmailId || !theme) {
+    const { recordId, log, userExternal, internalNote, justification, decreaseTime, userEmailId, theme, slackId, projectName, projectLink } = await request.json()
+    if (!recordId || !log || !userExternal || !justification || !userEmailId || !theme || !slackId || !projectName || !projectLink) {
         return new Response("Missing required fields", { status: 400 })
     }
     const oldLog = JSON.parse(log) as Log[]
@@ -87,9 +87,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         })
         return new Response("Failed to update project log", { status: 500 })
     }
+    const currencyType = themeToKeys(theme)
     try {
-        const currencyType = themeToKeys(theme)
-        await updateUserCurrency(Math.floor(newDeltaTime/60), userEmailId, currencyType)
+        await updateUserCurrency(Math.floor(newDeltaTime / 60), userEmailId, currencyType)
     } catch (err) {
         console.error("Failed to update user currency:", {
             error: err instanceof Error ? err
@@ -97,6 +97,28 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             timestamp: new Date().toISOString()
         })
         throw new Error("Failed to update user currency. Dm @TheUtkarsh8939 on Slack to resolve this issue and tell him to trigger user autogen")
+
+    }
+    const botResponse = await fetch("https://aoishik.qzz.io/review-accept", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${BOT_AUTH}`
+        },
+        body: JSON.stringify(
+        { "user_id": slackId, "project_name": projectName, "project_link": projectLink, "reviewer_id": approver, "feedback": userExternal, "currencies": `${Math.floor(newDeltaTime / 60)} ${currencyType}` }
+        )
+    })
+    if (!botResponse.ok) {
+        console.warn(`Failed to send notification to bot for record ${recordId}:`, {
+            status: botResponse.status,
+            statusText: botResponse.statusText,
+            timestamp: new Date().toISOString(),
+            slackId: slackId,
+            projectName: projectName,
+            projectLink: projectLink
+        })
+            return new Response(JSON.stringify({ message: "Bot Failed to send notification", newLog: newLog }), { status: 207 })
 
     }
     return new Response(JSON.stringify({ message: "Project accepted and user currency updated successfully", newLog: newLog }), { status: 200 })
