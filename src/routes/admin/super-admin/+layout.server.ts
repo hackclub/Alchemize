@@ -4,6 +4,7 @@ import {ADMIN_JWT_SECRET} from "$env/static/private"
 import { redirect } from "@sveltejs/kit"
 interface TokenPayload extends jwt.JwtPayload {
     name?: string;
+    isSuperAdmin?: boolean;
 }
 export const load: LayoutServerLoad = async ({cookies}) => {
     const adminAccessToken = cookies.get("admin_access_token")
@@ -12,8 +13,8 @@ export const load: LayoutServerLoad = async ({cookies}) => {
         throw redirect(303, "/admin/login")
     }
     
-    let decoded = jwt.verify(adminJwt, ADMIN_JWT_SECRET) as TokenPayload;
-    if (!decoded || !decoded.name) {
+    let decoded = jwt.verify(adminJwt, ADMIN_JWT_SECRET ) as TokenPayload;
+    if (!decoded || !decoded.name || !decoded.isSuperAdmin) {
         throw redirect(303, "/admin/login")
     }
 
@@ -21,6 +22,6 @@ export const load: LayoutServerLoad = async ({cookies}) => {
     return {
         isAdmin: true,
         name: decoded.name || null,
-
+        isSuperAdmin: decoded.isSuperAdmin || false
     }
 }
