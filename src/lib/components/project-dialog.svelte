@@ -220,6 +220,7 @@
 							name="screenshot"
 							placeholder="https://example.com/screenshot"
 							accept="image/*"
+							required
 						/>
 					</div>
 				{/if}
