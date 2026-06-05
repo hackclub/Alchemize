@@ -3,17 +3,64 @@
 	import Input from "$lib/components/ui/input/input.svelte"
 	import { FlaskConical } from "lucide-svelte"
 	import { currenciesToPotionMix } from "$lib/utils"
+	import { invalidateAll } from "$app/navigation"
 	let { data } = $props()
 	let redstoneAmount = $state(0)
 	let glowstoneAmount = $state(0)
 	let aquaRegiaAmount = $state(0)
 	let potionMixAmount = $state(0)
+	let hasRedstone = $state(data.currencies?.redstone)
+	let hasGlowstone = $state(data.currencies?.glowstone)
+	let hasAquaRegia = $state(data.currencies?.aqua_regia)
+	let hasPotionMix = $state(data.currencies?.potion_mix)
 	const calculatePotionMix = () => {
 		potionMixAmount = currenciesToPotionMix(
 			redstoneAmount,
 			glowstoneAmount,
-			aquaRegiaAmount,
+			aquaRegiaAmount
 		)
+	}
+	let loading = $state(false)
+	const updatePotionMix = async () => {
+		loading = true
+		const res = await fetch("/dashboard/trade/trade", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				redstone: redstoneAmount,
+				glowstone: glowstoneAmount,
+				aqua_regia: aquaRegiaAmount,
+			}),
+		})
+		if (res.ok) {
+			invalidateAll()
+			const resData = await res.json()
+			data.currencies = resData.currencies
+			if (hasPotionMix) {
+				hasPotionMix += currenciesToPotionMix(
+					redstoneAmount,
+					glowstoneAmount,
+					aquaRegiaAmount
+				)
+			}
+			if (hasRedstone && hasGlowstone && hasAquaRegia) {
+				hasRedstone -= redstoneAmount
+				hasGlowstone -= glowstoneAmount
+				hasAquaRegia -= aquaRegiaAmount
+			}
+			redstoneAmount = 0
+			glowstoneAmount = 0
+			aquaRegiaAmount = 0
+			potionMixAmount = 0
+
+			alert("Stones converted successfully!")
+		} else {
+			const errorData = await res.json()
+			alert(errorData.message)
+		}
+		loading = false
 	}
 </script>
 
@@ -57,10 +104,17 @@
 									Redstone
 								</h2>
 								<span class="text-neutral-400 text-xs font-medium">
-									Owned: {data.currencies?.redstone}
+									Owned: {hasRedstone ? data.currencies?.redstone : 0}
 								</span>
 							</div>
-							<Input type="number" bind:value={redstoneAmount} oninput={calculatePotionMix} class="h-8 text-sm" max={data.currencies?.redstone} min="0"  />
+							<Input
+								type="number"
+								bind:value={redstoneAmount}
+								oninput={calculatePotionMix}
+								class="h-8 text-sm"
+								max={hasRedstone ? data.currencies?.redstone : 0}
+								min="0"
+							/>
 						</div>
 					</div>
 
@@ -81,10 +135,17 @@
 									Glowstone
 								</h2>
 								<span class="text-neutral-400 text-xs font-medium">
-									Owned: {data.currencies?.glowstone}
+									Owned: {hasGlowstone ? data.currencies?.glowstone : 0}
 								</span>
 							</div>
-							<Input type="number" bind:value={glowstoneAmount} oninput={calculatePotionMix} class="h-8 text-sm" max={data.currencies?.glowstone} min="0" />
+							<Input
+								type="number"
+								bind:value={glowstoneAmount}
+								oninput={calculatePotionMix}
+								class="h-8 text-sm"
+								max={hasGlowstone ? data.currencies?.glowstone : 0}
+								min="0"
+							/>
 						</div>
 					</div>
 
@@ -105,10 +166,17 @@
 									Aqua Regia
 								</h2>
 								<span class="text-neutral-400 text-xs font-medium">
-									Owned: {data.currencies?.aqua_regia}
+									Owned: {hasAquaRegia ? data.currencies?.aqua_regia : 0}
 								</span>
 							</div>
-							<Input type="number" bind:value={aquaRegiaAmount} oninput={calculatePotionMix} class="h-8 text-sm" max={data.currencies?.aqua_regia} min="0" />
+							<Input
+								type="number"
+								bind:value={aquaRegiaAmount}
+								oninput={calculatePotionMix}
+								class="h-8 text-sm"
+								max={hasAquaRegia ? data.currencies?.aqua_regia : 0}
+								min="0"
+							/>
 						</div>
 					</div>
 				</div>
@@ -124,8 +192,14 @@
 				</div>
 				<div class="flex flex-col items-center justify-start gap-y-2">
 					<Button
+						onclick={updatePotionMix}
 						class="px-10 py-6  font-alchemize shadow-black rounded-full text-xl hover:scale-102 transition"
 					>
+						{#if loading}
+							<div
+								class="loader border-gray-500 border-2 border-t-white rounded-full size-5 animate-spin"
+							></div>
+						{/if}
 						<!-- sounds cool eh? -->
 						Convert stones
 					</Button>
@@ -151,8 +225,15 @@
 						>
 							Potion Mix
 						</h2>
-						<Input type="number" bind:value={potionMixAmount} class="h-8 text-sm" readonly />
-						<span class="text-neutral-400 text-xs font-medium"> Owned: {data.currencies?.potion_mix} </span>
+						<Input
+							type="number"
+							bind:value={potionMixAmount}
+							class="h-8 text-sm"
+							readonly
+						/>
+						<span class="text-neutral-400 text-xs font-medium">
+							Owned: {hasPotionMix ? data.currencies?.potion_mix : 0}
+						</span>
 					</div>
 				</div>
 			</div>
