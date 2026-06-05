@@ -51,5 +51,6 @@ export const load: PageServerLoad = async ({params, cookies}) => {
             isSuperAdmin: roles.includes("super_admin"),
             isFulfiller: roles.includes("fulfiller"),
             isT2Reviewer: roles.includes("t2_reviewer"),
+            nda: adminData.records[0].fields.nda === "true"
         }
 }

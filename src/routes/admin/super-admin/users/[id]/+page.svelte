@@ -10,13 +10,37 @@
 	let isFulfiller = $state(data.isFulfiller)
 	let isSuperAdmin = $state(data.isSuperAdmin)
 	let slackId = $state(data.slackId)
+	let nda = $state(data.nda)
+	let loading = $state(false)
 	const handleSaveChanges = () => {
-		console.log({
+		loading = true
+		const updatedUser = {
+			email: data.email,
 			isReviewer,
 			isT2Reviewer,
 			isFulfiller,
 			isSuperAdmin,
+			slackId,
+			nda
+		}
+		let response = fetch("/admin/super-admin/updateAdmin",{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(updatedUser),
+			credentials: "include"
 		})
+		response.then((res) => {
+			if(res.ok){
+				alert("User updated successfully!")
+			} else {
+				alert("Failed to update user.")
+			}
+		}).catch(() => {
+			alert("An error occurred while updating the user.")
+		})
+		loading = false
 	}
 </script>
 
@@ -97,6 +121,16 @@
 
 				<Switch bind:checked={ isSuperAdmin } />
 			</div>
+						<div
+				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
+			>
+				<div>
+					<p class="font-medium">NDA'ed</p>
+					<p class="text-sm text-zinc-400">Has signed NDA?</p>
+				</div>
+
+				<Switch bind:checked={nda} />
+			</div>
 		</div>
 
 		<div class="flex justify-end px-6 py-4">
@@ -104,6 +138,10 @@
 				class="rounded-xl bg-admin-primary px-6 py-5 text-sm font-semibold text-white transition hover:opacity-90 hover:scale-104"
 				onclick={() => handleSaveChanges()}
 			>
+				{#if loading}
+				<div class="loader h-5 w-5 border-2 border-gray-400 border-t-white rounded-full mx-auto animate-spin"></div>
+
+				{/if}
 				Save Changes
 			</Button>
 		</div>

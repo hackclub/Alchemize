@@ -56,7 +56,7 @@ export const ordersTable = pgTable("orders", {
 export const adminTable = pgTable("admins", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     slackId: varchar({ length: 255 }).notNull(),
-    email: varchar({ length: 455 }).notNull(),
+    email: varchar({ length: 455 }).notNull().unique(),
     roles: varchar({ length: 355 }).notNull(),
     name: varchar({ length: 255 }).notNull(),
     nda: varchar({ length: 255 }).notNull(),
