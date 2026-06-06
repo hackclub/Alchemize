@@ -35,6 +35,7 @@
 		"@fontsource-variable/inter": "^5.2.8",
 		"@neondatabase/serverless": "^1.1.0",
 		"@slack/web-api": "^7.16.0",
+		"@sveltejs/adapter-vercel": "^6.3.3",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.45.2",
