@@ -1,9 +1,10 @@
 import type { RequestHandler } from "@sveltejs/kit"
-import {  BOT_AUTH } from "$env/static/private"
+import {  BOT_AUTH, USER_JWT_SECRET } from "$env/static/private"
 import {START_DATE} from "$env/static/private"
 import { getDataFromAccessToken } from "$lib/utils"
 import type { Log } from "$lib/types"
 import { getProjectById, patchProjectForShip } from "$lib/db"
+import jwt from "jsonwebtoken"
 /* REQUEST BODY
 	-Hackatime Access token(Now derived from Cookies)
 	-Record ID
@@ -117,7 +118,16 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
 		return new Response("No new time recorded since last ship", { status: 400 })
 	}
 	//Confirm ownership by comparing email from access token with project owner email
-	const userData = await getDataFromAccessToken(accessToken)
+	const authToken = cookies.get('user_token');
+	let decoded = null;
+try {
+	if(authToken){
+		decoded = jwt.verify(authToken, USER_JWT_SECRET);
+	}
+} catch (error) {
+	console.error('Invalid user token:', error);
+}
+const userData = decoded ? (decoded as any) : null;
 	if(projectData.fields.owner){
 		if (userData.email !== projectData.fields.owner) {
 		return new Response("Unauthorized: You do not own this project", { status: 403 })

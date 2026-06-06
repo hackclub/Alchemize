@@ -1,25 +1,33 @@
+import { USER_JWT_SECRET } from "$env/static/private";
 import { getUserByEmail } from "$lib/db"
 import type { UserCurrency } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 import looseJson from "loose-json"
+import jwt from "jsonwebtoken";
 
 export const load: PageServerLoad = async ({ cookies }) => {
     const at = cookies.get('access_token_new');
-
-    const fetchRes = await fetch("https://auth.hackclub.com/api/v1/me", {
-        headers: {
-            Authorization: `Bearer ${at}`,
-        },
-        method: "GET"
-    })
-
-    const data = await fetchRes.json()
-    if (!fetchRes.ok) {
+    const user_token = cookies.get('user_token');
+    if (!at || !user_token) {
         return {
-            error: data?.message ?? "Failed to fetch user data"
+            error: 'No access token found'
         }
     }
-    let userResponse = await getUserByEmail(data.identity.primary_email);
+    let decoded = null;
+    try{
+        if(user_token){
+            decoded = jwt.verify(user_token, USER_JWT_SECRET);
+        }
+    } catch (error) {
+        console.error('Invalid user token:', error);
+        return {
+            error: 'Invalid user token'
+        }
+    }
+
+    const data = decoded ? (decoded as any) : null;
+ 
+    let userResponse = await getUserByEmail(data.email);
     let userData = await userResponse.json();
     let user = userData.records[0].fields
     let userCurrencies = 
