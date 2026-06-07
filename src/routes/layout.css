@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Saira+Stencil:ital,wght@0,100..900;1,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/inter";
-@import url("https://fonts.googleapis.com/css2?family=Saira+Stencil:ital,wght@0,100..900;1,100..900&display=swap");
 @source "src/**/*.{svelte,ts,js,html,md}";
 
 @custom-variant dark (&:is(.dark *));
@@ -37,7 +38,9 @@ body{
 	@theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Inter Variable', sans-serif;
-    --font-alchemize: 'Comic Sans', sans-serif;
+    --font-alchemize: 'Montserrat', sans-serif;
+    --font-hero: 'Comic Sans', cursive, sans-serif;
+    --font-saira: 'Saira Stencil', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --background-image-gradbg: linear-gradient(to bottom right, var(--color-neutral-950), #311017, #4c0519);
     --background-image-admin: linear-gradient(

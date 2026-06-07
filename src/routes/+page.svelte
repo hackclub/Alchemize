@@ -118,14 +118,14 @@
 				<X class="font-bold h-7 w-7 text-rose-500" />
 				<img src="/Alchemist.webp" alt="" class="w-10 h-10" />
 				<span
-					class="font-alchemize font-bold tracking-widest text-lg text-rose-500 select-none pointer-events-none"
+					class="font-hero font-bold tracking-widest text-lg text-rose-500 select-none pointer-events-none"
 				>
 					ALCHEMIZE
 				</span>
 			</div>
 
 			<h1
-				class="font-alchemize hero-title text-rose-600 drop-shadow-[0_4px_12px_rgba(225,29,72,0.3)]"
+				class="font-hero hero-title text-rose-600 drop-shadow-[0_4px_12px_rgba(225,29,72,0.3)]"
 			>
 				ALCHEMIZE
 			</h1>
@@ -218,7 +218,7 @@
 			class="flex flex-col items-center gap-16 bg-gradient-to-b from-rose-950/40 to-zinc-950 px-16 py-24"
 		>
 			<h2
-				class="font-alchemize text-center section-title text-3xl text-rose-100"
+				class="font-hero text-center section-title text-3xl text-rose-100"
 			>
 				HOW IT WORKS
 			</h2>
@@ -228,7 +228,7 @@
 					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
 				>
 					<Blocks class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-alchemize text-rose-300 text-xl">Create</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Create</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Pick a theme (Sci-Fi, Anime, or Tribute) and track hours via
 						Hackatime.
@@ -238,7 +238,7 @@
 					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
 				>
 					<Rocket class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-alchemize text-rose-300 text-xl">Ship It</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Ship It</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Submit your project for review by Master Alchistants to earn theme
 						currency.
@@ -248,7 +248,7 @@
 					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
 				>
 					<FlaskConical class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-alchemize text-rose-300 text-xl">Mix Potions</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Mix Potions</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Convert currencies into Potion Mix. Mixing multiple types grants
 						bonuses.
@@ -258,7 +258,7 @@
 					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
 				>
 					<ShoppingCart class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-alchemize text-rose-300 text-xl">Dynamic Shop</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Dynamic Shop</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Spend your Potion Mix on rewards. New items are added weekly based
 						on your suggestions!
@@ -272,7 +272,7 @@
 			class="flex flex-col items-center gap-16 bg-zinc-950 px-16 pt-12 pb-95 h-auto"
 		>
 			<h2
-				class="font-alchemize text-center section-title text-2xl text-rose-100"
+				class="font-hero text-center section-title text-2xl text-rose-100"
 			>
 				The Three Themes of Season 1
 			</h2>
@@ -281,7 +281,7 @@
 				<div
 					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
 				>
-					<h3 class="font-alchemize text-rose-300 text-xl">Endless</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Endless</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Create a project with an infinite Canvas. It can be a game where
 						levels generate endlessly(like pacman), It can be a paint app with
@@ -293,7 +293,7 @@
 				<div
 					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
 				>
-					<h3 class="font-alchemize text-rose-300 text-xl">No Internet</h3>
+					<h3 class="font-hero text-rose-300 text-xl">No Internet</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Make something that works without an internet connection, No APIs,
 						No CDNs, No fetching data from the internet, (and obviously no
@@ -306,7 +306,7 @@
 				<div
 					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
 				>
-					<h3 class="font-alchemize text-rose-300 text-xl">Indie Gamedev</h3>
+					<h3 class="font-hero text-rose-300 text-xl">Indie Gamedev</h3>
 					<p class="text-zinc-400 text-sm leading-relaxed">
 						Make a game inspired by the indie game genre. It can be a platformer
 						with a unique art style, a narrative-driven experience, a puzzle
@@ -334,7 +334,7 @@
 			class="flex flex-col items-center gap-6 px-16 py-24 min-auto pb-75 h-auto bg-gradient-to-b from-rose-950/60 to-zinc-950 -mt-1"
 		>
 			<h2
-				class="font-alchemize text-center section-title text-3xl text-rose-100"
+				class="font-hero text-center section-title text-3xl text-rose-100"
 			>
 				FAQ
 			</h2>
@@ -390,7 +390,7 @@
 				class="w-full px-20 absolute items-center flex bg-zinc-950 border-t border-rose-950/30 pt-10 pb-10 gap-16 justify-around text-zinc-400 text-sm"
 			>
 				<div class="row1 flex flex-col gap-5 w-33">
-					<h3 class="text-3xl font-semibold font-alchemize text-rose-500">
+					<h3 class="text-3xl font-semibold font-hero text-rose-500">
 						Hackclub
 					</h3>
 					<ul class="flex list-none flex-col gap-4">
@@ -435,7 +435,7 @@
 					</h2>
 				</div>
 				<div class="row2 flex flex-col gap-5 w-43">
-					<h3 class="text-3xl font-semibold font-alchemize text-rose-500">
+					<h3 class="text-3xl font-semibold font-hero text-rose-500">
 						Resources
 					</h3>
 					<ul class="flex list-none flex-col gap-4">
@@ -609,7 +609,7 @@
 	}
 
 	.cta-text {
-		font-family: var(--font-alchemize);
+		font-family: var(--font-hero);
 		font-size: clamp(1rem, 4vw, 1.5rem);
 		font-weight: 900;
 		color: white;
@@ -626,4 +626,5 @@
 	.feature-card:hover {
 		background: rgba(127, 29, 29, 0.15);
 	}
+	
 </style>

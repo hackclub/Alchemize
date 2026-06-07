@@ -1,10 +1,10 @@
 
-import { USERID_ENCRYPTION_KEY, BASE_URL,SLACK_BOT_TOKEN } from '$env/static/private';
+import { USERID_ENCRYPTION_KEY, BASE_URL,SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import {WebClient} from "@slack/web-api"
 import type { AirtableReferRecord, Refers } from '$lib/types';
 import { getAllRefers } from '$lib/db';
-
+import jwt from 'jsonwebtoken';
 
 
 
@@ -62,27 +62,23 @@ const getReferedCountsByReferer = async (allRefers: AirtableReferRecord[]): Prom
 }
 export const load: PageServerLoad = async ({ url, cookies }) => {
     const at = cookies.get('access_token_new');
-    const request = await fetch("https://auth.hackclub.com/api/v1/me", {
-        headers: {
-            Authorization: `Bearer ${at}`,
+    const userToken = cookies.get('user_token');
+    let data: any = null;
+    if (userToken) {
+        try {
+            data = jwt.verify(userToken, USER_JWT_SECRET);
         }
-    })
-    if (!request.ok) {
-        console.warn("Failed to fetch user data:", request.statusText);
-        return {
-            url: null,
-            myReferals: [],
-            counts: {}
-        }
+        catch (err) {
+            console.error("Error verifying JWT:", err);
+        }  
     }
-    const data = await request.json()
-    const id = encodeURIComponent(XORencrypt(`${data.identity.id.slice(6)} ${data.identity.slack_id}`));
+    const id = encodeURIComponent(XORencrypt(`${data.id.slice(6)} ${data.slack_id}`));
     let referalsResponse = await getAllRefers()
     if (!referalsResponse.ok) {
         throw new Error(`Failed to fetch referals data: ${await referalsResponse.text()}`);
     }
     let referalsData: { records: AirtableReferRecord[] } = await referalsResponse.json();
-    let myReferals = getMyReferals(data.identity.id.slice(6), referalsData.records);
+    let myReferals = getMyReferals(data.id.slice(6), referalsData.records);
     let referedCountsByReferer = await getReferedCountsByReferer(referalsData.records);
     return {
         url: `${BASE_URL}/?refer=${id}`,
