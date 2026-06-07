@@ -236,9 +236,9 @@
 									</h2>
 
 									<span
-										class="text-xs font-bold text-zinc-300 bg-black/80 px-2 py-0.5 border border-zinc-800 rounded-none flex items-center gap-1.5 shrink-0 shadow-md"
+										class="text-xs font-bold text-zinc-300 px-2 py-0.5  border-zinc-800 rounded-none flex items-center gap-1.5 shrink-0 shadow-md"
 									>
-										<Clock class="size-3 text-primary" />
+										<Clock class="size-4 text-primary" />
 										{formatHours(
 											hackSecondsByName.get(
 												(project.fields.hackatime ?? "").trim().toLowerCase()
