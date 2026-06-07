@@ -103,8 +103,24 @@
 		"flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
 
 	let files: any = $state()
-	let fileinputPreview: any = $state()
+	let fileinputPreview: any = $state('')
 	let hasFile = $derived(files && files.length > 0)
+	
+	$effect(() => {
+		if (files && files.length > 0) {
+			const file = files[0];
+			const objectUrl = URL.createObjectURL(file);
+			console.log("File input Link created dynamically:", objectUrl);
+			fileinputPreview = objectUrl;
+			
+			// Cleanup: revoke the URL when files change or component destroys
+			return () => {
+				URL.revokeObjectURL(objectUrl);
+			};
+		} else {
+			fileinputPreview = '';
+		}
+	})
 </script>
 
 <Dialog.Root bind:open>
@@ -375,7 +391,8 @@
 							<div class="flex items-center justify-center w-full">
 								<label
 									for="screenshot"
-									class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-zinc-900/30 border-zinc-800 hover:bg-zinc-900/50 hover:border-zinc-700 transition"
+									class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
+									style={fileinputPreview ? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);` : 'background-color: transparent;'}
 								>
 									<div
 										class="flex flex-col items-center justify-center pt-3 pb-3"
@@ -397,21 +414,7 @@
 										required
 										class="hidden"
 										bind:files
-										onchange={event => {
-											//@ts-ignore
-											const file = event?.target?.files[0]
-
-											if (file) {
-												
-												const objectUrl = URL.createObjectURL(file)
-
-												
-												fileinputPreview = objectUrl
-												
-
-												
-											}
-										}}
+										
 									/>
 								</label>
 							</div>
