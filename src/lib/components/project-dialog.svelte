@@ -103,7 +103,7 @@
 		"flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
 
 	let files: any = $state()
-
+	let fileinputPreview: any = $state()
 	let hasFile = $derived(files && files.length > 0)
 </script>
 
@@ -412,8 +412,7 @@
 								class={selectClass}
 								bind:value={type}
 							>
-								<option value="" disabled selected={!type}>Choose format</option
-								>
+								<option value="" disabled selected={!type}>Choose Type</option>
 								<option value="web">Web Playable</option>
 								<option value="mobile">Mobile App</option>
 								<option value="desktop">Desktop App</option>
@@ -435,9 +434,7 @@
 									class={selectClass}
 									bind:value={theme}
 								>
-									<option value="" disabled selected
-										>Choose track alignment</option
-									>
+									<option value="" disabled selected>Choose Theme</option>
 									<option value="endless">Endless Track</option>
 									<option value="no-internet">No Internet Required</option>
 									<option value="indie-game">Indie Game Framework</option>
@@ -536,6 +533,21 @@
 								type="submit"
 								class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
 								onclick={() => {
+									//Check for all the fields
+									if (
+										!name ||
+										!description ||
+										!type ||
+										!github ||
+										!demo ||
+										!hackatime ||
+										files?.length === 0
+									) {
+										toast.error("Please fill in all required fields.")
+										return
+									}
+
+
 									if (mode === "create" && descriptionCharCount < 50) {
 										toast.error(
 											"Please provide a description with at least 50 characters."
