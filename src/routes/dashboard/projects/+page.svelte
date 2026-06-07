@@ -2,13 +2,13 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import ProjectDialog from "$lib/components/project-dialog.svelte"
 
-	import { Plus, Clock, Image, ArrowUpRight } from "lucide-svelte"
+	import { Plus, Clock, Image, ArrowUpRight, Blocks } from "lucide-svelte"
 
 	import { invalidateAll } from "$app/navigation"
 	import { loaderStore } from "$lib/stores/loader"
 
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
-	import {toast} from "svelte-sonner"
+	import { toast } from "svelte-sonner"
 	import type { AirtableProject } from "$lib/types"
 
 	let { data } = $props()
@@ -178,7 +178,7 @@
 			class="flex items-center justify-between border-b-2 border-primary/30 pb-4"
 		>
 			<div class="flex items-center gap-3">
-				<div class="h-3 w-3 bg-primary animate-pulse rounded-none"></div>
+				<Blocks class="h-4 w-4 animate-pulse text-primary" />
 				<h1
 					class="text-2xl font-alchemize font-black uppercase tracking-wider text-primary"
 				>
@@ -227,7 +227,9 @@
 						<div
 							class="relative z-10 w-full h-full flex flex-col justify-between"
 						>
-							<div class="flex flex-col items-start justify-start gap-y-2 w-full h-full">
+							<div
+								class="flex flex-col items-start justify-start gap-y-2 w-full h-full"
+							>
 								<div class="w-full flex items-center justify-between gap-4">
 									<h2
 										class="text-2xl font-black tracking-tight text-white line-clamp-1 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] font-alchemize"
@@ -236,7 +238,7 @@
 									</h2>
 
 									<span
-										class="text-xs font-bold text-zinc-300 px-2 py-0.5  border-zinc-800 rounded-none flex items-center gap-1.5 shrink-0 shadow-md"
+										class="text-xs font-bold text-zinc-300 px-2 py-0.5 border-zinc-800 rounded-none flex items-center gap-1.5 shrink-0 shadow-md"
 									>
 										<Clock class="size-4 text-primary" />
 										{formatHours(
