@@ -4,7 +4,7 @@
 	//@ts-ignore
 	import looseJson from "loose-json"
 	import { ShoppingBag } from "lucide-svelte"
-	import {toast} from "svelte-sonner"
+	import { toast } from "svelte-sonner"
 	let { data } = $props()
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
@@ -105,11 +105,11 @@
 </script>
 
 <main
-	class="min-h-screen w-full bg-gradbg text-foreground p-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-x-hidden"
+	class="min-h-screen w-full bg-gradbg text-foreground px-2 py-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-x-hidden"
 >
 	<div class="fixed inset-0 bg-black/60 z-0 pointer-events-none"></div>
 
-	<div class="relative z-10 max-w-7xl mx-auto flex flex-col gap-8">
+	<div class="relative z-10 max-w-7xl mx-2 flex flex-col gap-8">
 		<div
 			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-primary/40 pb-4 backdrop-blur-md px-4 py-2 pr-10 -mx-4 rounded-t-sm"
 		>
@@ -150,7 +150,7 @@
 		</div>
 
 		<div
-			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 items-start"
+			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 items-start"
 		>
 			{#each shopItems as item}
 				<div class="relative group">
