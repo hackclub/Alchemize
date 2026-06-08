@@ -169,18 +169,18 @@
 </script>
 
 <main
-	class="min-h-screen w-full bg-gradbg text-foreground p-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground"
+	class=" min-h-screen overflow-scroll  w-full bg-gradbg text-foreground p-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground"
 >
-	<div class="fixed inset-0 bg-black/40 pointer-events-none"></div>
+	
 
-	<div class="relative z-50 max-w-7xl mx-auto flex flex-col gap-8">
+	<div class="relative z-50 max-w-7xl mx-auto flex flex-col gap-8 h-screen">
 		<div
-			class="flex items-center justify-between border-b-2 border-primary/30 pb-4"
+			class="flex items-end justify-between border-b-2 pb-[clamp(5px,1vh,16px)] border-primary/30 h-[clamp(40px,8vh,80px)] mt-5"
 		>
 			<div class="flex items-center gap-3">
 				<Blocks class="h-4 w-4 animate-pulse text-primary" />
 				<h1
-					class="text-2xl font-alchemize font-black uppercase tracking-wider text-primary"
+					class="text-2xl font-alchemize font-black uppercase tracking-wider line-clamp-1 text-primary"
 				>
 					Your Mixes
 					<span class="text-[0.5rem] text-white">Alchemize</span>
@@ -198,7 +198,7 @@
 			</Button>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 items-start max-h-9/10">
 			{#each projects as project}
 				<div class="relative group">
 					<div
@@ -250,19 +250,19 @@
 								</div>
 
 								<p
-									class="text-zinc-200 text-sm leading-relaxed line-clamp-3 font-sans tracking-normal max-w-[92%] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
+									class="text-zinc-300 text-sm leading-relaxed line-clamp-3 font-sans tracking-normal max-w-[92%] [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
 								>
 									{project.fields.description || "No description for this mix."}
 								</p>
 							</div>
 
 							<div class="flex items-center justify-between p-0">
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-2 w-50">
 									<span
 										class={`h-2 w-2 rounded-full ${applyBadge(project).dot}`}
 									></span>
 									<span
-										class={`text-[11px] uppercase font-extrabold tracking-widest [text-shadow:0_1px_2px_rgba(0,0,0,0.6)] ${applyBadge(project).text}`}
+										class={`text-[11px]  uppercase font-extrabold tracking-widest [text-shadow:0_1px_2px_rgba(0,0,0,0.6)] ${applyBadge(project).text}`}
 									>
 										{applyBadge(project).title}
 									</span>
@@ -320,7 +320,11 @@
 		</div>
 	</div>
 </main>
-
+<style>
+	.bg-gradbg{
+		background: linear-gradient(to bottom right, var(--color-neutral-950), #1a090c, #2e030f)
+	}
+</style>
 <ProjectDialog
 	bind:open={newProjWindowOpened}
 	mode="create"
