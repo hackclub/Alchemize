@@ -1,3 +1,5 @@
+version: '3.8'
+## HOPE THIS WORKS
 services:
   app:
     build: .
@@ -10,13 +12,21 @@ services:
     expose:
       - "3000"
 
+  
+    networks:
+      - coolify
+
     labels:
-      - traefik.enable=true
+      - "traefik.enable=true"
+      
+      
+      - "traefik.http.routers.$$COOLIFY_CONTAINER_NAME.rule=Host(`alchemize.hackclub.com`)"
+      - "traefik.http.routers.$$COOLIFY_CONTAINER_NAME.entrypoints=websecure"
+      - "traefik.http.routers.$$COOLIFY_CONTAINER_NAME.tls=true"
+      
+      
+      - "traefik.http.services.$$COOLIFY_CONTAINER_NAME.loadbalancer.server.port=3000"
 
-      # Router
-      - traefik.http.routers.alchemize.rule=Host(`alchemize.hackclub.com`)
-      - traefik.http.routers.alchemize.entrypoints=websecure
-      - traefik.http.routers.alchemize.tls=true
-
-      # Service
-      - traefik.http.services.alchemize.loadbalancer.server.port=3000
+networks:
+  coolify:
+    external: true
