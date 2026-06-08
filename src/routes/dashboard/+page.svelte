@@ -67,7 +67,7 @@
 
 	<div class="flex flex-col gap-4 w-full h-full">
 		<div
-			class="flex justify-between items-center bg-background/40 backdrop-blur px-6 py-4 border border-white/10 rounded-2xl"
+			class="flex justify-between h-[clamp(60px,10vh,100px)] items-center bg-background/40 backdrop-blur px-6 py-4 border border-white/10 rounded-2xl"
 		>
 			<div class="flex items-center gap-4">
 				<img
@@ -81,19 +81,19 @@
 				</div>
 			</div>
 			<div
-				class="font-alchemize text-primary text-2xl flex items-center gap-x-4"
+				class="font-hero text-primary text-2xl flex items-center gap-x-4"
 			>
 				Alchemize
 				<img src="/Alchemist.webp" alt="" class="w-10 h-10" />
 			</div>
 		</div>
-		<div class="flex items-start justify-start gap-x-4 h-full">
+		<div class="flex items-start justify-start gap-x-4 h-[]" style="height:calc(calc(100vh - clamp(60px,10vh,100px)) - 2rem)">
 			<div
-				class="flex flex-col items-center justify-center gap-4 w-[50%] h-full"
+				class="flex flex-col items-center  gap-4 w-[50%] h-full"
 			>
-				<div class="gap-4 grid grid-cols-2 w-full">
+				<div class="gap-4 grid grid-cols-2 w-full min-h-1/10">
 					<div
-						class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+						class="flex flex-col gap-2 bg-background/40 backdrop-blur items-start px-5 border py-3 border-white/10 rounded-2xl"
 					>
 						<p class="text-muted-foreground text-xs uppercase tracking-widest">
 							Hackatime
@@ -110,7 +110,7 @@
 						</div>
 					</div>
 					<div
-						class="flex flex-col gap-2 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
+						class="flex flex-col gap-2 bg-background/40 backdrop-blur items-start px-5  justify-center border border-white/10 py-3 rounded-2xl"
 					>
 						<p class="text-muted-foreground text-xs uppercase tracking-widest">
 							YSWS
@@ -127,7 +127,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="w-full h-full">
+				<div class="w-full h-9/10">
 					<div
 						class="h-full w-full flex flex-col gap-4 bg-background/40 backdrop-blur p-5 border border-white/10 rounded-2xl"
 					>
@@ -204,15 +204,15 @@
 							</span>
 						</a>
 						{#if data.admin || true}
-						<a
-							href="/admin"
-							class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
-						>
-							<ShieldUser class="w-7 h-7 font-extralight" />
-							<span class="font-alchemize text-foreground text-sm">
-								Admin
-							</span>
-						</a>
+							<a
+								href="/admin"
+								class="flex flex-col justify-center items-center gap-2 bg-white/5 hover:bg-primary/20 p-4 border border-white/10 hover:border-primary/50 rounded-xl transition-all"
+							>
+								<ShieldUser class="w-7 h-7 font-extralight" />
+								<span class="font-alchemize text-foreground text-sm">
+									Admin
+								</span>
+							</a>
 						{/if}
 					</div>
 				</div>
@@ -223,7 +223,13 @@
 					<h2 class="font-alchemize text-primary text-lg">Currency</h2>
 					<div class="gap-2 flex justify-around">
 						<div class="flex items-center gap-2">
-							<span class="text-lg"><img src="/alch-redstone.png" alt="Redstone" class="w-5 h-5" /></span>
+							<span class="text-lg"
+								><img
+									src="/alch-redstone.png"
+									alt="Redstone"
+									class="w-5 h-5"
+								/></span
+							>
 							<div>
 								<p class="text-muted-foreground text-xs">Redstone</p>
 								<p class="font-alchemize text-foreground">
@@ -232,7 +238,13 @@
 							</div>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="text-lg"><img src="/alch-glowstone.png" alt="Glowstone" class="w-5 h-5" /></span>
+							<span class="text-lg"
+								><img
+									src="/alch-glowstone.png"
+									alt="Glowstone"
+									class="w-5 h-5"
+								/></span
+							>
 							<div>
 								<p class="text-muted-foreground text-xs">Glowstone</p>
 								<p class="font-alchemize text-foreground">
@@ -241,7 +253,13 @@
 							</div>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="text-lg"><img src="/alch-aquaregia.png" alt="Aqua Regia" class="w-5 h-5" /></span>
+							<span class="text-lg"
+								><img
+									src="/alch-aquaregia.png"
+									alt="Aqua Regia"
+									class="w-5 h-5"
+								/></span
+							>
 							<div>
 								<p class="text-muted-foreground text-xs">Aqua Regia</p>
 								<p class="font-alchemize text-foreground">
@@ -250,7 +268,13 @@
 							</div>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="text-lg"><img src="/Alchemize.png" alt="Potion Mix" class="w-5 h-5" /></span>
+							<span class="text-lg"
+								><img
+									src="/Alchemize.png"
+									alt="Potion Mix"
+									class="w-5 h-5"
+								/></span
+							>
 							<div>
 								<p class="text-muted-foreground text-xs">Potion Mix</p>
 								<p class="font-alchemize text-foreground">
