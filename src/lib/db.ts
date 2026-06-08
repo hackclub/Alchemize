@@ -1,4 +1,5 @@
-import { drizzle } from 'drizzle-orm/neon-http'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import {Pool} from 'pg'
 import { eq } from 'drizzle-orm'
 import { integer, pgTable, varchar, } from "drizzle-orm/pg-core";
 import { DATABASE_URL } from '$env/static/private'
@@ -92,7 +93,11 @@ export interface airtableReplication {
     id: string
     fields: any
 }
-const db = drizzle(DATABASE_URL); //Database Connection
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL
+});
+
+const db = drizzle(pool); //Database Connection
 
 // Database Compatiblity Layer
 
