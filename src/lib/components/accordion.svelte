@@ -1,33 +1,44 @@
-<script>
+<script lang="ts">
 	import { slide } from "svelte/transition"
 
 	let { Title, Content, addClass } = $props()
 	let open = $state(false)
 </script>
 
-<div
-	class="flex flex-col w-full items-center gap-0 hover:scale-101 transition-transform duration-300"
->
+<div class="flex flex-col w-full items-stretch justify-start group">
 	<button
 		onclick={() => (open = !open)}
-		class="extendable {addClass ||
-			''} border-red-950 flex items-center px-[clamp(1rem,3.5vw,40px)] text-[clamp(1rem,5.5vw,1.5rem)] border {open
-			? 'border-b-0'
-			: 'border-b'} rounded-t-lg {open
-			? 'rounded-b-none'
-			: 'rounded-b-lg'} bg-[#1a000093] relative"
+		class="w-full flex items-center justify-between text-left px-5 py-4 border-2 border-zinc-800 bg-black/95 hover:bg-zinc-900/40 font-mono tracking-wide uppercase transition-colors rounded-none outline-none relative z-10 select-none {open
+			? 'border-b-zinc-950'
+			: ''} {addClass || ''}"
 	>
-		<h1>{Title}</h1>
-		<span class="bottom-arrow absolute right-10">
-			<i class="fa-solid {open ? 'fa-angle-up' : 'fa-angle-down'}"></i>
+		<h3
+			class="text-sm md:text-base font-black text-white tracking-tight line-clamp-1 pr-8"
+		>
+			{Title}
+		</h3>
+
+		<span
+			class="absolute right-5 font-mono font-black text-primary text-base md:text-lg select-none"
+		>
+			{#if open}
+				&minus;
+			{:else}
+				&plus;
+			{/if}
 		</span>
 	</button>
+
 	{#if open}
 		<div
-			class="content w-[clamp(120px,90vw,1084px)] border-red-950 border-r border-l border-b px-5 pb-6 bg-[#1a000083] rounded-b-lg"
-			transition:slide={{ duration: 300 }}
+			class="w-full border-2 border-t-0 border-zinc-800 bg-black/40 backdrop-blur-sm rounded-none relative z-0"
+			transition:slide={{ duration: 200 }}
 		>
-			<li class="text-lg pt-3 ml-6 border-t-2">{@html Content}</li>
+			<div
+				class="px-5 py-4 text-xs md:text-sm text-zinc-400 font-mono leading-relaxed tracking-normal border-t border-zinc-900/60 break-words"
+			>
+				{@html Content}
+			</div>
 		</div>
 	{/if}
 </div>

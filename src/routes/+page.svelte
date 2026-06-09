@@ -2,6 +2,7 @@
 	import {
 		ArrowDown,
 		Blocks,
+		ChevronsRight,
 		FlaskConical,
 		Rocket,
 		ShoppingCart,
@@ -55,576 +56,526 @@
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
-
-		const blob = document.getElementById("blob")
-		let mouseX = 0
-		let mouseY = 0
-		let currentX = 0
-		let currentY = 0
-
-		const handleMouseMove = (event: MouseEvent) => {
-			mouseX = event.clientX - 128
-			mouseY = event.clientY - 128
-		}
-
-		const animateBlob = () => {
-			currentX += (mouseX - currentX) * 0.08
-			currentY += (mouseY - currentY) * 0.08
-
-			if (blob instanceof HTMLElement) {
-				blob.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`
-			}
-
-			requestAnimationFrame(animateBlob)
-		}
-
-		requestAnimationFrame(animateBlob)
-
-		window.addEventListener("mousemove", handleMouseMove)
-		return () => window.removeEventListener("mousemove", handleMouseMove)
 	})
 </script>
 
 <div
-	id="blob"
-	class="z-20 fixed opacity-50 blur-[80px] size-64 pointer-events-none background-gradient"
-></div>
-<div
-	class="relative bg-gradbg w-screen min-h-screen overflow-x-hidden bg-zinc-950 text-zinc-100"
+	class="relative min-h-screen w-full bg-gradbg text-zinc-100 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
 >
-	<div class="absolute inset-0 -z-10 bg-black/60"></div>
+	<div class="fixed inset-0 bg-black/25 z-0 pointer-events-none"></div>
 
-	<div class="streaks">
-		<div class="streak streak-1"></div>
-		<div class="streak streak-2"></div>
-		<div class="streak streak-3"></div>
-		<div class="streak streak-4"></div>
+	<div
+		class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-80"
+	></div>
+
+	<div
+		class="absolute top-3 left-0 z-50 transition-transform duration-100 hover:scale-[1.02]"
+	>
+		<a href="https://hackclub.com/" class="">
+			<img
+				class="w-40 backdrop-blur-sm p-1 rounded-none"
+				src="https://assets.hackclub.com/banners/2026.svg"
+				alt="Hack Club"
+			/>
+		</a>
 	</div>
-
-	<main class="z-10 relative">
+	<main class="z-10 relative w-full px-6 md:px-10">
 		<section
-			class="flex flex-col justify-center pt-16 gap-y-11 px-[clamp(20px,3vw,64px)] min-h-screen relative"
+			class="flex flex-col justify-center min-h-screen pt-24 pb-12 gap-y-7 relative"
 		>
-			<div
-				class="flex items-center gap-x-4 justify-self-start absolute top-0 left-10"
-			>
-				<a href="https://hackclub.com/"
-					><img
-						class="border-0 w-28 z-999"
-						src="https://assets.hackclub.com/flag-orpheus-top.svg"
-						alt="Hack Club"
-					/></a
+			<div class="flex flex-col gap-2">
+				<div
+					class="flex items-center gap-2 text-xs font-bold text-primary tracking-[0.3em] uppercase"
 				>
-				<X class="font-bold h-7 w-7 text-rose-500" />
-				<img src="/Alchemist.webp" alt="" class="w-10 h-10" />
-				<span
-					class="font-hero font-bold tracking-widest text-lg text-rose-500 select-none pointer-events-none"
+					<span class="h-2 w-2 bg-primary animate-pulse"></span>
+					<span>Season 1</span>
+				</div>
+				<h1
+					class="text-6xl md:text-8xl lg:text-9xl font-black font-alchemize tracking-tighter uppercase text-primary [text-shadow:4px_4px_0px_rgba(var(--primary),0.15)] selection:bg-white selection:text-black pointer-events-none select-none"
 				>
 					ALCHEMIZE
-				</span>
+				</h1>
 			</div>
 
-			<h1
-				class="font-hero hero-title text-rose-600 drop-shadow-[0_4px_12px_rgba(225,29,72,0.3)]"
-			>
-				ALCHEMIZE
-			</h1>
-
-			<p
-				class="text-rose-200/90 text-[clamp(1rem,5.5vw,1.5rem)] leading-relaxed"
-			>
-				Turn your code into prizes.<br />
-				<strong class="text-white text-[clamp(1rem,6.5vw,1.75rem)]"
-					>And you're invited.</strong
+			<div class="max-w-2xl border-l-4 border-primary p-4 md:p-6 rounded-none">
+				<p
+					class="text-zinc-200 text-base md:text-xl leading-relaxed uppercase tracking-wide"
 				>
-				<br />
-				<span class="opacity-70 text-lg text-rose-300/80">Ages 13-18</span>
-			</p>
-
-			<div class="flex items-center gap-x-2">
-				<a
-					href={authUrl}
-					class="cta-btn bg-rose-600 hover:bg-rose-700 text-white transition-colors"
-					onclick={() => (showRotator = true)}
+					Turn your code into prizes.<br />
+					<strong
+						class="text-white font-black text-lg md:text-2xl block mt-1 tracking-tight"
+						>And you're invited.</strong
+					>
+				</p>
+				<div
+					class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-none"
 				>
-					<span class="cta-text">GET STARTED</span>
-					{#if showRotator}
-						<div
-							class="w-7 h-7 border-4 border-rose-950 border-t-white rounded-full animate-spin"
-						></div>
-					{:else}
-						<div class="cta-chevrons text-rose-200">
-							<span>›</span><span>›</span><span>›</span>
-						</div>
-					{/if}
-				</a>
-				<div class="group flex h-full items-center gap-x-3">
-					<a
-						href={referUrl}
-						class="refer-btn border border-rose-800/60 hover:bg-rose-950/40 transition-colors"
-					>
-						<Users class="h-7 w-7" />
-						<p class="text-rose-300">Refer!</p>
-					</a>
-					<p
-						class="group-hover:opacity-100 opacity-0 transition animate-out text-sm bg-zinc-900/90 border border-zinc-800 p-3 rounded-2xl text-zinc-300"
-					>
-						Refer more people for cool rewards!
-					</p>
+					Ages 13-18 Only
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-2 w-[clamp(120px,50vw,384px)]">
-				<div
-					class="bg-zinc-900 border border-rose-950 rounded-full w-full h-3 overflow-hidden"
+			<div
+				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-2xl"
+			>
+				<a
+					href={authUrl}
+					class="group relative flex-1"
+					onclick={() => (showRotator = true)}
 				>
 					<div
-						class="bg-rose-600 h-full transition-all duration-1000 shadow-[0_0_12px_rgba(225,29,72,0.6)]"
+						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-none transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+					></div>
+					<div
+						class="relative flex items-center justify-between border-2 border-primary bg-background text-primary font-black uppercase tracking-widest text-center px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
+					>
+						<span>GET STARTED</span>
+						{#if showRotator}
+							<div
+								class="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"
+							></div>
+						{:else}
+							<div
+								class="flex gap-0.5 font-sans tracking-normal opacity-80 group-hover:translate-x-1 transition-transform"
+							>
+								<ChevronsRight class="h-4 w-4" />
+							</div>
+						{/if}
+					</div>
+				</a>
+
+				<div class="group relative flex-1 flex items-stretch">
+					<a
+						href={referUrl}
+						class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
+					>
+						<Users class="h-5 w-5 text-primary" />
+						<span>Refer People!</span>
+					</a>
+
+					<div
+						class="absolute bottom-full left-0 mb-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+					>
+						Propagate your personal invite matrix endpoint link to unlock
+						exclusive tiers!
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="flex flex-col gap-2 max-w-sm bg-black/50 border border-zinc-800 p-4 rounded-none"
+			>
+				<div
+					class="flex justify-between items-center text-xs uppercase font-bold tracking-widest text-zinc-400"
+				>
+					<span>RSVP Count</span>
+					<span class="text-primary font-mono font-black"
+						>{rsvpCount} / ???RSVPs</span
+					>
+				</div>
+				<div
+					class="bg-zinc-950 border border-zinc-800 rounded-none w-full h-4 p-0.5 overflow-hidden"
+				>
+					<div
+						class="bg-primary h-full transition-all duration-1000 relative shadow-[0_0_10px_rgba(var(--primary),0.4)]"
 						style="width: {((typeof rsvpCount === 'string' ? 289 : rsvpCount) /
 							210) *
 							100}%"
-					></div>
+					>
+						<div
+							class="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)_50%,rgba(255,255,255,0.15)_75%,transparent_75%,transparent)] bg-[size:8px_8px] animate-pulse"
+						></div>
+					</div>
 				</div>
-				<p class="text-rose-300/60 text-sm">
-					{rsvpCount} / ??? RSVPs so far
-				</p>
 			</div>
 
-			<a href="#features" class="self-start animate-bounce">
-				<ArrowDown class="w-8 h-8 text-rose-500" />
+			<a
+				href="#features"
+				class="self-start animate-bounce mt-4 border border-zinc-800 p-2 hover:border-primary bg-black/40 transition-colors"
+			>
+				<ArrowDown class="w-5 h-5 text-primary" />
 			</a>
 		</section>
 
-		<div class="w-full leading-none relative z-0">
-			<svg
-				viewBox="0 0 1440 100"
-				preserveAspectRatio="none"
-				class="w-full h-24"
-			>
-				<path
-					d="M0,40 C200,90 400,10 600,50 C800,90 1000,20 1200,60 C1440,85 1440,55 1440,55 L1440,100 L0,100 Z"
-					class="fill-rose-950/40"
-				/>
-				<path
-					d="M0,60 C150,30 350,80 550,45 C750,10 950,70 1150,40 C1400,20 1440,50 1440,50 L1440,100 L0,100 Z"
-					class="fill-rose-950/20"
-					opacity="0.6"
-				/>
-			</svg>
-		</div>
-
 		<section
 			id="features"
-			class="flex flex-col items-center gap-16 bg-gradient-to-b from-rose-950/40 to-zinc-950 px-16 py-24"
+			class="flex flex-col gap-12 py-24 border-t-2 border-zinc-900 relative"
 		>
-			<h2
-				class="font-hero text-center section-title text-3xl text-rose-100"
-			>
-				HOW IT WORKS
-			</h2>
+			<div class="flex flex-col gap-1">
+				<div class="text-xs uppercase text-primary font-bold tracking-[0.25em]">
+					Procedure
+				</div>
+				<h2
+					class="text-3xl font-black font-alchemize tracking-tight uppercase text-white"
+				>
+					HOW IT WORKS
+				</h2>
+			</div>
 
-			<div class="gap-6 grid grid-cols-1 md:grid-cols-2 w-full max-w-5xl">
-				<div
-					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
-				>
-					<Blocks class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-hero text-rose-300 text-xl">Create</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Pick a theme (Sci-Fi, Anime, or Tribute) and track hours via
-						Hackatime.
-					</p>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+					></div>
+					<div
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div class="shrink-0 flex items-start pt-1">
+							<div
+								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+							>
+								<Blocks class="h-6 w-6" />
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<h3
+								class="text-lg font-black uppercase tracking-tight text-white"
+							>
+								01 / Create
+							</h3>
+							<p class="text-zinc-400 text-xs leading-relaxed">
+								Pick a theme (Endless, No Internet, or Indie Gamedev) and track
+								hours via Hackatime.
+							</p>
+						</div>
+					</div>
 				</div>
-				<div
-					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
-				>
-					<Rocket class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-hero text-rose-300 text-xl">Ship It</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Submit your project for review by Master Alchistants to earn theme
-						currency.
-					</p>
+
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+					></div>
+					<div
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div class="shrink-0 flex items-start pt-1">
+							<div
+								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+							>
+								<Rocket class="h-6 w-6" />
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<h3
+								class="text-lg font-black uppercase tracking-tight text-white"
+							>
+								02 / Ship It
+							</h3>
+							<p class="text-zinc-400 text-xs leading-relaxed">
+								Submit your project for review by the Alchinspectors to earn
+								theme currency.
+							</p>
+						</div>
+					</div>
 				</div>
-				<div
-					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
-				>
-					<FlaskConical class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-hero text-rose-300 text-xl">Mix Potions</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Convert currencies into Potion Mix. Mixing multiple types grants
-						bonuses.
-					</p>
+
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+					></div>
+					<div
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div class="shrink-0 flex items-start pt-1">
+							<div
+								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+							>
+								<FlaskConical class="h-6 w-6" />
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<h3
+								class="text-lg font-black uppercase tracking-tight text-white"
+							>
+								03 / Mix Potions
+							</h3>
+							<p class="text-zinc-400 text-xs leading-relaxed">
+								Convert currencies into Potion Mix. Mixing multiple types grants
+								bonuses.
+							</p>
+						</div>
+					</div>
 				</div>
-				<div
-					class="feature-card bg-zinc-900/50 border border-rose-950/50 p-6 rounded-xl"
-				>
-					<ShoppingCart class="h-8 w-8 mb-1 text-rose-400" />
-					<h3 class="font-hero text-rose-300 text-xl">Dynamic Shop</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Spend your Potion Mix on rewards. New items are added weekly based
-						on your suggestions!
-					</p>
+
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+					></div>
+					<div
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div class="shrink-0 flex items-start pt-1">
+							<div
+								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+							>
+								<ShoppingCart class="h-6 w-6" />
+							</div>
+						</div>
+						<div class="flex flex-col gap-1">
+							<h3
+								class="text-lg font-black uppercase tracking-tight text-white"
+							>
+								04 / Dynamic Shop
+							</h3>
+							<p class="text-zinc-400 text-xs leading-relaxed">
+								Spend your Potion Mix on rewards. New items are added every
+								season!
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<section
 			id="themes"
-			class="flex flex-col items-center gap-16 bg-zinc-950 px-16 pt-12 pb-95 h-auto"
+			class="flex flex-col gap-12 py-24 border-t-2 border-zinc-900 relative"
 		>
-			<h2
-				class="font-hero text-center section-title text-2xl text-rose-100"
-			>
-				The Three Themes of Season 1
-			</h2>
+			<div class="flex flex-col gap-1">
+				<div class="text-xs uppercase text-primary font-bold tracking-[0.25em]">
+					Themes
+				</div>
+				<h2
+					class="text-3xl font-black font-alchemize tracking-tight uppercase text-white"
+				>
+					The Three Themes of Season 1
+				</h2>
+			</div>
 
-			<div class="gap-6 grid grid-cols-1 md:grid-cols-3 w-full max-w-5xl">
-				<div
-					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
-				>
-					<h3 class="font-hero text-rose-300 text-xl">Endless</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Create a project with an infinite Canvas. It can be a game where
-						levels generate endlessly(like pacman), It can be a paint app with
-						infinite canvas, It can also be a scientific simulation which keeps
-						on running indefinitely. It can be anything as long as it has an
-						element of infinity to it(and it never ends).
-					</p>
+			<div class="flex flex-col gap-4 w-full">
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+					></div>
+					<div
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div
+							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
+						>
+							<div
+								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
+							>
+								// THEME_01
+							</div>
+							<h3
+								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
+							>
+								Endless
+							</h3>
+						</div>
+						<div class="flex-1">
+							<p class="text-zinc-300 text-xs leading-relaxed font-mono">
+								Create a project with an infinite Canvas. It can be a game where
+								levels generate endlessly(like pacman), It can be a paint app
+								with infinite canvas, It can also be a scientific simulation
+								which keeps on running indefinitely. It can be anything as long
+								as it has an element of infinity to it(and it never ends).
+							</p>
+						</div>
+					</div>
 				</div>
-				<div
-					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
-				>
-					<h3 class="font-hero text-rose-300 text-xl">No Internet</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Make something that works without an internet connection, No APIs,
-						No CDNs, No fetching data from the internet, (and obviously no
-						websites), it can be a game that doesn't require an internet
-						connection, an app that uses Bluetooth to chat with friends, a robot
-						that does something cool, anything as long as it works without
-						internet.
-					</p>
+
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+					></div>
+					<div
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div
+							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
+						>
+							<div
+								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
+							>
+								// THEME_02
+							</div>
+							<h3
+								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
+							>
+								No Internet
+							</h3>
+						</div>
+						<div class="flex-1">
+							<p class="text-zinc-300 text-xs leading-relaxed font-mono">
+								Make something that works without an internet connection, No
+								APIs, No CDNs, No fetching data from the internet, (and
+								obviously no websites), it can be a game that doesn't require an
+								internet connection, an app that uses Bluetooth to chat with
+								friends, a robot that does something cool, anything as long as
+								it works without internet.
+							</p>
+						</div>
+					</div>
 				</div>
-				<div
-					class="feature-card bg-zinc-900/40 border border-rose-950/30 p-6 rounded-xl"
-				>
-					<h3 class="font-hero text-rose-300 text-xl">Indie Gamedev</h3>
-					<p class="text-zinc-400 text-sm leading-relaxed">
-						Make a game inspired by the indie game genre. It can be a platformer
-						with a unique art style, a narrative-driven experience, a puzzle
-						game with innovative mechanics, or anything else that captures the
-						spirit of indie games. Create your own artstyles here that gives vibes of indie
-						pixel art, hand drawn aesthetics,   The game should reflect the
-						creativity and innovation that indie games are known for.
-					</p>
+
+				<div class="relative group">
+					<div
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+					></div>
+					<div
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+					>
+						<div
+							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
+						>
+							<div
+								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
+							>
+								// THEME_03
+							</div>
+							<h3
+								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
+							>
+								Indie Game
+							</h3>
+						</div>
+						<div class="flex-1">
+							<p class="text-zinc-300 text-xs leading-relaxed font-mono">
+								Make a game inspired by the indie game genre. It can be a
+								platformer with a unique art style, a narrative-driven
+								experience, a puzzle game with innovative mechanics, or anything
+								else that captures the spirit of indie games. Create your own
+								artstyles here that gives vibes of indie pixel art, hand drawn
+								aesthetics, The game should reflect the creativity and
+								innovation that indie games are known for.
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>
 
-		<div class="w-screen leading-none -mt-[20vw]">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-				<path
-					class="fill-rose-950/60"
-					fill-opacity="1"
-					d="M0,160L30,170.7C60,181,120,203,180,224C240,245,300,267,360,277.3C420,288,480,288,540,277.3C600,267,660,245,720,218.7C780,192,840,160,900,160C960,160,1020,192,1080,208C1140,224,1200,224,1260,197.3C1320,171,1380,117,1410,90.7L1440,64L1440,320L1410,320C1380,320,1320,320,1260,320C1200,320,1140,320,1080,320C1020,320,960,320,900,320C840,320,780,320,720,320C660,320,600,320,540,320C480,320,420,320,360,320C300,320,240,320,180,320C120,320,60,320,30,320L0,320Z"
-				></path>
-			</svg>
-		</div>
-
 		<section
 			id="faq"
-			class="flex flex-col items-center gap-6 px-16 py-24 min-auto pb-75 h-auto bg-gradient-to-b from-rose-950/60 to-zinc-950 -mt-1"
+			class="flex flex-col gap-12 py-24 border-t-2 border-zinc-900 relative"
 		>
-			<h2
-				class="font-hero text-center section-title text-3xl text-rose-100"
-			>
-				FAQ
-			</h2>
-			<Accordion
-				Title="What is a 'ship'?"
-				Content="A 'ship' is the project you submit to this event. You can ship any general project or a project related to one of the <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' href='#themes'>themes</a>"
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-			<Accordion
-				Title="How do I participate?"
-				Content="Just Click on Get Started button on the home page or click on <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href={authUrl}>this</a> link."
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-			<Accordion
-				Title="Who is Eligible?"
-				Content="Anyone ages 13-18 who isn't banned from Hack Club can participate."
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-			<Accordion
-				Title="How is time tracked?"
-				Content="Software development time is tracked using <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='hackatime.hackclub.com'>Hackatime</a>"
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-			<Accordion
-				Title="What is Hack Club?"
-				Content="Hack Club is a community of creative coders who love to build and share their projects. It is also the world’s largest nonprofit movement of teenagers making cool projects."
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-			<Accordion
-				Title="Where can I find more information?"
-				Content="If you have any questions or need help with anything, just join the <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='https://hackclub.enterprise.slack.com/archives/C0ASY6R552R'>#alchemize-help</a> channel in the Hack Club Slack! You can ask for help there, and the community will be happy to assist you. "
-				addClass="faq-item h-20 w-[clamp(120px,90vw,1084px)] font-sans relative z-10 border border-rose-950/40 rounded-xl bg-zinc-900/20"
-			/>
-		</section>
+			<div class="flex flex-col gap-1 items-center text-center">
+				<div class="text-xs uppercase text-primary font-bold tracking-[0.25em]">
+					Information
+				</div>
+				<h2
+					class="text-3xl font-black font-alchemize tracking-tight uppercase text-white"
+				>
+					FAQ
+				</h2>
+			</div>
 
-		<div class="w-screen leading-none -mt-[30vw] z-10 h-auto">
-			<svg
-				width="100%"
-				height="100%"
-				id="svg"
-				viewBox="0 0 1440 470"
-				xmlns="http://www.w3.org/2000/svg"
-				class="transition duration-300 ease-in-out delay-150"
-			>
-				<path
-					d="M 0,600 L 0,350 C 163.46666666666664,318.4 326.9333333333333,286.8 498,287 C 669.0666666666667,287.2 847.7333333333333,319.2 1006,335 C 1164.2666666666667,350.8 1302.1333333333332,350.4 1440,350 L 1440,600 L 0,600 Z"
-					stroke="none"
-					stroke-width="0"
-					class="fill-zinc-950 transition-all duration-300 ease-in-out delay-150 path-1"
-				></path>
-			</svg>
-			<footer
-				class="w-full px-20 absolute items-center flex bg-zinc-950 border-t border-rose-950/30 pt-10 pb-10 gap-16 justify-around text-zinc-400 text-sm"
-			>
-				<div class="row1 flex flex-col gap-5 w-33">
-					<h3 class="text-3xl font-semibold font-hero text-rose-500">
-						Hackclub
-					</h3>
-					<ul class="flex list-none flex-col gap-4">
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/philosophy/">Philosophy</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/team/">Team and Board</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/brand/">Brand Guide</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/philanthropy/">Donate</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/imprint/">Imprint</a
-							>
-						</li>
-					</ul>
-				</div>
-				<div class="midrow flex flex-col gap-2 text-center">
-					<h2 class="text-zinc-300">
-						Made with 💖 by TheUtkarsh8939 and Coolcream
-					</h2>
-					<h2 class="text-zinc-500 text-xs">
-						© Hackclub, All rights reserved
-					</h2>
-				</div>
-				<div class="row2 flex flex-col gap-5 w-43">
-					<h3 class="text-3xl font-semibold font-hero text-rose-500">
-						Resources
-					</h3>
-					<ul class="flex list-none flex-col gap-4">
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/philosophy/">Community Events</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/team/">Jams</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/https://toolbox.hackclub.com/"
-								>Toolbox
-							</a>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/conduct/">Code of Conduct</a
-							>
-						</li>
-						<li>
-							<a
-								class="hover:text-rose-400 transition-colors"
-								href="https://hackclub.com/privacy/">Privacy Policy</a
-							>
-						</li>
-					</ul>
-				</div>
-			</footer>
-		</div>
+			<div class="flex flex-col gap-3 w-full max-w-4xl mx-auto">
+				<Accordion
+					Title="What is a 'ship'?"
+					Content="A 'ship' is the project you submit to this event. You can ship any general project or a project related to one of the themes"
+					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
+				/>
+				<Accordion
+					Title="How do I participate?"
+					Content="Just Click on Get Started button on the home page or click on <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href={authUrl}>this</a> link."
+					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
+				/>
+				<Accordion
+					Title="Who is Eligible?"
+					Content="Anyone ages 13-18 who isn't banned from Hack Club can participate."
+					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
+				/>
+				<Accordion
+					Title="How is time tracked?"
+					Content="Software development time is tracked using <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='hackatime.hackclub.com'>Hackatime</a> and hardware time is tracked through <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='lapse.hackclub.com'>Lapse</a>"
+					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
+				/>
+				<Accordion
+					Title="Where can I find more information?"
+					Content="If you have any questions or need help with anything, just join the <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='https://hackclub.enterprise.slack.com/archives/C0ASY6R552R'>#alchemize-help</a> channel in the Hack Club Slack! You can ask for help there, and the community will be happy to assist you. "
+					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
+				/>
+			</div>
+		</section>
 	</main>
+
+	<footer
+		class="w-full border-t-2 border-zinc-950 bg-black/90 relative z-20 mt-24 py-16"
+	>
+		<div
+			class="max-w-7xl mx-auto px-6 md:px-10 flex flex-col lg:flex-row gap-12 justify-between items-start"
+		>
+			<div class="flex flex-col gap-4 max-w-xs">
+				<h3
+					class="text-xl font-black font-alchemize text-primary tracking-wide uppercase"
+				>
+					Hack Club
+				</h3>
+				<p class="text-zinc-500 text-xs leading-relaxed">
+					Hack Club is the world’s largest nonprofit movement of teenagers
+					making cool projects.
+				</p>
+				<div class="text-zinc-600 text-[10px] mt-2 tracking-tight">
+					© Hack Club • All Rights Reserved
+				</div>
+			</div>
+
+			<div
+				class="grid grid-cols-2 gap-x-16 gap-y-8 text-xs font-bold uppercase tracking-wider"
+			>
+				<div class="flex flex-col gap-3">
+					<div class="text-zinc-500 text-[10px] font-mono tracking-widest">
+						// DIRECTORY
+					</div>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/philosophy/">Philosophy</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/team/">Team Cluster</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/brand/">Asset Brand</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/philanthropy/">Liquidity Fund</a
+					>
+				</div>
+				<div class="flex flex-col gap-3">
+					<div class="text-zinc-500 text-[10px] font-mono tracking-widest">
+						// RESOURCES
+					</div>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/jams/">System Jams</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://toolbox.hackclub.com/">Toolbox Matrix</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/conduct/">Legal Conduct</a
+					>
+					<a
+						class="text-zinc-400 hover:text-primary transition-colors"
+						href="https://hackclub.com/privacy/">Data Privacy</a
+					>
+				</div>
+			</div>
+
+			<div
+				class="border border-zinc-800 p-4 bg-zinc-950/60 max-w-xs lg:text-right flex flex-col gap-1 lg:items-end"
+			>
+				<div class="text-[10px] tracking-widest text-zinc-500 font-mono">
+					// Credits
+				</div>
+				<div class="text-xs font-bold text-zinc-300">
+					Made by TheUtkarsh8939
+				</div>
+				<div class="text-xs font-bold text-zinc-300">& Coolcream</div>
+			</div>
+		</div>
+	</footer>
 </div>
 
 <style>
-	@import url("https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap");
-
 	main {
 		transform: translateZ(0);
 	}
-
-	section {
-		will-change: transform;
-	}
-
-	.background-gradient {
-		position: fixed;
-		background: linear-gradient(45deg, #4c0519, #9f1239);
-		filter: blur(150px);
-		border-radius: 50%;
-		will-change: transform;
-	}
-
-	.streaks {
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 50vw;
-		height: 35vh;
-		pointer-events: none;
-		z-index: 0;
-		overflow: hidden;
-	}
-	.streak {
-		position: absolute;
-		right: -10%;
-		border-radius: 999px;
-		transform: rotate(-8deg);
-		transform-origin: right center;
-	}
-	.streak-1 {
-		width: 80%;
-		top: 6%;
-		height: 16px;
-		background: #4c0519;
-		animation: streak-in 0.6s ease 0.1s both;
-	}
-	.streak-2 {
-		width: 65%;
-		top: 13%;
-		height: 12px;
-		background: #881337;
-		animation: streak-in 0.6s ease 0.2s both;
-	}
-	.streak-3 {
-		width: 50%;
-		top: 19%;
-		height: 8px;
-		background: #9f1239;
-		animation: streak-in 0.6s ease 0.3s both;
-	}
-	.streak-4 {
-		width: 35%;
-		top: 24%;
-		height: 5px;
-		background: #be123c;
-		animation: streak-in 0.6s ease 0.4s both;
-	}
-
-	@keyframes streak-in {
-		from {
-			opacity: 0;
-			transform: rotate(-8deg) translateX(100px);
-		}
-		to {
-			opacity: 1;
-			transform: rotate(-8deg) translateX(0);
-		}
-	}
-
-	.hero-title {
-		font-size: clamp(2rem, 12vw, 10rem);
-		line-height: 1;
-		pointer-events: none;
-		user-select: none;
-		color: var(--color-primary);
-		-webkit-text-stroke: 4px var(--color-primary);
-		text-shadow: 3px 3px 4px rgb(255, 186, 206);
-	}
-
-	.cta-btn {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		max-width: 400px;
-		width: 50vw;
-
-		background: var(--color-primary);
-		border: 3px solid #7f1d1d;
-		border-radius: 1rem;
-		padding: 1.2rem 2rem;
-		text-decoration: none;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
-	}
-
-	svg {
-		display: block;
-	}
-
-	.refer-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-direction: column;
-		width: 7vw;
-		/* min-height: 11vh; */
-		padding: 10px 0px;
-
-		background: var(--color-primary);
-		border: 3px solid #7f1d1d;
-		border-radius: 1rem;
-		text-decoration: none;
-		transition:
-			transform 0.2s ease,
-			box-shadow 0.2s ease;
-	}
-
-	.cta-btn:hover,
-	.refer-btn:hover {
-		transform: scale(1.02);
-		box-shadow: 0 0 40px rgba(185, 28, 28, 0.5);
-	}
-
-	.cta-text {
-		font-family: var(--font-hero);
-		font-size: clamp(1rem, 4vw, 1.5rem);
-		font-weight: 900;
-		color: white;
-	}
-
-	.feature-card {
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px dashed #7f1d1d;
-		border-radius: 1rem;
-		padding: 2rem;
-		transition: background 0.2s ease;
-	}
-
-	.feature-card:hover {
-		background: rgba(127, 29, 29, 0.15);
-	}
-	
 </style>
