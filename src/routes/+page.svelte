@@ -126,7 +126,7 @@
 						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-none transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
 					></div>
 					<div
-						class="relative flex items-center justify-between border-2 border-primary bg-background text-primary font-black uppercase tracking-widest text-center px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
+						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary font-black uppercase tracking-widest text-center px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
 					>
 						<span>GET STARTED</span>
 						{#if showRotator}

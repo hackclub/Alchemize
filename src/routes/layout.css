@@ -42,7 +42,7 @@ body{
     --font-hero: 'Comic Sans', cursive, sans-serif;
     --font-saira: 'Saira Stencil', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
-    --background-image-gradbg: linear-gradient(to bottom right, var(--color-neutral-950), #311017, #4c0519);
+    --background-image-gradbg: linear-gradient(to bottom right, #09090b, #180c0e, #240a10);
     --background-image-admin: linear-gradient(
       to bottom right,
       var(--color-neutral-900),

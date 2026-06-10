@@ -1,11 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
-import {Pool} from 'pg'
+import { Pool } from 'pg'
 import { eq } from 'drizzle-orm'
 import { integer, pgTable, varchar, } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-const DATABASE_URL = process.env.DATABASE_URL;
+import { DATABASE_URL } from "$env/static/private"
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -97,10 +97,10 @@ export interface airtableReplication {
 }
 const isNeon = DATABASE_URL?.includes("neon.tech");
 const pool = new Pool({
-	connectionString: DATABASE_URL,
+    connectionString: DATABASE_URL,
     ssl: isNeon
-		? { rejectUnauthorized: false }
-		: false
+        ? { rejectUnauthorized: false }
+        : false
 });
 
 const db = drizzle(pool); //Database Connection
@@ -110,17 +110,17 @@ const db = drizzle(pool); //Database Connection
 //User Functions
 export const getUserByEmail = async (email: string): Promise<DBResponse> => {
 
-    try{
+    try {
         const users = await db.select().from(userTable).where(eq(userTable.email, email));
-    const records = users.map(user => ({ id: user.id + "", fields: user })) as airtableReplication[];
-    return {
-        ok: true,
-        status: 200,
-        json: async () => ({ records }),
-        text: async () => JSON.stringify({ records }),
-    }
-    }catch(error){
-console.log(DATABASE_URL)
+        const records = users.map(user => ({ id: user.id + "", fields: user })) as airtableReplication[];
+        return {
+            ok: true,
+            status: 200,
+            json: async () => ({ records }),
+            text: async () => JSON.stringify({ records }),
+        }
+    } catch (error) {
+        console.log(DATABASE_URL)
 
         console.error("Database read failed:", error);
         return {
@@ -421,7 +421,7 @@ export const upsertAdmin = async (slackId: string, email: string, roles: string,
     try {
         const adminRes = db.insert(adminTable).values({ slackId, email, roles, name, nda }).onConflictDoUpdate({
             target: adminTable.email,
-            set:{
+            set: {
                 slackId,
                 roles,
                 name,
