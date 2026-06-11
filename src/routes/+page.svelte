@@ -58,7 +58,10 @@
 			.then(data => (rsvpCount = data.count))
 	})
 </script>
-<div class="fixed -z-20 bg-[url('/new.png')] bg-cover bg-center w-screen h-screen blur-sm"></div>
+
+<div
+	class="fixed -z-20 bg-[url('/new.png')] bg-cover bg-center w-screen h-screen blur-sm"
+></div>
 <div
 	class="relative min-h-screen w-full bg-[linear-gradient(to_bottom,#00000030_20%,#000c_70%)] text-zinc-100 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
 >
@@ -155,8 +158,7 @@
 					<div
 						class="absolute bottom-full left-0 mb-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 					>
-						Propagate your personal invite matrix endpoint link to unlock
-						exclusive tiers!
+						Invite more people for cool rewards
 					</div>
 				</div>
 			</div>
