@@ -10,13 +10,17 @@
 
 	let { children } = $props()
 	const excludedRoutes = ["/admin", "/admin/login"]
-
+	const colorRoutes = "/admin/review2/"
 	let adminPrimary = $state("#6875f6")
 	let adminHover = $state("#7a8aff")
 	let adminText = $state("#dce6f2")
 	let adminBg = $state("#172554")
 	let admin2Bg = $state("#0C4A6E")
+	if(page.url.pathname.includes(colorRoutes)) {
 
+	adminBg = "#171714"
+	admin2Bg = "#030303"
+	}
 	let triggerEl: HTMLButtonElement | null = $state(null)
 	let buttonX = $state(20)
 	let buttonY = $state(20)

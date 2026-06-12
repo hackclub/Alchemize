@@ -60,6 +60,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const tokenBody = await tokenResponse.json()
 
 	if (!tokenResponse.ok) {
+		console.error("Token exchange failed:", tokenBody)
 		throw error(
 			tokenResponse.status,
 			tokenBody?.message ?? "Token exchange failed"

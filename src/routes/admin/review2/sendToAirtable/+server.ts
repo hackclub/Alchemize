@@ -5,13 +5,20 @@ import type { RequestHandler } from "./$types";
 import type { Log,  AdminJWT, AdminProjectView } from "$lib/types";
 import { getProjectById, patchProjectForShip, addToJustifications } from "$lib/db";
 
-const checkSubmittedToHQ = (log: Log[]): Log[] => {
-    const newLog = log.map(entry => {
+const checkSubmittedToHQ = (log: Log[], justification: string): Log[] => {
+    let newLog = log.map(entry => {
         if (entry.status === 1 && !entry.submmitedToHQ) {
             return { ...entry, submmitedToHQ: true }
         }
         return entry
     })
+    newLog = [...newLog, {
+    status: 1,
+    timestamp: new Date().toISOString(),
+    deltaTime: 0,
+    message: [{ userExternal: "System Internal Message", internalNote: "Project sent to Unified", justification: justification, timestamp: new Date().toISOString(), reviewerName: "T2 System" }],
+    submmitedToHQ: true
+    }]
     return newLog
 }
 const parseAddress = (address: string) => {
@@ -49,7 +56,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         }
         const project = await projectResponse.json() as AdminProjectView
         const log = JSON.parse(project.fields.log) as Log[]
-        const newLog = checkSubmittedToHQ(log)
+        const newLog = checkSubmittedToHQ(log, justification)
         const [patchResponse, sendToJustificationResponse] = await Promise.all([
             patchProjectForShip(projectId, newLog, "accepted"),
             addToJustifications({

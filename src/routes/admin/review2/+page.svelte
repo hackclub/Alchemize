@@ -4,11 +4,19 @@
 	import Input from "$lib/components/ui/input/input.svelte"
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
 	import type { Project, Log, AirtableProject } from "$lib/types"
-	import {toast} from "svelte-sonner"
-	import {invalidateAll} from "$app/navigation"
+	import { toast } from "svelte-sonner"
+	import { invalidateAll } from "$app/navigation"
+	interface AdminProjectAccess extends AirtableProject {
+		fields: AirtableProject["fields"] & {
+			unifiedId: string
+		}
+	}
+	interface AdminProject extends Project {
+	unifiedId: string
+	}
 	let detailsOpen = $state(false)
 	let { data } = $props()
-	let airtableProjects = $derived(data.projects as AirtableProject[])
+	let airtableProjects = $derived(data.projects as AdminProjectAccess[])
 	let project = $state({} as Project)
 	let justificationOpen = $state(false)
 	const wasEverApproved = (project: AirtableProject) => {
@@ -16,7 +24,7 @@
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
 		return logs.some(log => log.status === 1 && !log.submmitedToHQ)
 	}
-	let currentProject = $state({} as Project)
+	let currentProject = $state({} as AdminProject)
 	function calculateRecordedTime(log: Log[]): number {
 		let totalTime = 0
 		for (const entry of log) {
@@ -24,7 +32,7 @@
 		}
 		return totalTime
 	}
-	const setCurrentProject = (nextProject: AirtableProject) => {
+	const setCurrentProject = (nextProject: AdminProjectAccess) => {
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
@@ -44,6 +52,7 @@
 			update: nextProject.fields.update,
 			hackatime: nextProject.fields.hackatime,
 			owner: nextProject.fields.owner,
+			unifiedId: nextProject.fields.unifiedId,
 		}
 		console.log("Current project set to log:", currentProject.log)
 	}
@@ -86,7 +95,7 @@ ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` :
 User written logs:
 ${generateUserLogs(currentProject.log)}
 
-Full review log available at link:{insert link here}
+Full review log available at link:https://alchemize.hackclub.com/admin/review2/${currentProject.unifiedId}
 
 Signed by ${data.name}, T2 Reviewer
  `
@@ -115,11 +124,15 @@ Signed by ${data.name}, T2 Reviewer
 			}),
 		})
 		if (response.ok) {
-			toast.success("Pushed "+currentProject.name+" to Airtable successfully!")
+			toast.success(
+				"Pushed " + currentProject.name + " to Airtable successfully!"
+			)
 			loader = false
-			airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
+			airtableProjects = airtableProjects.filter(
+				p => p.id !== currentProject.id
+			)
 			invalidateAll()
-			currentProject = {} as Project
+			currentProject = {} as AdminProject
 		} else {
 			toast.error("Failed to push project to Airtable. Please referesh")
 			loader = false
@@ -139,7 +152,7 @@ Signed by ${data.name}, T2 Reviewer
 			class="sidebar w-1/4 h-full rounded-2xl bg-black/20 border-2 overflow-y-auto p-2"
 		>
 			{#each airtableProjects as project}
-				{#if wasEverApproved(project)&& !areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[])}
+				{#if wasEverApproved(project) && !areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[])}
 					<button
 						onclick={() => setCurrentProject(project)}
 						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"

@@ -171,7 +171,7 @@ export const actions = {
             hackatime: hackatimeProject,
             update: oldProject,
             Theme: theme
-        });
+        }, email);
 
         // Error handling
         if (!response.ok) {

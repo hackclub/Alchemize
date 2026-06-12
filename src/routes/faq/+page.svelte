@@ -1,33 +1,9 @@
-<script>
-    import {marked} from "marked"
-    import faq from "./faq.md?raw"
-    let html = marked.parse(faq)
-    import "./mdhandler.css"
-</script>
-
-<div class="fixed -z-10 w-screen h-screen top-0">
-	<div class="img absolute -z-20 w-full h-full"></div>
-	<div class="ovr h-full w-screen -z-10"></div>
-</div>
-<div class="flex flex-col items-center justify-center text-white ">
-<div class="inner-cont w-1/2 mt-50">
-    {@html html}
-</div>
-</div>
-<style>
-    .img {
-		background-image: url("/bg2.webp");
-		background-size: cover;
-		background-position: center;
-	}
-	.ovr {
-		background: linear-gradient(
-			#000000a9,
-			#000000a9,
-			#000000a9,
-			#000000a9,
-			#000000
-		);
-	}
-
-</style>
+<main class="body flex">
+	<div class="sidebar h-screen w-1/3 max-w-80 border-red-900 border-r-4 shadow-[0_2_4px_red_inset]">
+		<div class="sidebar-group h-10 flex items-center justify-center px-2 w-full">
+			<h1 class="text-xl w-full justify-between flex pr-4">Getting started
+				<i class="fa-solid fa-angle-down"></i>
+			</h1>
+		</div>
+	</div>
+</main>

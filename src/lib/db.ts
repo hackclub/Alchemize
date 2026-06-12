@@ -1,11 +1,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq } from 'drizzle-orm'
-import { integer, pgTable, varchar, } from "drizzle-orm/pg-core";
+import { eq, and } from 'drizzle-orm'
+import { integer, pgTable, varchar, uuid} from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-import { DATABASE_URL } from "$env/static/private"
+// import { DATABASE_URL } from "$env/static/private"
+const DATABASE_URL = process.env.DATABASE_URL;
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -36,6 +37,7 @@ export const projectTable = pgTable("projects", {
     firstName: varchar({ length: 255 }).notNull(),
     lastName: varchar({ length: 255 }).notNull(),
     screenshot: varchar({ length: 1000 }).notNull(),
+    unifiedId: uuid().notNull().unique().defaultRandom(),
 
 })
 export const refersTable = pgTable("refers", {
@@ -241,7 +243,7 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
         text: async () => JSON.stringify({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
     } as DBResponse;
 }
-export const updateProject = async (projectId: string, projectData: any): Promise<DBResponse> => {
+export const updateProject = async (projectId: string, projectData: any, email:string): Promise<DBResponse> => {
 
     const allowedUpdates: Record<string, any> = {
         Name: projectData.Name,
@@ -273,15 +275,15 @@ export const updateProject = async (projectId: string, projectData: any): Promis
         const updatedProject = await db
             .update(projectTable)
             .set(updatePayload)
-            .where(eq(projectTable.id, parseInt(projectId)))
+            .where(and(eq(projectTable.id, parseInt(projectId)), eq(projectTable.owner, email)))
             .returning();
 
         if (updatedProject.length === 0) {
             return {
                 ok: false,
                 status: 404,
-                json: async () => ({ message: "Project not found" }),
-                text: async () => JSON.stringify({ message: "Project not found" }),
+                json: async () => ({ message: "Project not found/project not yours" }),
+                text: async () => JSON.stringify({ message: "Project not found/project not yours" }),
             };
         }
 
@@ -456,4 +458,21 @@ export const upsertAdmin = async (slackId: string, email: string, roles: string,
             text: async () => JSON.stringify({ message: "Database upsert failed" }),
         };
     }
+}
+export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DBResponse> => {
+    const project = await db.select().from(projectTable).where(eq(projectTable.unifiedId, unifiedId));
+    if (project.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Project not found" }),
+            text: async () => JSON.stringify({ message: "Project not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records: project }),
+        text: async () => JSON.stringify({ records: project }),
+    } as DBResponse;
 }
