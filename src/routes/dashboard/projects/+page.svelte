@@ -39,7 +39,7 @@
 		new Set(
 			projects
 				.flatMap(project => project.fields.hackatime?.split(",") ?? [])
-				.map(name => name.trim().toLowerCase())
+				.map(name => name)
 				.filter(Boolean)
 		)
 	)
@@ -47,8 +47,7 @@
 	let availableHacks = $derived(
 		hacks.filter(hack => {
 			const hackName = (hack.name ?? hack.project_name ?? hack.project ?? "")
-				.trim()
-				.toLowerCase()
+				
 
 			return Boolean(hackName) && !usedHackatimes.has(hackName)
 		})
@@ -243,7 +242,7 @@
 										<Clock class="size-4 text-primary" />
 										{formatHours(
 											hackSecondsByName.get(
-												(project.fields.hackatime ?? "").trim().toLowerCase()
+												(project.fields.hackatime ?? "")
 											) ?? 0
 										)}
 									</span>
