@@ -66,9 +66,10 @@
 			<span>Oh!! So we actually need you to login via hackatime too</span>
 			<br />
 			<a
-				class="button w-60 h-20 flex items-center justify-center border border-dashed border-red-600 rounded-xl"
+				class="button w-60 h-20 flex items-center justify-center border border-dashed border-red-600 rounded-xl z-9999"
 				href={hackatimeAuthUrl}
-				target="_blank">Login Via Hackatime</a
+				target="_blank">
+				Login Via Hackatime</a
 			>
 		</div>
 	{/if}

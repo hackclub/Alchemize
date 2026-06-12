@@ -1,12 +1,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid} from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-// import { DATABASE_URL } from "$env/static/private"
-const DATABASE_URL = process.env.DATABASE_URL;
+import { DATABASE_URL } from "$env/static/private"
+// const DATABASE_URL = process.env.DATABASE_URL;
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -136,16 +136,16 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
 }
 export const createNewUser = async (email: string, userid: string, slackId: string): Promise<DBResponse> => {
     const currency = JSON.stringify({ redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 } as UserCurrency)
-    try{
-    const newUser = await db.insert(userTable).values({ email, userid: userid, slackId, hackatime: "", currency: currency }).returning();
+    try {
+        const newUser = await db.insert(userTable).values({ email, userid: userid, slackId, hackatime: "", currency: currency }).returning();
 
-    return {
-        ok: true,
-        status: 201,
-        json: async () => ({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", currency: "" } } as airtableReplication),
-        text: async () => JSON.stringify({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", currency: "" } } as airtableReplication),
-    } as DBResponse;
-    }catch(error){
+        return {
+            ok: true,
+            status: 201,
+            json: async () => ({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", currency: "" } } as airtableReplication),
+            text: async () => JSON.stringify({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", currency: "" } } as airtableReplication),
+        } as DBResponse;
+    } catch (error) {
         console.error("Database insert failed:", error);
         return {
             ok: false,
@@ -243,7 +243,7 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
         text: async () => JSON.stringify({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
     } as DBResponse;
 }
-export const updateProject = async (projectId: string, projectData: any, email:string): Promise<DBResponse> => {
+export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
 
     const allowedUpdates: Record<string, any> = {
         Name: projectData.Name,
