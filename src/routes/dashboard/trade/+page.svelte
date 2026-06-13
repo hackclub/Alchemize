@@ -95,7 +95,7 @@
 				<!-- sub-cards container -->
 				<div class="owned-stones grid grid-rows-3 gap-y-3 h-full w-full">
 					<!-- stone-1's card -->
-					<div class="relative">
+					<div class="relative h-25">
 						<div
 							class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-xl"
 						></div>
@@ -115,7 +115,7 @@
 										Redstone
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										Owned: {hasRedstone ? data.currencies?.redstone : 0}
+										<strong>Owned:</strong> {hasRedstone ? data.currencies?.redstone : 0}
 									</span>
 								</div>
 								<Input
@@ -131,7 +131,7 @@
 					</div>
 
 					<!-- stone-2's card -->
-					<div class="relative">
+					<div class="relative h-25">
 						<div
 							class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-xl"
 						></div>
@@ -151,7 +151,7 @@
 										Glowstone
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										Owned: {hasGlowstone ? data.currencies?.glowstone : 0}
+										<strong>Owned:</strong> {hasGlowstone ? data.currencies?.glowstone : 0}
 									</span>
 								</div>
 								<Input
@@ -167,7 +167,7 @@
 					</div>
 
 					<!-- stone-3's card -->
-					<div class="relative">
+					<div class="relative h-25">
 						<div
 							class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-xl"
 						></div>
@@ -187,7 +187,7 @@
 										Aqua Regia
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										Owned: {hasAquaRegia ? data.currencies?.aqua_regia : 0}
+										<strong>Owned:</strong> {hasAquaRegia ? data.currencies?.aqua_regia : 0}
 									</span>
 								</div>
 								<Input
