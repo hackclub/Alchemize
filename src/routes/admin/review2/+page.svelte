@@ -6,6 +6,7 @@
 	import type { Project, Log, AirtableProject } from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
+	import {countCharacters} from "$lib/utils"
 	interface AdminProjectAccess extends AirtableProject {
 		fields: AirtableProject["fields"] & {
 			unifiedId: string
@@ -22,7 +23,7 @@
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
-		return logs.some(log => log.status === 1 && !log.submmitedToHQ)
+		return logs.some(log => log.status === 1 )
 	}
 	let currentProject = $state({} as AdminProject)
 	function calculateRecordedTime(log: Log[]): number {
@@ -85,10 +86,10 @@
 	let loader = $state(false)
 	const generateFullJustification = () => {
 		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
-${currentProject.update || currentProject.log.length > 0 ? `This project is an update to an existing project` : `This is the first submission of this project`}
+${currentProject.update || currentProject.log.length > 1 ? `This project is an update to an existing project` : `This is the first submission of this project`}
 Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours
 ${projectDescription}
-${currentProject.update || currentProject.log.length > 0 ? `Changelog: ${changelogs}` : ``}
+${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changelogs}` : ``}
 There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor(gitCommits / currentProject.hours) : 0} commits/hr
 ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
 
@@ -100,11 +101,12 @@ Full review log available at link:https://alchemize.hackclub.com/admin/review2/$
 Signed by ${data.name}, T2 Reviewer
  `
 	}
-	let changelogs = ""
-	let projectDescription = ""
-	let reasonForOverride = ""
+	let changelogs = $state("")
+	let projectDescription = $state("")
+	let reasonForOverride = $state("")
 	let gitCommits = 0
 	let subtraction = 0
+	let projectDescriptionLength = $derived(countCharacters(projectDescription))
 
 	$effect(() => {
 		if (currentProject.name) {
@@ -153,7 +155,7 @@ Signed by ${data.name}, T2 Reviewer
 			class="sidebar w-1/4 h-full rounded-2xl bg-black/20 border-2 overflow-y-auto p-2"
 		>
 			{#each airtableProjects as project}
-				{#if wasEverApproved(project) && (!areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) !== pending)}
+				{#if wasEverApproved(project) && (areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) === pending)}
 					<button
 						onclick={() => setCurrentProject(project)}
 						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
@@ -209,7 +211,7 @@ Signed by ${data.name}, T2 Reviewer
 									</Button>
 								</div>
 								<p class="text-xs text-muted-foreground">
-									Submitted by: coolcream, Type: Type, Category: category
+									Submitted by: {currentProject.submittedBy}, Type: {currentProject.type}, Category: {currentProject.category}
 								</p>
 							</div>
 							<div class="links flex items-center justify-center gap-x-5">
@@ -245,6 +247,11 @@ Signed by ${data.name}, T2 Reviewer
 								<h2 class="text-muted-foreground">
 									What is this project about?
 								</h2>
+								<div class="w-full h-5 {projectDescriptionLength > 20 ? 'bg-green-800' : 'bg-yellow-800'} gap-4 rounded-full flex items-center px-4 text-xs font-sans">
+										<i class="fa-solid fa-info">
+										</i>
+										{projectDescriptionLength > 20 ? "Feedback is sufficient for a decision." : `Description must be at least 20 characters. (${projectDescriptionLength}/20)`}
+									</div>
 								<Textarea
 									class="resize-none h-30 overflow-y-auto	"
 									placeholder="Gimme a nice brief description of the project.."
@@ -276,6 +283,8 @@ Signed by ${data.name}, T2 Reviewer
 									placeholder="The changes are..."
 									bind:value={changelogs}
 									oninput={generateFullJustification}
+									disabled={!(currentProject.update || currentProject.log.length > 1)}
+
 								/>
 							</div>
 							<div
