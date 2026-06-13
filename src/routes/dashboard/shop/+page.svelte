@@ -67,7 +67,7 @@
 		currencies.glowstone -= qty * selectedItem.price.glowstone
 		currencies.aqua_regia -= qty * selectedItem.price.aqua_regia
 		currencies = currencies // trigger reactivity
-
+		console.log("Item ID", selectedItem)
 		const buyApi = fetch("/dashboard/shop/order", {
 			method: "POST",
 			headers: {

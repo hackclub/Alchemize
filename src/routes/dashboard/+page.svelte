@@ -46,9 +46,8 @@
 	let hackSecondsByName = $derived(
 		new Map(
 			hacks.map(hack => [
-				(hack.name ?? hack.project_name ?? hack.project ?? "")
-					.trim()
-					.toLowerCase(),
+				(hack.name ?? hack.project_name ?? hack.project ?? ""),
+					
 				hack.total_seconds ?? 0,
 			])
 		)
@@ -184,7 +183,7 @@
 											<Clock class="size-3.5 text-primary" />
 											{formatHours(
 												hackSecondsByName.get(
-													(project.fields.hackatime ?? "").trim().toLowerCase()
+													(project.fields.hackatime ?? "")
 												) ?? 0
 											)}h
 										</span>

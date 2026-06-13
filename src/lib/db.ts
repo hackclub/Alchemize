@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -86,7 +86,13 @@ export const justifications = pgTable("justifications", {
     firstName: varchar({ length: 255 }).notNull(),
     lastName: varchar({ length: 255 }).notNull(),
 })
-
+export const shopItemsTable = pgTable("shop_items", {
+    itemID: uuid().primaryKey().defaultRandom(),
+    name: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 1000 }).notNull(),
+    itemPrice: jsonb().notNull(),
+    cdnImage: varchar({ length: 1000 }).notNull(),
+})
 // Response Interface
 export interface DBResponse {
     ok: boolean;
@@ -388,19 +394,71 @@ export const deleteProject = async (projectId: string, email: string): Promise<D
 };
 //Shop Functions
 export const createOrder = async (orderData: any): Promise<DBResponse> => {
-    const { orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData } = orderData
-    const newOrder = await db.insert(ordersTable).values({ orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData }).returning();
+    try {
+        const { orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData } = orderData
+        const newOrder = await db.insert(ordersTable).values({ orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData }).returning();
+        return {
+            ok: true,
+            status: 201,
+            json: async () => ({ id: newOrder[0].id + "", fields: newOrder[0] } as airtableReplication),
+            text: async () => JSON.stringify({
+                id: newOrder
+                [0].id + "", fields: newOrder[0]
+            } as airtableReplication),
+        } as DBResponse;
+    }
+    catch (error) {
+        console.error("Database insert failed:", error);
+        return {
+            ok: false,
+            status: 500,
+            json: async () => ({ message: "Database insert failed" }),
+            text: async () => JSON.stringify({ message: "Database insert failed" }),
+        }
+    }
+}
+export const fetchAllItems = async (): Promise<DBResponse> => {
+    const items = await db.select().from(shopItemsTable);
+    const records = items.map(item => ({ id: item.itemID + "", fields: item }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
+export const createShopItem = async (itemData: {
+    name: string,
+    description: string,
+    itemPrice: any,
+    cdnImage: string
+}): Promise<DBResponse> => {
+    const { name, description, itemPrice, cdnImage } = itemData
+    const newItem = await db.insert(shopItemsTable).values({ name, description, itemPrice, cdnImage }).returning();
     return {
         ok: true,
         status: 201,
-        json: async () => ({ id: newOrder[0].id + "", fields: newOrder[0] } as airtableReplication),
-        text: async () => JSON.stringify({
-            id: newOrder
-            [0].id + "", fields: newOrder[0]
-        } as airtableReplication),
+        json: async () => ({ id: newItem[0].itemID + "", fields: newItem[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newItem[0].itemID + "", fields: newItem[0] } as airtableReplication),
     } as DBResponse;
 }
-
+export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
+    const item = await db.select().from(shopItemsTable).where(eq(shopItemsTable.itemID, itemId));
+    if (item.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Item not found" }),
+            text: async () => JSON.stringify({ message: "Item not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: item[0].itemID + "", fields: item[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: item[0].itemID + "", fields: item[0] } as airtableReplication),
+    } as DBResponse;
+}
 //Admin Functions
 export const doesAdminExist = async (slackId: string): Promise<DBResponse> => {
     const admins = await db.select().from(adminTable).where(eq(adminTable.slackId, slackId));

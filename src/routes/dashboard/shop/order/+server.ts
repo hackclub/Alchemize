@@ -1,9 +1,8 @@
 import type { RequestHandler } from "@sveltejs/kit"
 import { BOT_AUTH, USER_JWT_SECRET } from '$env/static/private';
-import itemsJson from "./../items.json"
 import looseJson from 'loose-json'
 import type { Item, UserCurrency } from "$lib/types"
-import { createOrder, getUserByEmail, patchUserCurrency } from "$lib/db";
+import { createOrder, getUserByEmail, patchUserCurrency, getShopItemById } from "$lib/db";
 import jwt from 'jsonwebtoken';
 import type {UserAuthToken} from "$lib/types";
 interface RequestBody {
@@ -31,8 +30,19 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if(body.quantity <= 0){
         return new Response("Quantity must be greater than 0", { status: 400 })
     }
-    const items: Item[] = itemsJson as Item[];
-    const item = items.find(i => i.itemID === body.itemId);
+    const itemResponse = await getShopItemById(body.itemId);
+    if (!itemResponse.ok) {
+        return new Response("Failed to fetch item from the database", { status: 500 })
+    }
+    const itemsData = await itemResponse.json();
+    const itemRecord = itemsData;
+    const item: Item = {
+        itemID: itemRecord.id,
+        name: itemRecord.fields.name,
+        description: itemRecord.fields.description,
+        itemPrice: itemRecord.fields.itemPrice,
+        cdnImage: itemRecord.fields.cdnImage,
+    }
     const userToken = cookies.get('user_token');
     if (!item) {
         return new Response("Item not found", { status: 404 })
