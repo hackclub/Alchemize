@@ -1,0 +1,284 @@
+const itemJson = `[
+  {
+"itemID": "steam-gift-card-25",
+    "name": "Steam Gift Card ($25)",
+    "description": "A $25 Steam gift card. Stackable.",
+    "itemPrice": {
+        "redstone": 0,
+        "glowstone": 0,
+        "aqua_regia": 5,
+        "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec539-e599-73f3-bce2-f86321bcafa4"
+  },
+  {
+    "itemID": "google-play-console",
+    "name": "Google Play Console Developer License ($25)",
+    "description": "Access to show your broken apps/games to the whole world.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 5,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53b-b12c-733f-987d-150010308fe2/image.png"
+  },
+  {
+    "itemID": "pico8-license",
+    "name": "PICO-8 License ($14.99)",
+    "description": "A license for the best fantasy game console.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 3,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec540-1c1b-79d5-950b-6718cee53544/image.png"
+  },
+  {
+    "itemID": "apple-developer-account",
+    "name": "Apple Developer Account ($99/yr)",
+    "description": "Yearly Apple Developer membership to publish iOS apps.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 20,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53d-1868-7dbb-923e-e29e17cea5bf/image.png"
+  },
+  {
+    "itemID": "steam-publishing-license",
+    "name": "Steam Publishing License ($100)",
+    "description": "Steam Direct fee to publish your masterpiece on Steam.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 20,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53c-8527-730d-b74f-f8c871222923/image.png"
+  },
+  {
+    "itemID": "ram-grant",
+    "name": "RAM Grant ($50)",
+    "description": "buy it before ram prices increase again!!!",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 10,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec542-9564-778a-8234-4809a3ce9553/image.png"
+  },
+  {
+    "itemID": "kindle-scribe",
+    "name": "Kindle Scribe ($339)",
+    "description": "An Kindle on which you can write as well?",
+    "itemPrice": {
+      "redstone": 85,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec545-4d45-7b83-baad-fcd4c62e711e/image.png"
+  },
+  {
+    "itemID": "drawing-tablet",
+    "name": "Drawing Tablet - Wacom Intuos / XP-Pen (~$80)",
+    "description": "Draw infinitely!",
+    "itemPrice": {
+      "redstone": 20,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec547-96ac-7203-9f2a-bf9b7498a4f0/image.png"
+  },
+  {
+    "itemID": "ipad",
+    "name": "iPad (Base model)",
+    "description": "A digital sketchbook.",
+    "itemPrice": {
+      "redstone": 83,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54b-17a9-797b-a913-fa1247e0a5f6/image.png"
+  },
+  {
+    "itemID": "logitech-mx-master-3s",
+    "name": "Logitech MX Master 3S Mouse ($100)",
+    "description": "go down the loophole of 'im gonna be productive'",
+    "itemPrice": {
+      "redstone": 25,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec548-5aa1-7e2b-b1bb-552b2ba493e1/image.png"
+  },
+  {
+    "itemID": "figma-pro-1mo",
+    "name": "Figma Pro (1 Month)",
+    "description": "One month of Figma Pro to improve your design sense.",
+    "itemPrice": {
+      "redstone": 4,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54f-de16-71da-9455-2497d5d692d5/image.png"
+  },
+  {
+    "itemID": "notion-pro-1mo",
+    "name": "Notion Pro (1 Month)",
+    "description": "A subscription for a glorified notepad",
+    "itemPrice": {
+      "redstone": 4,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec550-b38f-7752-9172-3adce409a4ff/image.png"
+  },
+  {
+    "itemID": "cloud-storage-grant-1mo",
+    "name": "Cloud Storage Grant (1 Month)",
+    "description": "A $3 grant for cloud storage. Stackable.",
+    "itemPrice": {
+      "redstone": 1,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54c-0423-7d62-bd83-77fecd915474/image.png"
+  },
+  {
+    "itemID": "raspberry-pi-5-4gb",
+    "name": "Raspberry Pi 5 4GB ($60)",
+    "description": "A computer better than yours",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 14,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54d-560f-70e7-be4a-e0b86111006e/image.png"
+  },
+  {
+    "itemID": "hardware-grant",
+    "name": "Hardware Grant ($5)",
+    "description": "Buy hardware stuff",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 2,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54f-5a5a-73ed-bf6b-676d6aef3b6d/image.png"
+  },
+  {
+    "itemID": "flipper-zero",
+    "name": "Flipper Zero ($169)",
+    "description": "Portable multi-tool device for hardware lovers (dont do illegal stuff plz).",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 38,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54a-4041-7edf-a051-3d62cc90ef3b/image.png"
+  },
+  {
+    "itemID": "arduino-uno-r4",
+    "name": "Arduino Uno R4 ($28)",
+    "description": "Arduino Uno R4 microcontroller board.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 6,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec553-c382-7a14-ac13-6131ef17392a/image.png"
+  },
+  {
+    "itemID": "esp32-dev-board",
+    "name": "ESP32 Dev Board ($10)",
+    "description": "Better than Arduino with Wi-Fi and Bluetooth.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 3,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec552-7dfd-7cd0-98ec-caf0a43835d2/image.png"
+  },
+  {
+    "itemID": "tp-link-travel-router",
+    "name": "TP-Link Travel Router ($30)",
+    "description": "Compact travel router for networking projects.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 7,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec551-f11b-7389-9c67-56973384d88c/image.png"
+  },
+  {
+    "itemID": "portable-ssd",
+    "name": "Portable SSD ($50)",
+    "description": "Expensive af.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 12,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": ""
+  }
+]
+`
+interface Item {
+    id: string
+    name: string
+    description: string
+    cdnImage: string
+    itemPrice: any
+}
+import {uuid, varchar, jsonb, pgTable} from "drizzle-orm/pg-core"
+import {Pool} from "pg"
+import {drizzle} from "drizzle-orm/node-postgres"
+import dotenv from "dotenv"
+dotenv.config({
+    path: ".env.production"
+})
+const DATABASE_URL = process.env.DATABASE_URL || ""
+export const shopItemsTable = pgTable("shop_items", {
+    itemID: uuid().primaryKey().defaultRandom(),
+    name: varchar({ length: 255 }).notNull(),
+    description: varchar({ length: 1000 }).notNull(),
+    itemPrice: jsonb().notNull(),
+    cdnImage: varchar({ length: 1000 }).notNull(),
+})
+const pool = new Pool({
+    connectionString: DATABASE_URL,
+    
+        
+});
+
+const db = drizzle(pool);
+const main = async () => {
+    const items: Item[] = JSON.parse(itemJson)
+    for (const item of items) {
+        await db.insert(shopItemsTable).values({
+            name: item.name,
+            description: item.description,
+            itemPrice: item.itemPrice,
+            cdnImage: item.cdnImage || " "
+        })
+    }
+}
+main()
