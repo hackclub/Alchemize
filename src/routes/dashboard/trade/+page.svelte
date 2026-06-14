@@ -6,6 +6,7 @@
 	import { invalidateAll } from "$app/navigation"
 	let { data } = $props()
 	import { toast } from "svelte-sonner"
+	import { cn } from "$lib/lib/utils"
 	let redstoneAmount = $state(0)
 	let glowstoneAmount = $state(0)
 	let aquaRegiaAmount = $state(0)
@@ -22,6 +23,7 @@
 		)
 	}
 	let loading = $state(false)
+	const convertDisabled = potionMixAmount <= 0
 	const updatePotionMix = async () => {
 		if (potionMixAmount <= 0) {
 			toast.error("Please enter valid amounts to convert.")
@@ -97,7 +99,7 @@
 					<!-- stone-1's card -->
 					<div class="relative h-25">
 						<div
-							class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-xl"
+							class="absolute inset-0 bg-primary/40 translate-x-[2px] translate-y-[2px] rounded-xl"
 						></div>
 						<div
 							class="p-4 bg-zinc-950 border-2 border-primary/50 rounded-xl backdrop-blur-2xl flex items-center justify-between gap-x-4"
@@ -115,7 +117,8 @@
 										Redstone
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										<strong>Owned:</strong> {hasRedstone ? data.currencies?.redstone : 0}
+										<strong>Owned:</strong>
+										{hasRedstone ? data.currencies?.redstone : 0}
 									</span>
 								</div>
 								<Input
@@ -133,7 +136,7 @@
 					<!-- stone-2's card -->
 					<div class="relative h-25">
 						<div
-							class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-xl"
+							class="absolute inset-0 bg-primary/40 translate-x-[2px] translate-y-[2px] rounded-xl"
 						></div>
 						<div
 							class="p-4 bg-zinc-950 border-2 border-primary/50 rounded-xl backdrop-blur-2xl flex items-center justify-between gap-x-4"
@@ -151,7 +154,8 @@
 										Glowstone
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										<strong>Owned:</strong> {hasGlowstone ? data.currencies?.glowstone : 0}
+										<strong>Owned:</strong>
+										{hasGlowstone ? data.currencies?.glowstone : 0}
 									</span>
 								</div>
 								<Input
@@ -187,7 +191,8 @@
 										Aqua Regia
 									</h2>
 									<span class="text-neutral-400 text-xs font-medium">
-										<strong>Owned:</strong> {hasAquaRegia ? data.currencies?.aqua_regia : 0}
+										<strong>Owned:</strong>
+										{hasAquaRegia ? data.currencies?.aqua_regia : 0}
 									</span>
 								</div>
 								<Input
@@ -216,13 +221,29 @@
 				</div>
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-md transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class={cn(
+							"absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-md transition-transform",
+							!convertDisabled &&
+								"group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						)}
 					></div>
 					<Button
 						onclick={updatePotionMix}
-						class="relative flex items-center justify-between border-2 border-primary bg-zinc-950 text-primary font-semibold uppercase tracking-widest text-center px-10 py-5 rounded-md transition-transform group-hover:-translate-x-px group-hover:-translate-y-px text-lg"
+						class={cn(
+							"relative flex items-center justify-between border-2 border-primary bg-zinc-950 text-primary font-semibold uppercase tracking-widest text-center px-10 py-5 rounded-md transition-transform",
+							convertDisabled &&
+								"bg-zinc-950 pointer-events-none cursor-not-allowed",
+							!convertDisabled &&
+								"group-hover:-translate-x-px group-hover:-translate-y-px"
+						)}
 					>
-						<span>Convert Stones</span>
+						{#if !convertDisabled}
+							<span class=" text-lg">Convert Stones</span>
+						{:else}
+							<span class="text-md text-muted-foreground"
+								>Not enough stones</span
+							>
+						{/if}
 						{#if loading}
 							<div
 								class="loader border-gray-500 border-2 border-t-black rounded-full size-5 animate-spin"
@@ -240,7 +261,7 @@
 				</h2>
 				<div class="relative w-full h-full">
 					<div
-						class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-2xl -z-10"
+						class="absolute inset-0 bg-primary/40 translate-x-[2px] translate-y-[2px] rounded-2xl -z-10"
 					></div>
 					<div
 						class="h-full w-full bg-zinc-950 border-2 border-primary/50 rounded-2xl flex flex-col gap-y-4 items-center justify-between py-10 px-5 z-20"

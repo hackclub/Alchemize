@@ -1,26 +1,242 @@
 [
-    {
-        "itemID":"cookie-utkarsh",
-        "name": "Cookie for Utkarsh",
-        "description": "A cookie for Utkarsh to eat",
-        "itemPrice": {
-            "redstone": 0,
-            "glowstone":0,
-            "aqua_regia": 0,
-            "potion_mix":10
-        },
-        "cdnImage": "https://user-cdn.hackclub-assets.com/019e5e2f-6f99-7279-82d2-957ccf45cc20/cookie.avif"
+  {
+"itemID": "steam-gift-card-25",
+    "name": "Steam Gift Card ($25)",
+    "description": "A $25 Steam gift card. Stackable.",
+    "itemPrice": {
+        "redstone": 0,
+        "glowstone": 0,
+        "aqua_regia": 5,
+        "potion_mix": 0
     },
-    {
-        "itemID":"laptop-fund-coolcream",
-        "name": "Laptop fund For Coolcream",
-        "description": "Give money to coolcream so he can buy a laptop",
-        "itemPrice": {
-            "redstone": 80,
-            "glowstone":0,
-            "aqua_regia": 0,
-            "potion_mix":0
-        },
-        "cdnImage": "data:image/jpeg;base64,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"
-    }
+    "cdnImage": "https://cdn.hackclub.com/019ec539-e599-73f3-bce2-f86321bcafa4"
+  },
+  {
+    "itemID": "google-play-console",
+    "name": "Google Play Console Developer License ($25)",
+    "description": "Access to show your broken apps/games to the whole world.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 5,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53b-b12c-733f-987d-150010308fe2/image.png"
+  },
+  {
+    "itemID": "pico8-license",
+    "name": "PICO-8 License ($14.99)",
+    "description": "A license for the best fantasy game console.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 3,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec540-1c1b-79d5-950b-6718cee53544/image.png"
+  },
+  {
+    "itemID": "apple-developer-account",
+    "name": "Apple Developer Account ($99/yr)",
+    "description": "Yearly Apple Developer membership to publish iOS apps.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 20,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53d-1868-7dbb-923e-e29e17cea5bf/image.png"
+  },
+  {
+    "itemID": "steam-publishing-license",
+    "name": "Steam Publishing License ($100)",
+    "description": "Steam Direct fee to publish your masterpiece on Steam.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 20,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec53c-8527-730d-b74f-f8c871222923/image.png"
+  },
+  {
+    "itemID": "ram-grant",
+    "name": "RAM Grant ($50)",
+    "description": "buy it before ram prices increase again!!!",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 0,
+      "aqua_regia": 10,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec542-9564-778a-8234-4809a3ce9553/image.png"
+  },
+  {
+    "itemID": "kindle-scribe",
+    "name": "Kindle Scribe ($339)",
+    "description": "An Kindle on which you can write as well?",
+    "itemPrice": {
+      "redstone": 85,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec545-4d45-7b83-baad-fcd4c62e711e/image.png"
+  },
+  {
+    "itemID": "drawing-tablet",
+    "name": "Drawing Tablet - Wacom Intuos / XP-Pen (~$80)",
+    "description": "Draw infinitely!",
+    "itemPrice": {
+      "redstone": 20,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec547-96ac-7203-9f2a-bf9b7498a4f0/image.png"
+  },
+  {
+    "itemID": "ipad",
+    "name": "iPad (Base model)",
+    "description": "A digital sketchbook.",
+    "itemPrice": {
+      "redstone": 83,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54b-17a9-797b-a913-fa1247e0a5f6/image.png"
+  },
+  {
+    "itemID": "logitech-mx-master-3s",
+    "name": "Logitech MX Master 3S Mouse ($100)",
+    "description": "go down the loophole of 'im gonna be productive'",
+    "itemPrice": {
+      "redstone": 25,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec548-5aa1-7e2b-b1bb-552b2ba493e1/image.png"
+  },
+  {
+    "itemID": "figma-pro-1mo",
+    "name": "Figma Pro (1 Month)",
+    "description": "One month of Figma Pro to improve your design sense.",
+    "itemPrice": {
+      "redstone": 4,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54f-de16-71da-9455-2497d5d692d5/image.png"
+  },
+  {
+    "itemID": "notion-pro-1mo",
+    "name": "Notion Pro (1 Month)",
+    "description": "A subscription for a glorified notepad",
+    "itemPrice": {
+      "redstone": 4,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec550-b38f-7752-9172-3adce409a4ff/image.png"
+  },
+  {
+    "itemID": "cloud-storage-grant-1mo",
+    "name": "Cloud Storage Grant (1 Month)",
+    "description": "A $3 grant for cloud storage. Stackable.",
+    "itemPrice": {
+      "redstone": 1,
+      "glowstone": 0,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54c-0423-7d62-bd83-77fecd915474/image.png"
+  },
+  {
+    "itemID": "raspberry-pi-5-4gb",
+    "name": "Raspberry Pi 5 4GB ($60)",
+    "description": "A computer better than yours",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 14,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54d-560f-70e7-be4a-e0b86111006e/image.png"
+  },
+  {
+    "itemID": "hardware-grant",
+    "name": "Hardware Grant ($5)",
+    "description": "Buy hardware stuff",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 2,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54f-5a5a-73ed-bf6b-676d6aef3b6d/image.png"
+  },
+  {
+    "itemID": "flipper-zero",
+    "name": "Flipper Zero ($169)",
+    "description": "Portable multi-tool device for hardware lovers (dont do illegal stuff plz).",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 38,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec54a-4041-7edf-a051-3d62cc90ef3b/image.png"
+  },
+  {
+    "itemID": "arduino-uno-r4",
+    "name": "Arduino Uno R4 ($28)",
+    "description": "Arduino Uno R4 microcontroller board.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 6,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec553-c382-7a14-ac13-6131ef17392a/image.png"
+  },
+  {
+    "itemID": "esp32-dev-board",
+    "name": "ESP32 Dev Board ($10)",
+    "description": "Better than Arduino with Wi-Fi and Bluetooth.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 3,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec552-7dfd-7cd0-98ec-caf0a43835d2/image.png"
+  },
+  {
+    "itemID": "tp-link-travel-router",
+    "name": "TP-Link Travel Router ($30)",
+    "description": "Compact travel router for networking projects.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 7,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": "https://cdn.hackclub.com/019ec551-f11b-7389-9c67-56973384d88c/image.png"
+  },
+  {
+    "itemID": "portable-ssd",
+    "name": "Portable SSD ($50)",
+    "description": "Expensive af.",
+    "itemPrice": {
+      "redstone": 0,
+      "glowstone": 12,
+      "aqua_regia": 0,
+      "potion_mix": 0
+    },
+    "cdnImage": ""
+  }
 ]

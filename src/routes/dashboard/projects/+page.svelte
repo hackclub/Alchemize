@@ -202,24 +202,28 @@
 		}
 	}
 </script>
+
 <div class="abosulte z-90">
-	<AlertDialog.Root open={isDeleteDialogOpen} onOpenChange={open => (isDeleteDialogOpen = open)} >
- <AlertDialog.Content class="z-60 backdrop:blur-lg">
-  <AlertDialog.Header>
-   <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-   <AlertDialog.Description>
-    This action cannot be undone. This will permanently delete your Project
-    and remove the project from our servers.
-   </AlertDialog.Description>
-  </AlertDialog.Header>
-  <AlertDialog.Footer>
-   <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-   <AlertDialog.Action>
-	<button onclick={deleteProject}>Continue</button>
-   </AlertDialog.Action>
-  </AlertDialog.Footer>
- </AlertDialog.Content>
-</AlertDialog.Root>
+	<AlertDialog.Root
+		open={isDeleteDialogOpen}
+		onOpenChange={open => (isDeleteDialogOpen = open)}
+	>
+		<AlertDialog.Content class="z-60 backdrop:blur-lg">
+			<AlertDialog.Header>
+				<AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+				<AlertDialog.Description>
+					This action cannot be undone. This will permanently delete your
+					Project and remove the project from our servers.
+				</AlertDialog.Description>
+			</AlertDialog.Header>
+			<AlertDialog.Footer>
+				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+				<AlertDialog.Action>
+					<button onclick={deleteProject}>Continue</button>
+				</AlertDialog.Action>
+			</AlertDialog.Footer>
+		</AlertDialog.Content>
+	</AlertDialog.Root>
 </div>
 <main
 	class=" min-h-screen overflow-scroll w-full bg-gradbg text-foreground p-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground"
@@ -241,7 +245,7 @@
 			<Button
 				size="sm"
 				variant="outline"
-				class="border-2 border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none mr-10"
+				class="border-2 border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-wider uppercase rounded-xl transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none mr-10"
 				onclick={() => (newProjWindowOpened = true)}
 			>
 				<Plus class="size-4 mr-1 stroke-3" />
