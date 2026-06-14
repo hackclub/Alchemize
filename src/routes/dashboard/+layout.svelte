@@ -10,8 +10,13 @@
 		PUBLIC_HACKCLUB_AUTH,
 		PUBLIC_HACKCLUB_REDIRECT,
 	} from "$env/static/public"
+	import type { LayoutData } from "./$types"
 
-	let { children, data } = $props()
+	let {
+		children,
+		data,
+	}: { children: any; data: LayoutData & { admin?: boolean } } = $props()
+
 	const isAllowed = $derived(data?.allowed ?? false)
 	const reLogin = $derived(data?.relogin ?? false)
 	const reHackatime = $derived(data?.reHackatime ?? false)
@@ -19,6 +24,7 @@
 	const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=openid+profile+email&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
 	const excludedRoutes = ["/dashboard"]
 	let unVerified = $state(true)
+
 	if (browser) {
 		const hackatimeVerifiedCookie = document.cookie
 			.split("; ")
@@ -44,6 +50,7 @@
 		</div>
 	</div>
 {/if}
+
 {#if !isAllowed}
 	<div
 		class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 pointer-events-none"
@@ -56,6 +63,7 @@
 		</div>
 	</div>
 {/if}
+
 <div class="root h-screen w-screen flex items-center justify-start text-white">
 	{#if !excludedRoutes.includes(page.url.pathname)}
 		<Navigation />
@@ -79,4 +87,3 @@
 		{@render children()}
 	{/if}
 </div>
-<!-- <div class='bg bg-[url("/bg2.webp")] w-screen h-screen bg-cover absolute top-0 left-0 z-[-1]'></div> -->

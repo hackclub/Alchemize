@@ -4,10 +4,11 @@ import { getProjectsByOwner, getUserByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
 import { redirect } from '@sveltejs/kit';
 import jwt from "jsonwebtoken"
+
 let slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN);
+
 const getSlackProfile = async (slackId: string) => {
     const result = await slackClient.users.info({ user: slackId });
-
     return result.user?.profile || null;
 }
 
@@ -16,6 +17,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     const hackatimeVerified = cookies.get('hackatime_verified');
     const userToken = cookies.get("user_token")
     let decodedToken: any = null
+
     try {
         if (userToken) {
             const decoded: any = jwt.verify(userToken, USER_JWT_SECRET);
@@ -28,9 +30,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
         throw new Error("Invalid user token");
     }
 
-
     let hackatimeAccessToken = cookies.get('hackatime_token');
-    let hacks = ""
+    let hacks: any = ""
     if (!hackatimeAccessToken) {
         cookies.set('hackatime_verified', 'false', { path: '/' });
         cookies.set('hackatime_token', '', { path: '/', expires: new Date(0) });
@@ -48,32 +49,35 @@ export const load: PageServerLoad = async ({ cookies }) => {
         getUserByEmail(decodedToken.email),
         getSlackProfile(decodedToken.slack_id)
     ])
-    hacks = await hackatimes.json()
 
+    hacks = await hackatimes.json()
 
     if (!at) {
         return {
-            projects: []
+            projects: [],
+            hacks: hacks,
+            email: decodedToken.email,
+            eligiblity: decodedToken.ysws_eligible,
+            name: slackprofile?.display_name || decodedToken.first_name,
+            hackatimeVerified: hackatimeVerified === "true",
+            user: {},
+            admin: !!cookies.get("admin_access_token"),
+            pfp: slackprofile?.image_512 || ""
         }
     }
 
-
-    const projectsData = await projectsResponse.json();
-    const userData = await userResponse.json();
-    let admin = false
-    if (cookies.get("admin_access_token")) {
-        admin = true
-    }
-
+    const projectsData = typeof projectsResponse.json === 'function' ? await projectsResponse.json() : projectsResponse;
+    const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;
+    const admin = !!cookies.get("admin_access_token")
 
     return {
-        projects: projectsData.records,
+        projects: projectsData?.records || [],
         hacks: hacks,
         email: decodedToken.email,
         eligiblity: decodedToken.ysws_eligible,
         name: slackprofile?.display_name || decodedToken.first_name,
         hackatimeVerified: hackatimeVerified === "true",
-        user: userData.records?.[0]?.fields ?? {},
+        user: userData?.records?.[0]?.fields ?? {},
         admin: admin,
         pfp: slackprofile?.image_512 || ""
     }
