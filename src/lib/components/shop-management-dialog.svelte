@@ -564,6 +564,7 @@
 							variant="destructive"
 							class="text-xs font-semibold uppercase tracking-wider "
 							onclick={onDelete}
+							disabled={shipLoading || showSecondRotator || JSON.parse(project?.fields?.log || "[]").length > 1}
 						>
 							<Trash/> Delete Project
 						</Button>

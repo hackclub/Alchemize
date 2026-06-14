@@ -26,6 +26,7 @@
 			log: ""
 			owner: string
 			status: string
+			Theme: string
 		}
 	}
 
@@ -55,6 +56,20 @@
 	let userCurrencies = $derived(
 		looseJson(data.user?.currency ?? "{}")
 	) as UserCurrency
+	const renderBadge = (text: string) => {
+		switch (text.toLowerCase()) {
+			case "endless":
+				return "<img src='/alch-redstone.png' alt='Redstone' class='w-4 h-4 object-contain' /> Endless"
+			case "no-internet":
+				return "<img src='/alch-glowstone.png' alt='Glowstone' class='w-4 h-4 object-contain' /> No Internet"
+			case "indie-gamedev":
+				return "<img src='/alch-aquaregia.png' alt='Aqua Regia' class='w-4 h-4 object-contain' /> Indie Game Dev"
+			case "potion mix":
+				return "<img src='/Alchemize.png' alt='Potion Mix' class='w-4 h-4 object-contain' /> Potion Mix"
+			default:
+				return null
+		}
+	}
 </script>
 
 <main
@@ -189,11 +204,9 @@
 										</span>
 									</div>
 									<p
-										class="text-zinc-500 text-[11px] font-sans tracking-normal line-clamp-1"
+										class="text-zinc-500 text-[11px] font-sans tracking-normal line-clamp-1 flex gap-2"
 									>
-										Last Sync: {new Date(
-											project.createdTime
-										).toLocaleDateString()}
+										{@html renderBadge(project.fields.Theme) ?? project.fields.type}
 									</p>
 								</div>
 							{/each}

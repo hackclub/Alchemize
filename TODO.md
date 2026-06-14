@@ -4,7 +4,7 @@ PLEASE DON'T TOUCH MY TODO
 LOW PRIORITY LOL:
 [x] Implement Project Deletion
 [] Implement Project Unship
-[] Polish t2 Review panel
+[x] Polish t2 Review panel
 [x] Add the new Dashboard UI
 [x] ~Create pre-review api~
 [x] Create Currency Exchange
