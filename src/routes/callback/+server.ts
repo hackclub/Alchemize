@@ -17,6 +17,17 @@ const XORdecrypt = (textInp: string) => {
 	}
 	return out.toString("utf-8")
 }
+/*
+CLEANUP PLAN DETAILS DO NOT TOUCH:
+Code FLOW:
+	->Fetch the code and refer cookies
+	->Exchange code for token with Hack Club(auth.hackclub.com/oauth/token)
+	->Decode the OIDC Token to get user info (email, name, slack id, hack club id, verification status, ysws eligibility)
+	->Check if user exists in DB by matching Emails
+	->If user does not exist, create new user record in DB and store record ID
+	->If refer cookie exists and user is new, create refer record in DB with decoded refer cookie (referrer email and slack id), ysws eligibility, verification status, and first name for personalization
+	->Create JWT containing user info and store in HTTP-only cookie for authentication in the app
+*/
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	// All Cookies Used
 	// airtable_user_record_id: Stores the Airtable record ID of the user, used for database operations
@@ -28,6 +39,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// Hackatime Token stored for 1 year
 	// User Token stored for 4 months
 	// Hack Club Auth tokens stored for 6 months (refresh tokens not used, so access tokens are long-lived)
+
+	
 	const code = url.searchParams.get("code")
 	const referCookie = cookies.get("refer")
 

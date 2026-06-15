@@ -18,7 +18,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
         }
     }
     const email = data?.email;
-    const userResponse = await getUserByEmail(email);
     const itemsResponse = await fetchAllItems();
     if (!itemsResponse.ok) {
         throw new Error("Failed to fetch items from the database");
@@ -33,12 +32,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
         cdnImage: record.fields.cdnImage,
     }));
     
-
-    const userData = await userResponse.json();
-    const userRecord = userData.records[0];
-    console.log(userRecord);
     return {
         items,
-        userRecord
+      
     }
 }

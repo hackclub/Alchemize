@@ -1,17 +1,13 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/button/button.svelte"
 	import { Input } from "$lib/components/ui/input/index.js"
-	import ShopDialog from "$lib/components/shopitem-dialog.svelte"
+	import ShopDialog from "$lib/components/shop-management-dialog.svelte"
 	//@ts-ignore
 	import looseJson from "loose-json"
 	import { ShoppingBag, Search } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { Plus } from "@lucide/svelte"
 	let { data } = $props()
-	let currencies = $state(
-		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
-	)
-
 	interface UserCurrency {
 		redstone: number
 		glowstone: number
@@ -25,11 +21,21 @@
 		description: string
 		price: UserCurrency
 		image: string
-		grayedOut?: boolean
 	}
-
+	interface Item {
+		itemID: string
+		name: string
+		description: string
+		price: {
+			redstone: number
+			glowstone: number
+			aqua_regia: number
+			potion_mix: number
+		}
+		image: string
+	}
 	let isDialogOpen = $state(false)
-	let selectedItem = $state<ShopItem>({
+	let selectedItem = $state<Item>({
 		name: "",
 		description: "",
 		price: { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 },
@@ -46,7 +52,7 @@
 			description: item.description,
 			price: item.itemPrice,
 			image: item.cdnImage,
-			grayedOut: isGrayedOut(currencies, item.itemPrice),
+			
 		})),
 	]
 
@@ -57,51 +63,12 @@
 				item.description.toLowerCase().includes(searchQuery.toLowerCase())
 		)
 	)
-
-	function isGrayedOut(userHas: UserCurrency, itemPrice: UserCurrency) {
-		return (
-			userHas.redstone < itemPrice.redstone ||
-			userHas.glowstone < itemPrice.glowstone ||
-			userHas.aqua_regia < itemPrice.aqua_regia ||
-			userHas.potion_mix < itemPrice.potion_mix
-		)
-	}
 	function handleBuyClick(item: ShopItem) {
 		selectedItem = item
 		isDialogOpen = true
 	}
 
-	function handleConfirmPurchase(qty: number) {
-		console.log(
-			`Purchased ${selectedItem.name} for ${qty * selectedItem.price.potion_mix} potion mixes!`
-		)
-		currencies.potion_mix -= qty * selectedItem.price.potion_mix
-		currencies.redstone -= qty * selectedItem.price.redstone
-		currencies.glowstone -= qty * selectedItem.price.glowstone
-		currencies.aqua_regia -= qty * selectedItem.price.aqua_regia
-		currencies = currencies
-		console.log("Item ID", selectedItem)
-		const buyApi = fetch("/dashboard/shop/order", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				itemId: selectedItem.itemID,
-				quantity: qty,
-			}),
-		}).then(res => {
-			if (res.ok) {
-				toast.success("Purchase successful!")
-			} else {
-				toast.error("Purchase failed")
-				console.error("Purchase failed", res)
-				const body = res.text().then(text => {
-					console.error("Response body:", text)
-				})
-			}
-		})
-	}
+	
 	const renderCurrency = (currency: UserCurrency) => {
 		if (currency.redstone > 0) {
 			return `${currency.redstone} Redstone`
@@ -115,6 +82,8 @@
 			return "0 Currency"
 		}
 	}
+	let openCreateItem = $state(false)
+	let openEditItem = $state(false)
 </script>
 
 <main
@@ -136,6 +105,7 @@
 			</div>
 			<Button
 				class="bg-admin-primary text-admin-text rounded-sm font-bold hover:bg-admin-primary/70"
+				onclick={() => (openCreateItem = true)}
 			>
 				<Plus />
 				Add Item
@@ -218,9 +188,11 @@
 							class="col-span-1 md:col-span-3 flex justify-end w-full pt-2 md:pt-0"
 						>
 							<Button
-								class="w-full md:w-32 py-3 h-8 border border-admin-primary bg-background text-admin-primary hover:bg-admin-primary hover:text-admin-foreground font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
-								disabled={item.grayedOut}
-								onclick={() => handleBuyClick(item)}
+								class="w-full md:w-32 py-3 h-8 border border-admin-primary bg-background text-admin-primary hover:text-black hover:bg-admin-primary  font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
+								onclick={() => {
+									selectedItem = item
+									openEditItem = true
+								}}
 							>
 								Edit
 							</Button>
@@ -237,3 +209,5 @@
 		</div>
 	</div>
 </main>
+<ShopDialog bind:open={openCreateItem} mode="create" shopItem={null}/>
+<ShopDialog bind:open={openEditItem} mode="update" shopItem={selectedItem}/>
