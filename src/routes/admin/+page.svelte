@@ -14,6 +14,15 @@
 <div
 	class="admin-cont flex h-screen w-screen items-center justify-center flex-col gap-y-2"
 >
+	<button
+		onclick={() => {
+			window.location.href = "/dashboard"
+		}}
+		class="bg-transparent p-3 text-sm hover:scale-103 hover:bg-admin-primary/10 hover:-translate-y-px border-2 hover:border-admin-primary flex items-center just-center flex-col rounded-xl transition absolute top-5 left-5"
+	>
+		<Home class="h-5 w-5" />
+		Home
+	</button>
 	<img src="/Alchemize-Admin.png" alt="alchemize" class="h-35" />
 	<h1 class="text-5xl text-admin-primary font-alchemize font-bold">
 		Alchemize Admin
@@ -21,12 +30,12 @@
 	<h1 class="text-xl text-white font-alchemize font-medium">
 		Where would you like to go today, {data.name || "Admin"}?
 	</h1>
-	<nav class="grid grid-cols-3 grid-rows-2 gap-10 mt-5">
+	<nav class="grid grid-cols-5 grid-rows-2 gap-10 mt-5 w-full px-10">
 		<button
 			onclick={() => {
 				window.location.href = "/admin/review"
 			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+			class="bg-transparent py-4 text-lg hover:scale-103 hover:bg-admin-primary/10 hover:text-admin-text hover:border-admin-primary border-2 flex items-center just-center gap-y-2 flex-col rounded-xl transition"
 		>
 			<Star class="h-10 w-10" />
 			T1 Review
@@ -35,7 +44,7 @@
 			onclick={() => {
 				window.location.href = "/admin/review2"
 			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+			class="bg-transparent py-4 text-lg hover:scale-103 hover:bg-admin-primary/10 hover:text-admin-text hover:border-admin-primary border-2 flex items-center just-center gap-y-2 flex-col rounded-xl transition"
 		>
 			<UserStar class="h-10 w-10" />
 			T2 Review
@@ -44,7 +53,7 @@
 			onclick={() => {
 				window.location.href = "/admin/fulfillement"
 			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+			class="bg-transparent py-4 text-lg hover:scale-103 hover:bg-admin-primary/10 hover:text-admin-text hover:border-admin-primary border-2 flex items-center just-center gap-y-2 flex-col rounded-xl transition"
 		>
 			<Package class="h-10 w-10" />
 			Fulfillement
@@ -53,7 +62,7 @@
 			onclick={() => {
 				window.location.href = "/admin/shop"
 			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+			class="bg-transparent py-4 text-lg hover:scale-103 hover:bg-admin-primary/10 hover:text-admin-text hover:border-admin-primary border-2 flex items-center just-center gap-y-2 flex-col rounded-xl transition"
 		>
 			<ShoppingBag class="h-10 w-10" />
 			Manage Shop
@@ -62,19 +71,10 @@
 			onclick={() => {
 				window.location.href = "/admin/super-admin"
 			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+			class="bg-transparent py-4 text-lg hover:scale-103 hover:bg-admin-primary/10 hover:text-admin-text hover:border-admin-primary border-2 flex items-center just-center gap-y-2 flex-col rounded-xl transition"
 		>
 			<LockKeyhole class="h-10 w-10" />
 			Supaadmin
-		</button>
-		<button
-			onclick={() => {
-				window.location.href = "/dashboard"
-			}}
-			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
-		>
-			<Home class="h-10 w-10" />
-			Home
 		</button>
 	</nav>
 </div>
