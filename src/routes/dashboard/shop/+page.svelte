@@ -105,13 +105,13 @@
 </script>
 
 <main
-	class="min-h-screen w-full bg-gradbg text-foreground px-2 py-6 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-x-hidden"
+	class="h-screen w-full bg-gradbg text-foreground px-2 py-2 md:p-6 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-hidden"
 >
 	<div class="fixed inset-0 bg-black/20 z-0 pointer-events-none"></div>
 
-	<div class="relative min-h-screen pt-14 z-10 w-full mx-2 flex flex-col gap-8">
+	<div class="relative h-full z-10 w-full mx-2 flex flex-col gap-6">
 		<div
-			class="flex flex-col lg:flex-row gap-4 h-[10vh] items-center justify-between border-b-2 border-primary/40 pb-4 px-4 py-2 pr-12 -mx-4 rounded-t-sm"
+			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-primary/40 px-4 py-2 pr-20 -mx-4 rounded-t-sm shrink-0"
 		>
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-primary" />
@@ -150,16 +150,16 @@
 		</div>
 
 		<div
-			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 items-start overflow-y-scroll h-[90vh] overflow-x-hidden"
+			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 flex-1 h-0 overflow-y-auto overflow-x-hidden pr-2"
 		>
 			{#each shopItems as item}
-				<div class="relative group">
+				<div class="relative group h-[180px]">
 					<div
 						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-sm transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
 					></div>
 
 					<div
-						class="relative w-full flex flex-row bg-black/95 border-2 border-primary/90 rounded-sm p-3 h-[180px] gap-3 transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative w-full flex flex-row bg-black/95 border-2 border-primary/90 rounded-sm p-3 h-full gap-3 transition-transform hover:-translate-x-px hover:-translate-y-px"
 					>
 						<div
 							class="w-[50%] h-full bg-zinc-950 border border-zinc-800 rounded-none overflow-hidden shrink-0 relative"
