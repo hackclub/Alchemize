@@ -6,6 +6,7 @@
 	import looseJson from "loose-json"
 	import { ShoppingBag, Search } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
+	import { Plus } from "@lucide/svelte"
 	let { data } = $props()
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
@@ -123,17 +124,22 @@
 
 	<div class="relative z-10 w-full h-full flex flex-col gap-6 min-h-0">
 		<div
-			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 w-full shrink-0"
+			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 w-full shrink-0 pr-10"
 		>
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-admin-primary" />
 				<h1
 					class="text-2xl font-alchemize font-black uppercase tracking-wider text-admin-primary [text-shadow:0_2px_10px_rgba(var(--admin-primary),0.2)]"
 				>
-					The Shop Controls
-					<span class="text-[0.5rem] text-white">Alchemize</span>
+					Manage Shop
 				</h1>
 			</div>
+			<Button
+				class="bg-admin-primary text-admin-text rounded-sm font-bold hover:bg-admin-primary/70"
+			>
+				<Plus />
+				Add Item
+			</Button>
 		</div>
 
 		<div class="relative w-full shrink-0">
