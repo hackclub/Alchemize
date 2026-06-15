@@ -295,46 +295,50 @@
 					</div>
 
 					<div
-						class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-900"
+						class="flex items-center justify-between gap-3 pt-4 border-t border-zinc-900"
 					>
-						{#if mode === "update"}
+						<div>
+							{#if mode === "update"}
+								<Button
+									type="button"
+									variant="destructive"
+									class="text-xs font-semibold uppercase tracking-wider h-10"
+									onclick={onDelete}
+								>
+									<Trash /> Delete Item
+								</Button>
+							{/if}
+						</div>
+						<div>
 							<Button
 								type="button"
-								variant="destructive"
-								class="text-xs font-semibold uppercase tracking-wider "
-								onclick={onDelete}
+								variant="outline"
+								class="text-xs h-10 font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-200"
+								onclick={() => (open = false)}
 							>
-								<Trash /> Delete Item
+								Cancel
 							</Button>
-						{/if}
-						<Button
-							type="button"
-							variant="ghost"
-							class="text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-200"
-							onclick={() => (open = false)}
-						>
-							Cancel
-						</Button>
-						<Dialog.Close>
-							<Button
-								type="submit"
-								class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
-								onclick={() => {
-									//Check for all the fields
-									if (!name || !description || files?.length === 0) {
-										toast.error("Please fill in all required fields.")
-										return
-									}
-								}}
-							>
-								{#if showSecondRotator}
-									<div
-										class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
-									></div>
-								{/if}
-								{mode === "create" ? "Add Item" : "Update Item"}
-							</Button>
-						</Dialog.Close>
+							<Dialog.Close>
+								<Button
+									type="submit"
+									class="bg-admin-primary hover:bg-admin-primary/80 text-admin-text text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
+									onclick={() => {
+										//Check for all the fields
+										if (!name || !description || files?.length === 0) {
+											toast.error("Please fill in all required fields.")
+											return
+										}
+									}}
+								>
+									{#if showSecondRotator}
+										<div
+											class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
+										></div>
+									{/if}
+									{mode === "create" ? "Add Item" : "Update Item"}
+								</Button>
+							</Dialog.Close>
+						</div>
 					</div>
 				</form>
 			</div>
