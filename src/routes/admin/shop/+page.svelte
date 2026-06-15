@@ -105,13 +105,13 @@
 </script>
 
 <main
-	class="min-h-screen w-full  text-foreground px-2 py-6 md:p-10 font-mono tracking-wide selection:bg-admin-primary selection:text-admin-foreground relative overflow-x-hidden"
+	class="h-screen w-full text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-admin-primary selection:text-admin-foreground relative overflow-hidden flex flex-col"
 >
 	<div class="fixed inset-0 bg-black/20 z-0 pointer-events-none"></div>
 
-	<div class="relative z-10 w-full mx-2 flex flex-col gap-8">
+	<div class="relative z-10 w-full h-full flex flex-col gap-6 min-h-0">
 		<div
-			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 backdrop-blur-md px-4 py-2 pr-12 -mx-4 rounded-t-sm"
+			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 w-full shrink-0"
 		>
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-admin-primary" />
@@ -122,60 +122,78 @@
 					<span class="text-[0.5rem] text-white">Alchemize</span>
 				</h1>
 			</div>
-
-		
 		</div>
 
 		<div
-			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 items-start"
+			class="hidden md:grid grid-cols-12 gap-4 px-4 py-1 border-b border-admin-primary/20 text-sm font-bold uppercase text-admin-text tracking-wider shrink-0"
+		>
+			<div class="col-span-1">Item</div>
+			<div class="col-span-5">Details</div>
+			<div class="col-span-3 text-right">Cost</div>
+			<div class="col-span-3 text-right">Actions</div>
+		</div>
+
+		<div
+			class="flex flex-col gap-4 overflow-y-auto overflow-x-hidden flex-1 pb-6 pr-2"
 		>
 			{#each shopItems as item}
-				<div class="relative group">
+				<div class="relative group w-full shrink-0">
 					<div
-						class="absolute inset-0 bg-admin-primary/80 translate-x-1.5 translate-y-1.5 rounded-sm transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+						class="absolute inset-0 bg-admin-primary/80 translate-x-1 translate-y-1 rounded-sm transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
 					></div>
 
 					<div
-						class="relative w-full flex flex-row bg-black/95 border-2 border-admin-primary/90 rounded-sm p-3 h-[180px] gap-3 transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative w-full grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-black/95 border-2 border-admin-primary/90 rounded-sm p-3 transition-transform hover:-translate-x-px hover:-translate-y-px"
 					>
-						<div
-							class="w-[50%] h-full bg-zinc-950 border border-zinc-800 rounded-none overflow-hidden shrink-0 relative"
-						>
-							<img
-								src={item.image}
-								alt={item.name}
-								class="w-full h-full object-contain scale-100 group-hover:scale-[1.03] transition-transform duration-300"
-							/>
+						<div class="col-span-1 flex justify-center md:justify-start">
 							<div
-								class="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-black/40"
-							></div>
+								class="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-none overflow-hidden shrink-0 relative"
+							>
+								<img
+									src={item.image}
+									alt={item.name}
+									class="w-full h-full object-contain scale-100 group-hover:scale-[1.05] transition-transform duration-300"
+								/>
+								<div
+									class="absolute inset-0 bg-linear-to-t from-black/40 to-transparent"
+								></div>
+							</div>
+						</div>
+
+						<div class="col-span-1 md:col-span-5 flex flex-col gap-1 min-w-0">
+							<h2
+								class="text-sm font-black uppercase text-white tracking-tight font-alchemize"
+							>
+								{item.name}
+							</h2>
+							<p
+								class="text-zinc-400 text-[11px] leading-snug font-mono tracking-normal line-clamp-2 md:line-clamp-1"
+							>
+								{item.description}
+							</p>
 						</div>
 
 						<div
-							class="flex flex-col items-end justify-between flex-1 min-w-0 w-full h-full py-0.5"
+							class="col-span-1 md:col-span-3 flex flex-row md:flex-col justify-between md:justify-center md:items-end text-[11px]"
 						>
-							<div class="flex flex-col gap-1 min-w-0 overflow-hidden text-end">
-								<h2
-									class="text-sm font-black uppercase text-white tracking-tight font-alchemize"
-								>
-									{item.name}
-								</h2>
-								<p
-									class="text-zinc-400 text-[11px] leading-snug font-mono tracking-normal line-clamp-3"
-								>
-									{item.description}
-								</p>
-							</div>
+							<span class="md:hidden text-zinc-500 uppercase font-bold"
+								>Cost:</span
+							>
+							<span class="text-admin-primary font-bold tracking-wider">
+								{renderCurrency(item.price)}
+							</span>
+						</div>
 
-							<div class="pt-2 border-t border-zinc-900 w-full">
-								<Button
-									class="w-full py-3 h-8 border border-admin-primary bg-background text-admin-primary hover:bg-admin-primary hover:text-admin-foreground font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
-									disabled={item.grayedOut}
-									onclick={() => handleBuyClick(item)}
-								>
-									Edit
-								</Button>
-							</div>
+						<div
+							class="col-span-1 md:col-span-3 flex justify-end w-full pt-2 md:pt-0"
+						>
+							<Button
+								class="w-full md:w-32 py-3 h-8 border border-admin-primary bg-background text-admin-primary hover:bg-admin-primary hover:text-admin-foreground font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
+								disabled={item.grayedOut}
+								onclick={() => handleBuyClick(item)}
+							>
+								Edit
+							</Button>
 						</div>
 					</div>
 				</div>

@@ -47,8 +47,8 @@
 	let hackSecondsByName = $derived(
 		new Map(
 			hacks.map(hack => [
-				(hack.name ?? hack.project_name ?? hack.project ?? ""),
-					
+				hack.name ?? hack.project_name ?? hack.project ?? "",
+
 				hack.total_seconds ?? 0,
 			])
 		)
@@ -197,16 +197,16 @@
 										>
 											<Clock class="size-3.5 text-primary" />
 											{formatHours(
-												hackSecondsByName.get(
-													(project.fields.hackatime ?? "")
-												) ?? 0
+												hackSecondsByName.get(project.fields.hackatime ?? "") ??
+													0
 											)}h
 										</span>
 									</div>
 									<p
 										class="text-zinc-500 text-[11px] font-sans tracking-normal line-clamp-1 flex gap-2"
 									>
-										{@html renderBadge(project.fields.Theme) ?? project.fields.type}
+										{@html renderBadge(project.fields.Theme) ??
+											project.fields.type}
 									</p>
 								</div>
 							{/each}
@@ -281,7 +281,7 @@
 									>
 								</a>
 							</div>
-							{#if data.admin || true}
+							{#if !!data.admin}
 								<a
 									href="/admin"
 									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5 grid-cols-1"
