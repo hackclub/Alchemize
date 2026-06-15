@@ -432,9 +432,9 @@ export const upsertShopItem = async (itemData: {
     description: string,
     itemPrice: any,
     cdnImage: string
-}, itemID: string): Promise<DBResponse> => {
+}, itemID: string | null): Promise<DBResponse> => {
     const { name, description, itemPrice, cdnImage } = itemData
-    const newItem = await db.insert(shopItemsTable).values({itemID, name, description, itemPrice, cdnImage }).onConflictDoUpdate({
+    const newItem = await db.insert(shopItemsTable).values({ ...(itemID ? { itemID } : {}), name, description, itemPrice, cdnImage }).onConflictDoUpdate({
         target: shopItemsTable.itemID,
         set: {
             name,

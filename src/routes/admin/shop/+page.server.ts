@@ -26,17 +26,24 @@ export const actions = {
         }
         //Fetch all the form data
         const formData = await event.request.formData();
-        const itemID = formData.get('itemID') as string | null;
+        let itemID = formData.get('itemID') as string | null;
         const name = formData.get('name') as string;
         const description = formData.get('description') as string;
         const itemPrice = parseInt(formData.get('itemPrice') as string);
         const cdnImage = formData.get('cdnImage') as string;
         const currencyType = formData.get('currencyType') as string;
         const img = formData.get('img') as File | null;
-        if (!name || !description || !itemPrice || !currencyType || !itemID ) {
+        if (!name || !description || !itemPrice || !currencyType ) {
             return error(400, "Bad Request");
         }
+        if(!itemID){
+            itemID = null;
+        }
         let cdnLink = cdnImage;
+        console.log("Received form data:", {
+            name,
+            description
+        })
         if (img) {
             const tempFormData = new FormData();
             tempFormData.append('file', img);

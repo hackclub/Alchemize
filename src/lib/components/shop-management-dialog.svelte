@@ -141,11 +141,16 @@
 						showSecondRotator = true
 						return async ({ result }) => {
 							showSecondRotator = false
-							toast.success(
-								mode === "create"
-									? "Shop item created successfully!"
-									: "Shop item updated successfully!"
-							)
+							if (result.type === "success") {
+								toast.success(
+									mode === "create"
+										? "Shop item created successfully!"
+										: "Shop item updated successfully!"
+								)
+							} else {
+								toast.error("An error occurred. Please try again.")
+								console.error("Form submission error:", result)
+							}
 							await invalidater?.()
 							
 						}
@@ -317,7 +322,7 @@
 						</Button>
 						<Dialog.Close>
 							<Button
-								disabled={!allFieldsFilled || showSecondRotator}
+								
 								type="submit"
 								class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
 								onclick={() => {
