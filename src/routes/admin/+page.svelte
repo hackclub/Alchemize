@@ -31,6 +31,7 @@
 		Where would you like to go today, {data.name || "Admin"}?
 	</h1>
 	<nav class="grid grid-cols-5 grid-rows-2 gap-10 mt-5 w-full px-10">
+		{#if data.isReviewer}
 		<button
 			onclick={() => {
 				window.location.href = "/admin/review"
@@ -40,6 +41,8 @@
 			<Star class="h-10 w-10" />
 			T1 Review
 		</button>
+		{/if}
+		{#if data.isT2Reviewer}
 		<button
 			onclick={() => {
 				window.location.href = "/admin/review2"
@@ -49,6 +52,8 @@
 			<UserStar class="h-10 w-10" />
 			T2 Review
 		</button>
+		{/if}
+		{#if data.isFulfiller}
 		<button
 			onclick={() => {
 				window.location.href = "/admin/fulfillement"
@@ -58,6 +63,8 @@
 			<Package class="h-10 w-10" />
 			Fulfillement
 		</button>
+		{/if}
+		{#if data.isShopManager}
 		<button
 			onclick={() => {
 				window.location.href = "/admin/shop"
@@ -67,6 +74,8 @@
 			<ShoppingBag class="h-10 w-10" />
 			Manage Shop
 		</button>
+		{/if}
+		{#if data.isSuperAdmin}
 		<button
 			onclick={() => {
 				window.location.href = "/admin/super-admin"
@@ -76,5 +85,6 @@
 			<LockKeyhole class="h-10 w-10" />
 			Supaadmin
 		</button>
+		{/if}
 	</nav>
 </div>
