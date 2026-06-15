@@ -3,7 +3,8 @@
 	import { onMount } from "svelte"
 	import Adminnav from "$lib/components/adminnav.svelte"
 	import AdminThemeEditor from "$lib/components/AdminThemeEditor.svelte"
-
+	import { loaderStore } from "$lib/stores/adminLoader"
+	import { navigating } from "$app/stores"
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
 	import { Button } from "$lib/components/ui/button/index.js"
 	import { Palette } from "lucide-svelte"
@@ -102,7 +103,18 @@
 {#if !excludedRoutes.includes(page.url.pathname)}
 	<Adminnav />
 {/if}
-
+{#if $navigating || $loaderStore}
+	<div
+		class="fixed inset-0 bg-black/70 flex items-center justify-center z-80 backdrop-blur-none"
+	>
+		<div class="flex flex-col items-center gap-4">
+			<div
+				class="w-12 h-12 border-4 border-gray-600 border-t-admin-primary rounded-full animate-spin"
+			></div>
+			<p class="text-white text-lg">Loading...</p>
+		</div>
+	</div>
+{/if}
 <Dialog.Root>
 	<div
 		class="fixed z-50 touch-none select-none"

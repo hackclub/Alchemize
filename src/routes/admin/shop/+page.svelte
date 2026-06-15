@@ -3,10 +3,11 @@
 	import { Input } from "$lib/components/ui/input/index.js"
 	import ShopDialog from "$lib/components/shop-management-dialog.svelte"
 	//@ts-ignore
-	import looseJson from "loose-json"
+	import { loaderStore } from "$lib/stores/adminLoader"
 	import { ShoppingBag, Search } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { Plus } from "@lucide/svelte"
+	import { invalidateAll } from "$app/navigation"
 	let { data } = $props()
 	interface UserCurrency {
 		redstone: number
@@ -45,16 +46,15 @@
 
 	let searchQuery = $state("")
 
-	const shopItems: ShopItem[] = [
-		...data?.items.map((item: any) => ({
+	let shopItems = $derived(
+		data?.items?.map((item: any) => ({
 			itemID: item.itemID,
 			name: item.name,
 			description: item.description,
 			price: item.itemPrice,
 			image: item.cdnImage,
-			
-		})),
-	]
+		})) ?? []
+	)
 
 	let filteredItems = $derived(
 		shopItems.filter(
@@ -63,12 +63,7 @@
 				item.description.toLowerCase().includes(searchQuery.toLowerCase())
 		)
 	)
-	function handleBuyClick(item: ShopItem) {
-		selectedItem = item
-		isDialogOpen = true
-	}
 
-	
 	const renderCurrency = (currency: UserCurrency) => {
 		if (currency.redstone > 0) {
 			return `${currency.redstone} Redstone`
@@ -84,6 +79,11 @@
 	}
 	let openCreateItem = $state(false)
 	let openEditItem = $state(false)
+	const invalidater = async () => {
+		loaderStore.set(true)
+		await invalidateAll()
+		loaderStore.set(false)
+	}
 </script>
 
 <main
@@ -209,5 +209,15 @@
 		</div>
 	</div>
 </main>
-<ShopDialog bind:open={openCreateItem} mode="create" shopItem={null}/>
-<ShopDialog bind:open={openEditItem} mode="update" shopItem={selectedItem}/>
+<ShopDialog
+	bind:open={openCreateItem}
+	mode="create"
+	shopItem={null}
+	{invalidater}
+/>
+<ShopDialog
+	bind:open={openEditItem}
+	mode="update"
+	shopItem={selectedItem}
+	{invalidater}
+/>

@@ -26,22 +26,23 @@
 		mode,
 		shopItem,
 		open = $bindable(false),
+		invalidater,
 	}: {
 		mode: "create" | "update"
 		shopItem: Item | null
-		open: boolean
+		open: boolean,
+		invalidater?:  () => void
 	} = $props()
 
 	let showRotator = $state(false)
 	let showSecondRotator = $state(false)
 	let name = $state(shopItem?.name ?? "")
 	let description = $state(shopItem?.description ?? "")
-	const invalidater = $state<(() => void) | null>(null)
 	let files: any = $state()
 	let fileinputPreview: any = $state("")
 	let hasFile = $derived(files && files.length > 0)
 	let allFieldsFilled = $derived(
-		name && description && files && files.length > 0
+		name && description 
 	)
 	let cdnLink = $state(shopItem?.image ?? "")
 	let useCdnLink = $state(shopItem?.image ? true : false)
@@ -134,18 +135,24 @@
 				<form
 					enctype="multipart/form-data"
 					method="POST"
-					action={mode === "create" ? "?/create" : "?/update"}
+					action="?/upsert"
 					class="space-y-6 order-1 lg:order-2"
 					use:enhance={() => {
 						showSecondRotator = true
 						return async ({ result }) => {
 							showSecondRotator = false
-							invalidater?.()
+							toast.success(
+								mode === "create"
+									? "Shop item created successfully!"
+									: "Shop item updated successfully!"
+							)
+							await invalidater?.()
+							
 						}
 					}}
 				>
 					{#if mode === "update"}
-						<input type="hidden" name="recordId" value={shopItem?.itemID} />
+						<input type="hidden" name="itemID" value={shopItem?.itemID} />
 					{/if}
 
 					<div class="space-y-2">
@@ -215,7 +222,7 @@
 									</div>
 									<input
 										id="screenshot"
-										name="screenshot"
+										name="img"
 										type="file"
 										accept="image/*"
 										required
@@ -237,7 +244,7 @@
 
 						<Input
 							disabled={!useCdnLink}
-							name="cdnLink"
+							name="cdnImage"
 							type="url"
 							class="bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent resize-none leading-relaxed"
 							placeholder="Enter the cdn link for the image."
@@ -257,7 +264,7 @@
 						<div class="flex items-center gap-2">
 							<Input
 								id="currency"
-								name="currency"
+								name="itemPrice"
 								type="number"
 								required
 								placeholder="Enter the currency value."

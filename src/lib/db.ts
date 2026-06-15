@@ -427,14 +427,22 @@ export const fetchAllItems = async (): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
-export const createShopItem = async (itemData: {
+export const upsertShopItem = async (itemData: {
     name: string,
     description: string,
     itemPrice: any,
     cdnImage: string
-}): Promise<DBResponse> => {
+}, itemID: string): Promise<DBResponse> => {
     const { name, description, itemPrice, cdnImage } = itemData
-    const newItem = await db.insert(shopItemsTable).values({ name, description, itemPrice, cdnImage }).returning();
+    const newItem = await db.insert(shopItemsTable).values({itemID, name, description, itemPrice, cdnImage }).onConflictDoUpdate({
+        target: shopItemsTable.itemID,
+        set: {
+            name,
+            description,
+            itemPrice,
+            cdnImage
+        }
+    }).returning();
     return {
         ok: true,
         status: 201,
@@ -442,6 +450,7 @@ export const createShopItem = async (itemData: {
         text: async () => JSON.stringify({ id: newItem[0].itemID + "", fields: newItem[0] } as airtableReplication),
     } as DBResponse;
 }
+
 export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
     const item = await db.select().from(shopItemsTable).where(eq(shopItemsTable.itemID, itemId));
     if (item.length === 0) {
