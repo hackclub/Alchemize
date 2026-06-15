@@ -109,9 +109,9 @@
 >
 	<div class="fixed inset-0 bg-black/20 z-0 pointer-events-none"></div>
 
-	<div class="relative min-h-screen pt-4 z-10 w-full mx-2 flex flex-col gap-8">
+	<div class="relative min-h-screen pt-14 z-10 w-full mx-2 flex flex-col gap-8">
 		<div
-			class="flex flex-col lg:flex-row gap-4 h-[10vh] items-center justify-between border-b-2 border-primary/40 pb-4 backdrop-blur-md px-4 py-2 pr-12 -mx-4 rounded-t-sm"
+			class="flex flex-col lg:flex-row gap-4 h-[10vh] items-center justify-between border-b-2 border-primary/40 pb-4 px-4 py-2 pr-12 -mx-4 rounded-t-sm"
 		>
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-primary" />
