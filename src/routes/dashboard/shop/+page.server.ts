@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import type { Item, UserCurrency } from "$lib/types"
-import { getUserByEmail, fetchAllItems, createShopItem } from '$lib/db';
+import { getUserByEmail, fetchAllItems} from '$lib/db';
 import jwt from 'jsonwebtoken';
 import {USER_JWT_SECRET} from '$env/static/private';
 export const load: PageServerLoad = async ({ cookies }) => {
