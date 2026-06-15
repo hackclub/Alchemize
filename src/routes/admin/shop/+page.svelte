@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/button/button.svelte"
+	import { Input } from "$lib/components/ui/input/index.js"
 	import ShopDialog from "$lib/components/shopitem-dialog.svelte"
 	//@ts-ignore
 	import looseJson from "loose-json"
-	import { ShoppingBag } from "lucide-svelte"
+	import { ShoppingBag, Search } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
+	import { Plus } from "@lucide/svelte"
 	let { data } = $props()
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
@@ -35,6 +37,8 @@
 		itemID: "",
 	})
 
+	let searchQuery = $state("")
+
 	const shopItems: ShopItem[] = [
 		...data?.items.map((item: any) => ({
 			itemID: item.itemID,
@@ -45,6 +49,15 @@
 			grayedOut: isGrayedOut(currencies, item.itemPrice),
 		})),
 	]
+
+	let filteredItems = $derived(
+		shopItems.filter(
+			item =>
+				item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				item.description.toLowerCase().includes(searchQuery.toLowerCase())
+		)
+	)
+
 	function isGrayedOut(userHas: UserCurrency, itemPrice: UserCurrency) {
 		return (
 			userHas.redstone < itemPrice.redstone ||
@@ -66,7 +79,7 @@
 		currencies.redstone -= qty * selectedItem.price.redstone
 		currencies.glowstone -= qty * selectedItem.price.glowstone
 		currencies.aqua_regia -= qty * selectedItem.price.aqua_regia
-		currencies = currencies // trigger reactivity
+		currencies = currencies
 		console.log("Item ID", selectedItem)
 		const buyApi = fetch("/dashboard/shop/order", {
 			method: "POST",
@@ -111,17 +124,34 @@
 
 	<div class="relative z-10 w-full h-full flex flex-col gap-6 min-h-0">
 		<div
-			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 w-full shrink-0"
+			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-admin-primary/40 pb-4 w-full shrink-0 pr-10"
 		>
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-admin-primary" />
 				<h1
 					class="text-2xl font-alchemize font-black uppercase tracking-wider text-admin-primary [text-shadow:0_2px_10px_rgba(var(--admin-primary),0.2)]"
 				>
-					The Shop Controls
-					<span class="text-[0.5rem] text-white">Alchemize</span>
+					Manage Shop
 				</h1>
 			</div>
+			<Button
+				class="bg-admin-primary text-admin-text rounded-sm font-bold hover:bg-admin-primary/70"
+			>
+				<Plus />
+				Add Item
+			</Button>
+		</div>
+
+		<div class="relative w-full shrink-0">
+			<Search
+				class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-admin-primary/60"
+			/>
+			<Input
+				type="text"
+				placeholder="SEARCH SHOP BY NAME OR DESCRIPTION..."
+				bind:value={searchQuery}
+				class="pl-10 uppercase text-xs tracking-widest h-10 border-2 border-admin-primary/40 bg-black/80 rounded-none text-white focus-visible:ring-1 focus-visible:ring-admin-primary focus-visible:border-admin-primary placeholder:text-zinc-600 font-mono"
+			/>
 		</div>
 
 		<div
@@ -136,7 +166,7 @@
 		<div
 			class="flex flex-col gap-4 overflow-y-auto overflow-x-hidden flex-1 pb-6 pr-2"
 		>
-			{#each shopItems as item}
+			{#each filteredItems as item (item.itemID)}
 				<div class="relative group w-full shrink-0">
 					<div
 						class="absolute inset-0 bg-admin-primary/80 translate-x-1 translate-y-1 rounded-sm transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
@@ -196,6 +226,12 @@
 							</Button>
 						</div>
 					</div>
+				</div>
+			{:else}
+				<div
+					class="text-center py-12 border-2 border-dashed border-zinc-800 text-zinc-500 uppercase text-xs tracking-widest"
+				>
+					No alchemical items match your current search query.
 				</div>
 			{/each}
 		</div>

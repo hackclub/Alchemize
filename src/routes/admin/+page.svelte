@@ -1,5 +1,6 @@
 <script>
 	import Button from "$lib/components/ui/button/button.svelte"
+	import { ShoppingBag } from "@lucide/svelte"
 	import { Home, LockKeyhole, Package, Star, UserStar } from "lucide-svelte"
 	import { onMount } from "svelte"
 	const { data } = $props()
@@ -47,6 +48,15 @@
 		>
 			<Package class="h-10 w-10" />
 			Fulfillement
+		</button>
+		<button
+			onclick={() => {
+				window.location.href = "/admin/shop"
+			}}
+			class="bg-transparent px-15 py-5 text-lg hover:scale-105 border-4 hover:bg-transparent hover:text-admin-primary flex items-center just-center gap-y-2 flex-col rounded-xl transition"
+		>
+			<ShoppingBag class="h-10 w-10" />
+			Manage Shop
 		</button>
 		<button
 			onclick={() => {
