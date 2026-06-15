@@ -30,8 +30,8 @@
 	}: {
 		mode: "create" | "update"
 		shopItem: Item | null
-		open: boolean,
-		invalidater?:  () => void
+		open: boolean
+		invalidater?: () => void
 	} = $props()
 
 	let showRotator = $state(false)
@@ -41,9 +41,7 @@
 	let files: any = $state()
 	let fileinputPreview: any = $state("")
 	let hasFile = $derived(files && files.length > 0)
-	let allFieldsFilled = $derived(
-		name && description 
-	)
+	let allFieldsFilled = $derived(name && description)
 	let cdnLink = $state(shopItem?.image ?? "")
 	let useCdnLink = $state(shopItem?.image ? true : false)
 	const onDelete = async () => {}
@@ -89,15 +87,14 @@
 		useCdnLink = !!shopItem?.image
 		currencyVal = shopItem?.price[currency()] ?? 0
 		currencyChose = currency()
-
 	})
 </script>
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="min-w-[85vw]  h-[90vh] max-h-[90vh] overflow-hidden flex flex-col border border-zinc-800 bg-zinc-950 text-zinc-50 p-0 gap-0 shadow-2xl"
+		class="min-w-[65vw]  h-[90vh] max-h-[90vh] overflow-hidden flex flex-col border border-admin-primary/70 bg-zinc-950 text-zinc-50 p-0 gap-0 shadow-2xl"
 	>
-		<Dialog.Header class="p-0 shrink-0 border-b border-zinc-800">
+		<Dialog.Header class="p-0 shrink-0 border-b border-admin-primary/70">
 			<div
 				class="relative overflow-hidden bg-gradient-to-r from-red-950/20 via-zinc-900/40 to-zinc-950 p-6"
 			>
@@ -152,7 +149,6 @@
 								console.error("Form submission error:", result)
 							}
 							await invalidater?.()
-							
 						}
 					}}
 				>
@@ -172,7 +168,7 @@
 							required
 							placeholder="Give your masterpiece a name"
 							bind:value={name}
-							class="bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent"
+							class="bg-zinc-900/50 border-admin-primary/70 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-blue-500 focus-visible:border-transparent"
 						/>
 					</div>
 
@@ -189,7 +185,7 @@
 							name="description"
 							required
 							placeholder="Describe what you are building. Markdown is fully supported."
-							class="h-36 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent resize-none leading-relaxed"
+							class="h-36 bg-zinc-900/50 border-admin-primary/70 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-blue-500 focus-visible:border-transparent resize-none leading-relaxed"
 							bind:value={description}
 						/>
 					</div>
@@ -208,7 +204,7 @@
 							>
 								<label
 									for="screenshot"
-									class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
+									class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-admin-primary/70 hover:border-zinc-700 transition"
 									style={fileinputPreview
 										? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
 										: "background-color: transparent;"}
@@ -241,7 +237,7 @@
 								<Checkbox
 									id="cdnLink"
 									name="cdnLink"
-									class="h-4 w-4 rounded border-zinc-800 text-red-500 focus:ring-red-500 focus:ring-offset-2"
+									class="h-4 w-4 rounded border-admin-primary/70 text-red-500 focus:ring-red-500 focus:ring-offset-2"
 									bind:checked={useCdnLink}
 								/> Add Link Instead
 							</div>
@@ -251,7 +247,7 @@
 							disabled={!useCdnLink}
 							name="cdnImage"
 							type="url"
-							class="bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent resize-none leading-relaxed"
+							class="bg-zinc-900/50 border-admin-primary/70 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent resize-none leading-relaxed"
 							placeholder="Enter the cdn link for the image."
 							bind:value={cdnLink}
 						/>
@@ -261,7 +257,6 @@
 						<div class="flex items-center justify-between">
 							<Label
 								for="currency"
-								
 								class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
 								>Price</Label
 							>
@@ -273,13 +268,13 @@
 								type="number"
 								required
 								placeholder="Enter the currency value."
-								class=" bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600  focus-visible:border-transparent resize-none leading-relaxed"
+								class=" bg-zinc-900/50 border-admin-primary/70 text-zinc-100 placeholder:text-zinc-600  focus-visible:border-transparent resize-none leading-relaxed"
 								bind:value={currencyVal}
 							/>
 							<select
 								bind:value={currencyChose}
 								name="currencyType"
-								class="flex h-8 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
+								class="flex h-8 w-full rounded-md border border-admin-primary/70 bg-zinc-950 px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
 							>
 								<option value="redstone" selected={currency() === "redstone"}
 									>Redstone</option
@@ -322,7 +317,6 @@
 						</Button>
 						<Dialog.Close>
 							<Button
-								
 								type="submit"
 								class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
 								onclick={() => {
