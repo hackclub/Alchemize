@@ -1,0 +1,48 @@
+{
+	"Getting Started": [
+		{
+			"name": "Introduction",
+			"path": "/docs/getting-started/introduction"
+		},
+		{
+			"name": "Getting Started",
+			"path": "/docs/getting-started/faq"
+		},
+
+		{
+			"name": "Themes",
+			"path": "/docs/getting-started/themes"
+		},
+		{
+			"name": "Submission Guidelines",
+			"path": "/docs/getting-started/submission-guidelines"
+		},
+		{
+			"name": "FAQ",
+			"path": "/docs/getting-started/faq"
+		}
+	],
+    	"Help": [
+		{
+			"name": "Introduction",
+			"path": "/docs/getting-started/introduction"
+		},
+		{
+			"name": "Getting Started",
+			"path": "/docs/getting-started/faq"
+		},
+
+		{
+			"name": "Themes",
+			"path": "/docs/getting-started/themes"
+		},
+		{
+			"name": "Submission Guidelines",
+			"path": "/docs/getting-started/submission-guidelines"
+		},
+		{
+			"name": "FAQ",
+			"path": "/docs/getting-started/faq"
+		}
+	]
+}
