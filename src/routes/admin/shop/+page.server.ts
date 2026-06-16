@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import type { Item, UserCurrency } from "$lib/types"
-import { getUserByEmail, fetchAllItems, upsertShopItem } from '$lib/db';
+import { deleteShopItem, fetchAllItems, upsertShopItem } from '$lib/db';
 import { redirect, error } from '@sveltejs/kit';
 import jwt from 'jsonwebtoken';
 import { ADMIN_JWT_SECRET, CDN_UPLOAD_SECRET } from '$env/static/private';
@@ -33,10 +33,10 @@ export const actions = {
         const cdnImage = formData.get('cdnImage') as string;
         const currencyType = formData.get('currencyType') as string;
         const img = formData.get('img') as File | null;
-        if (!name || !description || !itemPrice || !currencyType ) {
+        if (!name || !description || !itemPrice || !currencyType) {
             return error(400, "Bad Request");
         }
-        if(!itemID){
+        if (!itemID) {
             itemID = null;
         }
         let cdnLink = cdnImage;
@@ -81,16 +81,53 @@ export const actions = {
             itemPrice: itemPriceObj,
             cdnImage: cdnLink,
 
-        }, itemID )
-        if(upsertResponse.ok) {
+        }, itemID)
+        if (upsertResponse.ok) {
             return {
                 success: true,
                 message: "Item upserted successfully"
             }
-        }else {
+        } else {
             const errorText = await upsertResponse.text();
             console.error("Error upserting item:", errorText);
             return error(500, "Internal Server Error: " + errorText);
+        }
+    },
+    delete: async (event) => {
+        const userToken = event.cookies.get('admin_jwt');
+
+        let data: { email: string; isShopManager: boolean } | null = null;
+        if (userToken) {
+            try {
+                data = jwt.verify(userToken, ADMIN_JWT_SECRET) as { email: string; isShopManager: boolean };
+            }
+            catch (err) {
+                console.error("Error verifying JWT:", err);
+                return error(401, "Unauthorized");
+            }
+        } else {
+            return error(401, "Unauthorized");
+        }
+        if (!data || !data.email || data.isShopManager !== true) {
+            console.log(data)
+            return error(403, "Forbidden");
+        }
+        //Fetch all the form data
+        const formData = await event.request.formData();
+        let itemID = formData.get('itemID') as string | null;
+        if (!itemID) {
+            return error(400, "Bad Request: Missing itemID");
+        }
+
+        const deleteResponse = await deleteShopItem(itemID);
+        if (!deleteResponse.ok) {
+            const errorText = await deleteResponse.text();
+            console.error("Error deleting item:", errorText);
+            return error(404, "Item not found: " + errorText);
+        }
+        return {
+            success: true,
+            message: "Item deleted successfully"
         }
     }
 }

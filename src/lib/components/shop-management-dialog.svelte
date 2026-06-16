@@ -44,7 +44,6 @@
 	let allFieldsFilled = $derived(name && description)
 	let cdnLink = $state(shopItem?.image ?? "")
 	let useCdnLink = $state(shopItem?.image ? true : false)
-	const onDelete = async () => {}
 	let currency = $state(() => {
 		if (shopItem) {
 			if (shopItem?.price.redstone > 0) {
@@ -88,6 +87,11 @@
 		currencyVal = shopItem?.price[currency()] ?? 0
 		currencyChose = currency()
 	})
+	const onDelete = async () => {
+		invalidater?.()
+		open = false
+	}
+
 </script>
 
 <Dialog.Root bind:open>
@@ -111,7 +115,7 @@
 				>
 					<div>
 						<p
-							class="text-[10px] font-bold uppercase tracking-[0.2em] text-red-500 mb-1"
+							class="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500 mb-1"
 						>
 							Alchemize Shop
 						</p>
@@ -300,10 +304,12 @@
 						<div>
 							{#if mode === "update"}
 								<Button
-									type="button"
+									type="submit"
 									variant="destructive"
 									class="text-xs font-semibold uppercase tracking-wider h-10"
 									onclick={onDelete}
+									formaction="?/delete"
+									disabled={showRotator || showSecondRotator}
 								>
 									<Trash /> Delete Item
 								</Button>

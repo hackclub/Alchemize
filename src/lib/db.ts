@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, gte } from 'drizzle-orm'
 import { integer, pgTable, varchar, uuid, jsonb } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
@@ -92,6 +92,7 @@ export const shopItemsTable = pgTable("shop_items", {
     description: varchar({ length: 1000 }).notNull(),
     itemPrice: jsonb().notNull(),
     cdnImage: varchar({ length: 1000 }).notNull(),
+    priority: integer().notNull().default(0),
 })
 // Response Interface
 export interface DBResponse {
@@ -418,7 +419,8 @@ export const createOrder = async (orderData: any): Promise<DBResponse> => {
     }
 }
 export const fetchAllItems = async (): Promise<DBResponse> => {
-    const items = await db.select().from(shopItemsTable);
+    //Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop
+    const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0));
     const records = items.map(item => ({ id: item.itemID + "", fields: item }));
     return {
         ok: true,
@@ -452,7 +454,8 @@ export const upsertShopItem = async (itemData: {
 }
 
 export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
-    const item = await db.select().from(shopItemsTable).where(eq(shopItemsTable.itemID, itemId));
+    //Does not consider items with priority less than 0, so we can keep "deleted" items in the database without showing them in the shop
+    const item = await db.select().from(shopItemsTable).where(and(eq(shopItemsTable.itemID, itemId), gte(shopItemsTable.priority, 0)));
     if (item.length === 0) {
         return {
             ok: false,
@@ -466,6 +469,25 @@ export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
         status: 200,
         json: async () => ({ id: item[0].itemID + "", fields: item[0] } as airtableReplication),
         text: async () => JSON.stringify({ id: item[0].itemID + "", fields: item[0] } as airtableReplication),
+    } as DBResponse;
+}
+export const deleteShopItem = async (itemId: string): Promise<DBResponse> => {
+    //This function does not actually delete the item, just sets its priority to -1 so it doesn't show up in the shop but we keep the data for record-keeping purposes
+    //All the functions that do not care about priority being less than 0 are strictly Admin and fulfillment functions, so they can still access the data if needed
+    const updatedItem = await db.update(shopItemsTable).set({ priority: -1 }).where(eq(shopItemsTable.itemID, itemId)).returning();
+    if (updatedItem.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Item not found" }),
+            text: async () => JSON.stringify({ message: "Item not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: updatedItem[0].itemID + "", fields: updatedItem[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: updatedItem[0].itemID + "", fields: updatedItem[0] } as airtableReplication),
     } as DBResponse;
 }
 //Admin Functions
