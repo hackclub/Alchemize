@@ -10,17 +10,16 @@
 	import { Palette } from "lucide-svelte"
 
 	let { children } = $props()
-	const excludedRoutes = ["/admin", "/admin/login"]
+	const excludedRoutes = ["/admin", "/admin/login", "/admin/error"]
 	const colorRoutes = "/admin/review2/"
 	let adminPrimary = $state("#6875f6")
 	let adminHover = $state("#7a8aff")
 	let adminText = $state("#dce6f2")
 	let adminBg = $state("#172554")
 	let admin2Bg = $state("#0C4A6E")
-	if(page.url.pathname.includes(colorRoutes)) {
-
-	adminBg = "#171714"
-	admin2Bg = "#030303"
+	if (page.url.pathname.includes(colorRoutes)) {
+		adminBg = "#171714"
+		admin2Bg = "#030303"
 	}
 	let triggerEl: HTMLButtonElement | null = $state(null)
 	let buttonX = $state(20)
@@ -115,47 +114,49 @@
 		</div>
 	</div>
 {/if}
-<Dialog.Root>
-	<div
-		class="fixed z-50 touch-none select-none"
-		style="left: {buttonX}px; top: {buttonY}px;"
-	>
-		<Dialog.Trigger>
-			{#snippet child({ props })}
-				<Button
-					{...props}
-					bind:ref={triggerEl}
-					onpointerdown={onPointerDown}
-					onclickcapture={handleTriggerClick}
-					class="h-12 w-12 rounded-full shadow-2xl cursor-move bg-admin-primary text-primary-foreground hover:bg-admin-primary/90"
-					aria-label="Open Theme Editor"
-				>
-					<Palette class="h-5 w-5" />
-				</Button>
-			{/snippet}
-		</Dialog.Trigger>
-	</div>
-
-	<Dialog.Content class="sm:max-w-[425px]">
-		<Dialog.Header>
-			<Dialog.Title>Theme Settings</Dialog.Title>
-			<Dialog.Description>
-				Tired of reviewing all day? Phew! Change the colors of the dashboard to
-				your liking!
-			</Dialog.Description>
-		</Dialog.Header>
-
-		<div class="py-4">
-			<AdminThemeEditor
-				bind:adminPrimary
-				bind:adminHover
-				bind:adminText
-				bind:adminBg
-				bind:admin2Bg
-			/>
+{#if !excludedRoutes.includes(page.url.pathname)}
+	<Dialog.Root>
+		<div
+			class="fixed z-50 touch-none select-none"
+			style="left: {buttonX}px; top: {buttonY}px;"
+		>
+			<Dialog.Trigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						bind:ref={triggerEl}
+						onpointerdown={onPointerDown}
+						onclickcapture={handleTriggerClick}
+						class="h-12 w-12 rounded-full shadow-2xl cursor-move bg-admin-primary text-primary-foreground hover:bg-admin-primary/90"
+						aria-label="Open Theme Editor"
+					>
+						<Palette class="h-5 w-5" />
+					</Button>
+				{/snippet}
+			</Dialog.Trigger>
 		</div>
-	</Dialog.Content>
-</Dialog.Root>
+
+		<Dialog.Content class="sm:max-w-[425px]">
+			<Dialog.Header>
+				<Dialog.Title>Theme Settings</Dialog.Title>
+				<Dialog.Description>
+					Tired of reviewing all day? Phew! Change the colors of the dashboard
+					to your liking!
+				</Dialog.Description>
+			</Dialog.Header>
+
+			<div class="py-4">
+				<AdminThemeEditor
+					bind:adminPrimary
+					bind:adminHover
+					bind:adminText
+					bind:adminBg
+					bind:admin2Bg
+				/>
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
+{/if}
 
 <style>
 	.bg {

@@ -16,21 +16,23 @@
 	<h1 class="text-5xl font-bold font-alchemize text-admin-text">
 		Alchemize Admin
 	</h1>
-	<Button
-		onclick={() => {
-			window.location.href = authUrl
-		}}
-		class="bg-admin-primary px-15 py-5 text-lg hover:scale-105"
-	>
-		Login with Hack Club
-	</Button>
-	<Button
-		onclick={() => {
-			window.location.href = "/dashboard"
-		}}
-		class="bg-transparent border-2 hover:scale-105 hover:bg-transparent px-15 py-5 text-lg"
-		variant="outline"
-	>
-		or go back home
-	</Button>
+	<div class="flex gap-x-5 items-center">
+		<Button
+			onclick={() => {
+				window.location.href = authUrl
+			}}
+			class="bg-admin-primary px-15 py-5 text-admin-text text-lg hover:scale-103"
+		>
+			Login with Hack Club
+		</Button>
+		<Button
+			onclick={() => {
+				window.location.href = "/dashboard"
+			}}
+			class="bg-transparent border-2 hover:scale-103 hover:bg-transparent px-15 py-5 text-lg"
+			variant="outline"
+		>
+			or go back home
+		</Button>
+	</div>
 </div>
