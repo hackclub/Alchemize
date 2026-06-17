@@ -1,4 +1,4 @@
-import {ADMIN_HACKCLUB_SECRET, ADMIN_JWT_SECRET} from "$env/static/private"
+import { ADMIN_HACKCLUB_SECRET, ADMIN_JWT_SECRET } from "$env/static/private"
 import { PUBLIC_ADMIN_HACKCLUB_AUTH, PUBLIC_ADMIN_HACKCLUB_REDIRECT } from "$env/static/public"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
@@ -22,7 +22,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     const code = url.searchParams.get("code")
 
     if (!code) {
-        throw error(400, "Missing authorization code")
+        throw redirect(302, `/admin/error?message=${encodeURIComponent("Missing authorization code")}&status=400`);
     }
 
     const clientId = PUBLIC_ADMIN_HACKCLUB_AUTH
@@ -47,14 +47,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
             grant_type: "authorization_code",
         }),
     })
-    
+
     const tokenBody = await tokenResponse.json()
 
     if (!tokenResponse.ok) {
-        throw error(
-            tokenResponse.status,
-            tokenBody?.message ?? "Token exchange failed"
-        )
+        const message = tokenBody?.message ?? "Token exchange failed";
+        throw redirect(303, `/admin/error?message=${encodeURIComponent(message)}&status=${tokenResponse.status}`);
     }
     const decodedToken = jwt.decode(tokenBody.id_token) as { slack_id: string, email: string, name: string } | null
     const airtableRes = await doesAdminExist(decodedToken?.slack_id || "")
