@@ -259,7 +259,7 @@ Signed by ${data.name}, T2 Reviewer
 						class="flex-1 overflow-hidden grid grid-cols-1 xl:grid-cols-3 min-h-0"
 					>
 						<main
-							class="xl:col-span-2 overflow-y-auto p-3 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 custom-scrollbar"
+							class="xl:col-span-2 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 custom-scrollbar"
 						>
 							<div class="flex flex-col gap-y-3">
 								<div class="flex flex-col flex-1 min-h-[160px]">
@@ -292,8 +292,8 @@ Signed by ${data.name}, T2 Reviewer
 								</div>
 							</div>
 
-							<div class="h-full space-y-2 flex flex-col">
-								<div class=" grid grid-cols-2 gap-3 h-fit">
+							<div class="w-full space-y-4 flex flex-col justify-between">
+								<div class="w-full grid grid-rows-2 gap-3">
 									<div
 										class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
 									>
@@ -336,17 +336,16 @@ Signed by ${data.name}, T2 Reviewer
 									</div>
 								</div>
 
-								<div class="space-y-3 flex flex-col justify-end">
+								<div class="space-y-3 flex-1 flex flex-col justify-end">
 									<div class="space-y-1">
 										<label
 											id="changelogs-label"
 											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
-										>
-											Changelog Notes</label
+											>Changelog Notes</label
 										>
 										<Textarea
 											aria-labelledby="changelogs-label"
-											class="resize-none h-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+											class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
 											placeholder="What distinct changes were made?..."
 											bind:value={changelogs}
 											oninput={generateFullJustification}
