@@ -6,14 +6,14 @@
 	import type { Project, Log, AirtableProject } from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
-	import {countCharacters} from "$lib/utils"
+	import { countCharacters } from "$lib/utils"
 	interface AdminProjectAccess extends AirtableProject {
 		fields: AirtableProject["fields"] & {
 			unifiedId: string
 		}
 	}
 	interface AdminProject extends Project {
-	unifiedId: string
+		unifiedId: string
 	}
 	let detailsOpen = $state(false)
 	let { data } = $props()
@@ -23,7 +23,7 @@
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
-		return logs.some(log => log.status === 1 )
+		return logs.some(log => log.status === 1)
 	}
 	let currentProject = $state({} as AdminProject)
 	function calculateRecordedTime(log: Log[]): number {
@@ -146,16 +146,25 @@ Signed by ${data.name}, T2 Reviewer
 	let pending = $state(false)
 </script>
 
-<main class="w-screen h-screen">
+<main
+	class="w-screen h-screen text-admin-text font-sans overflow-hidden p-6 flex gap-6"
+>
 	<div class="fixed inset-0 bg-black/20 -z-10"></div>
 	<div
 		class="relative z-50 p-5 h-full w-full flex items-start justify-start gap-x-5"
 	>
 		<aside
-			class="sidebar w-1/4 h-full rounded-2xl bg-black/20 border-2 overflow-y-auto p-2"
+			class="w-1/4 h-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col overflow-hidden"
 		>
+			<div class="p-4 border-b border-zinc-800 bg-zinc-900/20">
+				<h3
+					class="font-semibold text-zinc-400 text-sm tracking-wider uppercase"
+				>
+					T2 Review queue
+				</h3>
+			</div>
 			{#each airtableProjects as project}
-				{#if wasEverApproved(project) && (areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) === pending)}
+				{#if wasEverApproved(project) && areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) === pending}
 					<button
 						onclick={() => setCurrentProject(project)}
 						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
@@ -173,207 +182,290 @@ Signed by ${data.name}, T2 Reviewer
 				{/if}
 			{/each}
 		</aside>
-		<div
-			class="w-full max-h-full h-full flex flex-col items-center justify-start gap-y-5"
-		>
-			<nav class="top-bar flex bg-transparent gap-16 text-white">
+		<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
+			<nav
+				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
+			>
 				<button
-					class="button w-34 bg-yellow-900 flex items-center justify-center py-2 rounded-full"
-					onclick={() => (pending = false)}
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2"
 				>
 					Pending
 				</button>
 
 				<button
-					class="button w-34 bg-blue-900 flex items-center justify-center py-2 rounded-full"
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2"
 					onclick={() => (pending = true)}
 				>
 					Sent
 				</button>
-
 			</nav>
 			<div
-				class="w-full h-full overflow-y-auto bg-background/40 border-2 rounded-2xl flex flex-col items-center justify-start gap-y-3 p-2"
+				class="flex-1 bg-zinc-900/30 border border-zinc-800 rounded-2xl flex flex-col overflow-hidden h-full"
 			>
 				{#if currentProject.name}
-					<div class="details w-full">
-						<div class="top-sect w-full p-1 flex items-center justify-between">
-							<div class="text flex flex-col items-start justify-start gap-y-1">
-								<div class="flex items-center gap-x-2">
-									<h1 class="text-2xl text-admin-text font-bold">
-										{currentProject.name}: ({currentProject.hours}hrs)
-									</h1>
-									<Button
-										onclick={() => (detailsOpen = true)}
-										class="bg-admin-primary"
-									>
-										Details
-									</Button>
-								</div>
-								<p class="text-xs text-muted-foreground">
-									Submitted by: {currentProject.submittedBy}, Type: {currentProject.type}, Category: {currentProject.category}
-								</p>
+					<header
+						class="w-full px-5 py-4 border-b border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-zinc-950/20 flex-shrink-0"
+					>
+						<div class="space-y-0.5">
+							<div class="flex items-center gap-x-2.5 flex-wrap">
+								<h1 class="text-lg text-zinc-100 font-bold tracking-tight">
+									{currentProject.name}
+								</h1>
+								<span
+									class="text-xs px-1.5 py-0.5 bg-zinc-800/80 text-zinc-400 rounded font-mono border border-zinc-700"
+								>
+									{currentProject.hours} hrs
+								</span>
 							</div>
-							<div class="links flex items-center justify-center gap-x-5">
-								<a
-									href={currentProject.demo}
-									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
-									target="_blank"
-								>
-									Demo
-								</a>
-								<a
-									href={currentProject.code}
-									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
-									target="_blank"
-								>
-									Repo
-								</a>
-								<a
-									href={currentProject.code}
-									class="hover:scale-104 transition px-2 py-0.5 bg-admin-primary/30 rounded-md cursor-pointer"
-									target="_blank"
-								>
-									Readme
-								</a>
-							</div>
+							<p
+								class="text-[11px] text-zinc-400 flex flex-wrap items-center gap-x-1.5"
+							>
+								<span class="text-zinc-300">{currentProject.submittedBy}</span>
+								<span class="text-zinc-700">•</span>
+								<span>{currentProject.type}</span>
+								<span class="text-zinc-700">•</span>
+								<span>{currentProject.category}</span>
+							</p>
 						</div>
-					</div>
-					<div class="max-h-full w-full overflow-y-auto flex gap-x-3">
-						<div class="flex flex-col gap-y-5 max-h-full w-[50%] p-2">
-							<div
-								class="flex flex-col items-start justify-start gap-y-2 w-full border-b"
-							>
-								<h2 class="text-muted-foreground">
-									What is this project about?
-								</h2>
-								<div class="w-full h-5 {projectDescriptionLength > 20 ? 'bg-green-800' : 'bg-yellow-800'} gap-4 rounded-full flex items-center px-4 text-xs font-sans">
-										<i class="fa-solid fa-info">
-										</i>
-										{projectDescriptionLength > 20 ? "Feedback is sufficient for a decision." : `Description must be at least 20 characters. (${projectDescriptionLength}/20)`}
-									</div>
-								<Textarea
-									class="resize-none h-30 overflow-y-auto	"
-									placeholder="Gimme a nice brief description of the project.."
-									bind:value={projectDescription}
-									oninput={generateFullJustification}
-								/>
-							</div>
-							<div class="flex items-center gap-3 justify-start gap-y-1 w-full">
-								<h2 class="text-muted-foreground text-sm">
-									How many git commits are there?
-								</h2>
-								<Input
-									type="number"
-									class="resize-none h-10 w-40 overflow-y-auto	"
-									placeholder="Commits?"
-									bind:value={gitCommits}
-									oninput={generateFullJustification}
-								/>
-							</div>
-							<div
-								class="flex flex-col items-start justify-start gap-y-1 w-full"
-							>
-								<h2 class="text-muted-foreground text-sm">
-									If this project was submitted before, what are the changes in
-									this submission?
-								</h2>
-								<Textarea
-									class="resize-none h-30 overflow-y-auto	"
-									placeholder="The changes are..."
-									bind:value={changelogs}
-									oninput={generateFullJustification}
-									disabled={!(currentProject.update || currentProject.log.length > 1)}
 
-								/>
-							</div>
-							<div
-								class="flex flex-col items-start justify-start gap-y-1 w-full mt-2"
+						<div
+							class="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0"
+						>
+							<Button
+								onclick={() => (detailsOpen = true)}
+								class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[11px] px-2.5 py-1 rounded-md text-zinc-300 transition"
 							>
-								<div class="flex items-center justify-between w-full">
-									<h2 class="text-muted-foreground text-lg">
-										Override hours (optional)
-									</h2>
-									<Input
-										class="w-[20%]"
-										type="number"
-										min="0"
-										bind:value={subtraction}
+								Details
+							</Button>
+							<div class="h-3 w-[1px] bg-zinc-800 mx-0.5"></div>
+							<a
+								href={currentProject.demo}
+								target="_blank"
+								rel="noreferrer"
+								class="text-[11px] font-medium px-2.5 py-1 bg-admin-primary/20 hover:bg-admin-primary/30 text-admin-text rounded-md transition"
+								>Demo</a
+							>
+							<a
+								href={currentProject.code}
+								target="_blank"
+								rel="noreferrer"
+								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
+								>Repo</a
+							>
+						</div>
+					</header>
+
+					<div
+						class="flex-1 overflow-hidden grid grid-cols-1 xl:grid-cols-3 min-h-0"
+					>
+						<main
+							class="xl:col-span-2 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 custom-scrollbar"
+						>
+							<div class="flex flex-col gap-y-3">
+								<div class="flex flex-col flex-1 min-h-[160px]">
+									<label
+										for="project-desc"
+										class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
+										>Project Summary</label
+									>
+									<Textarea
+										id="project-desc"
+										class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 min-h-[120px]"
+										placeholder="Briefly describe the project..."
+										bind:value={projectDescription}
 										oninput={generateFullJustification}
 									/>
 								</div>
-								<Textarea
-									class="resize-none overflow-y-auto h-30"
-									placeholder="Reason for overriding..."
-									bind:value={reasonForOverride}
-									oninput={generateFullJustification}
-								/>
-							</div>
-							<div class="controls flex gap-x-3">
-								<Button
-									class="bg-red-900 w-[45%]"
-									onclick={() => (justificationOpen = true)}
-									oninput={generateFullJustification}
-								>
-									View Generated Justification
-								</Button>
-								<Button class="bg-green-900 w-[45%]" onclick={sendToDatabase}>
-									{#if loader}
-										<div
-											class="rotatingspinner border-2 border-gray-800 border-t-white rounded-full w-4 h-4 animate-spin"
-										></div>
-									{/if}
-									Push to Airtable
-								</Button>
-							</div>
-						</div>
 
-						<div class="flex flex-col gap-y-5 h-full w-[50%]">
-							<h2 class="text-muted-foreground">Previous Changelogs</h2>
+								<div
+									class="w-full min-h-8 gap-2 rounded-lg flex items-center px-3 text-[11px] border transition-all duration-200 bg-zinc-950/10
+									{projectDescriptionLength > 20
+										? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
+										: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
+								>
+									<i class="fa-solid fa-circle-info"></i>
+									<span>
+										{projectDescriptionLength > 20
+											? "Description character target met."
+											: `Requires 20+ characters (${projectDescriptionLength}/20)`}
+									</span>
+								</div>
+							</div>
+
+							<div class="w-full space-y-4 flex flex-col justify-between">
+								<div class="w-full grid grid-rows-2 gap-3">
+									<div
+										class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
+									>
+										<label
+											for="git-commits"
+											class="text-[11px] font-medium text-zinc-400"
+											>Git Commits</label
+										>
+										<Input
+											id="git-commits"
+											type="number"
+											class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+											placeholder="0"
+											bind:value={gitCommits}
+											oninput={generateFullJustification}
+										/>
+									</div>
+
+									<div
+										class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
+									>
+										<label
+											for="override-hours"
+											class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
+										>
+											<span>Deduct Hours</span>
+											<span class="text-[9px] text-zinc-600 font-normal"
+												>Optional</span
+											>
+										</label>
+										<Input
+											id="override-hours"
+											type="number"
+											min="0"
+											class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+											placeholder="0"
+											bind:value={subtraction}
+											oninput={generateFullJustification}
+										/>
+									</div>
+								</div>
+
+								<div class="space-y-3 flex-1 flex flex-col justify-end">
+									<div class="space-y-1">
+										<label
+											id="changelogs-label"
+											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
+											>Changelog Notes</label
+										>
+										<Textarea
+											aria-labelledby="changelogs-label"
+											class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+											placeholder="What distinct changes were made?..."
+											bind:value={changelogs}
+											oninput={generateFullJustification}
+											disabled={currentProject.update ||
+												currentProject.log.length > 1}
+										/>
+									</div>
+
+									{#if subtraction > 0}
+										<div class="space-y-1">
+											<label
+												id="override-label"
+												class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider"
+												>Deduction Justification</label
+											>
+											<Textarea
+												aria-labelledby="override-label"
+												class="resize-none h-16 bg-zinc-950/40 border-amber-900/30 focus:border-amber-800 text-xs rounded-lg p-2"
+												placeholder="Provide context regarding modifications..."
+												bind:value={reasonForOverride}
+												oninput={generateFullJustification}
+											/>
+										</div>
+									{/if}
+								</div>
+							</div>
+						</main>
+
+						<aside
+							class="xl:col-span-1 bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
+						>
 							<div
-								class="previous-changelogs w-full overflow-y-scroll gap-y-4 flex flex-col"
+								class="px-4 py-3 border-b border-zinc-800/60 bg-zinc-950/20 flex items-center justify-between flex-shrink-0"
+							>
+								<h2
+									class="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase"
+								>
+									Previous Changelogs
+								</h2>
+								<span
+									class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono"
+									>{currentProject.log.length} Logs</span
+								>
+							</div>
+
+							<div
+								class="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar min-h-0"
 							>
 								{#each currentProject.log as log}
-									<div class="p-2 border rounded-lg w-full">
-										<div class="flex items-center gap-2 justify-between">
-											<div class="flex items-center gap-x-1">
-												<div
-													class="avatar w-6 h-6 rounded-full bg-gray-600"
-												></div>
-												<div class="text-sm font-bold">Hello</div>
-											</div>
-											<div class="text-xs bg-green-800 px-2 py-1 rounded">
+									<div
+										class="p-2.5 bg-zinc-900/15 border border-zinc-800/60 rounded-lg space-y-2 text-xs"
+									>
+										<div class="flex items-center justify-between gap-2">
+											<span class="font-medium text-zinc-300">Review</span>
+											<span
+												class="text-[9px] font-medium bg-emerald-950/40 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-900/30"
+											>
 												Approved
+											</span>
+										</div>
+
+										<div
+											class="text-[11px] text-zinc-500 bg-zinc-950/30 p-2 rounded border border-zinc-900 space-y-1 font-mono"
+										>
+											<div class="text-zinc-400">
+												{log.message.at(-1)?.internalNote || "No notes yet."}
 											</div>
 										</div>
-										<p class="feedback text-xs text-gray-300 user-not mt-2">
-											{log.message.at(-1)?.userExternal}
-										</p>
-										<p
-											class="notes whitespace-pre-wrap text-xs text-gray-500 overrideJustification"
-										>
-											{log.message.at(-1)?.internalNote} <br />
-											{log.message.at(-1)?.justification}
-										</p>
 									</div>
 								{/each}
 							</div>
-						</div>
+						</aside>
 					</div>
+
+					<footer
+						class="w-full px-5 py-3.5 border-t border-zinc-800 bg-zinc-950/40 flex flex-col sm:flex-row justify-end items-center gap-2.5 flex-shrink-0"
+					>
+						<Button
+							class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+							onclick={() => (justificationOpen = true)}
+							oninput={generateFullJustification}
+						>
+							Preview Justification
+						</Button>
+						<Button
+							class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
+							onclick={sendToDatabase}
+						>
+							{#if loader}
+								<div
+									class="border-2 border-emerald-200 border-t-white rounded-full w-3 h-3 animate-spin"
+								></div>
+							{/if}
+							Push to Airtable
+						</Button>
+					</footer>
 				{:else}
-					No project selected. Please select a project from the left sidebar to
-					review.
+					<div
+						class="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="48"
+							height="48"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="lucide lucide-folder-open text-zinc-700"
+							><path
+								d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"
+							/></svg
+						>
+						<p class="text-xl font-medium tracking-tight">
+							Select a project from the left queue to review
+						</p>
+					</div>
 				{/if}
-				<!-- <div class="w-full flex flex-col gap-y-2 p-2">
-					<h2 class="text-muted-foreground text-sm">
-						Autogenerated justification:
-					</h2>
-					<Textarea
-						class="resize-none overflow-y-auto h-24"
-						readonly
-						value="This project is about....There are ___ commits.....The commits are detailed....20 minuted were cut...."
-					/>
-				</div> -->
 			</div>
 		</div>
 	</div>
