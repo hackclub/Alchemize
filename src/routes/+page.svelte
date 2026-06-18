@@ -97,7 +97,7 @@
 </script>
 
 <div
-	class="fixed -z-20 bg-[url('/new.png')] bg-cover bg-center w-screen h-screen blur-sm"
+	class="fixed -z-20 bg-[url('/alchbg.png')] bg-cover bg-center w-screen h-screen blur-sm"
 ></div>
 <div
 	class="relative min-h-screen w-full bg-[linear-gradient(to_bottom,#00000030_20%,#000c_70%)] text-zinc-100 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
@@ -107,6 +107,16 @@
 	<div
 		class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-80"
 	></div>
+
+	<div
+		class="fixed top-0 right-0 w-[260px] h-[260px] overflow-hidden z-50 pointer-events-none"
+	>
+		<div
+			class="absolute top-[88px] -right-[70px] w-[360px] h-11 bg-primary/70 shadow-black shadow-md backdrop-blur-sm text-primary-foreground text-xs md:text-sm font-mono font-black uppercase tracking-[0.2em] rotate-45 border-y-2 border-black pointer-events-auto select-none flex items-center justify-center text-center"
+		>
+			LAUNCHES // 21st June 2026
+		</div>
+	</div>
 
 	<div
 		class="absolute top-3 left-0 z-50 transition-transform duration-100 hover:scale-[1.02]"
@@ -121,7 +131,7 @@
 	</div>
 	<main class="z-10 relative w-full px-6 md:px-10">
 		<section
-			class="flex flex-col justify-center min-h-screen pt-24 pb-12 gap-y-7 relative"
+			class="flex flex-col justify-center min-h-screen pt-12 pb-12 gap-y-7 relative"
 		>
 			<div class="flex flex-col gap-2">
 				<div
@@ -137,25 +147,95 @@
 				</h1>
 			</div>
 
-			<div class="max-w-2xl border-l-4 border-primary p-4 md:p-6 rounded-none">
-				<p
-					class="text-zinc-200 text-base md:text-xl leading-relaxed uppercase tracking-wide"
-				>
-					3 Themes | 3 Seasons <br />
-					<strong
-						class="text-white font-black text-lg md:text-2xl block mt-1 tracking-tight"
-						>And a whole lot of mixing</strong
-					>
-				</p>
+			<div class="grid grid-cols-2 gap-x-4 w-[50%]">
 				<div
-					class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-none"
+					class="max-w-full border-l-4 border-primary p-4 md:p-6 rounded-none"
 				>
-					Ages 13-18 Only
+					<p
+						class="text-zinc-200 text-base md:text-xl leading-relaxed uppercase tracking-wide"
+					>
+						3 Themes | 3 Seasons <br />
+						<strong
+							class="text-white font-black text-lg md:text-2xl block mt-1 tracking-tight"
+							>And a whole lot of mixing</strong
+						>
+					</p>
+					<div
+						class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-none"
+					>
+						Ages 13-18 Only
+					</div>
+				</div>
+				<div
+					class="flex flex-col gap-1 max-w-full bg-black/50 border border-zinc-800 p-4 rounded-none font-mono"
+				>
+					<div
+						class="text-[10px] text-zinc-500 tracking-wider font-bold uppercase mb-1"
+					>
+						// TIME_REMAINING_UNTIL_LAUNCH
+					</div>
+					{#if timeLeft > 0}
+						<div class="flex items-center gap-4 text-zinc-300">
+							<div class="flex flex-col items-center">
+								<span class="text-2xl font-black text-primary font-mono"
+									>{time.days}</span
+								>
+								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
+									>Days</span
+								>
+							</div>
+							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<div class="flex flex-col items-center">
+								<span class="text-2xl font-black text-zinc-100 font-mono"
+									>{time.hours}</span
+								>
+								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
+									>Hrs</span
+								>
+							</div>
+							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<div class="flex flex-col items-center">
+								<span class="text-2xl font-black text-zinc-100 font-mono"
+									>{time.minutes}</span
+								>
+								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
+									>Min</span
+								>
+							</div>
+							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<div class="flex flex-col items-center">
+								<span
+									class="text-2xl font-black text-zinc-100 font-mono animate-pulse"
+									>{time.seconds}</span
+								>
+								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
+									>Sec</span
+								>
+							</div>
+						</div>
+
+						<div
+							class="mt-2 pt-2 border-t border-zinc-900/50 flex flex-col gap-0.5 text-[10px] uppercase font-bold tracking-wider text-zinc-400"
+						>
+							<div>
+								<span class="text-zinc-600">LAUNCH_DATE:</span> JUNE 21, 2026
+							</div>
+							<div>
+								<span class="text-zinc-600">TARGET_TIME:</span> 01:00 UTC
+							</div>
+						</div>
+					{:else}
+						<div
+							class="text-sm font-black text-primary uppercase tracking-wider animate-pulse"
+						>
+							ALCHEMIZE HAS STARTED!
+						</div>
+					{/if}
 				</div>
 			</div>
 
 			<div
-				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-2xl"
+				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-[50%]"
 			>
 				<a
 					href={authUrl}
@@ -193,67 +273,11 @@
 					</a>
 
 					<div
-						class="absolute bottom-full left-0 mb-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+						class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 					>
 						Invite more people for cool rewards
 					</div>
 				</div>
-			</div>
-
-			<div
-				class="flex flex-col gap-2 max-w-sm bg-black/50 border border-zinc-800 p-4 rounded-none font-mono"
-			>
-				<div
-					class="text-[10px] text-zinc-500 tracking-wider font-bold uppercase mb-1"
-				>
-					// TIME_REMAINING_UNTIL_LAUNCH
-				</div>
-				{#if timeLeft > 0}
-					<div class="flex items-center gap-4 text-zinc-300">
-						<div class="flex flex-col items-center">
-							<span class="text-2xl font-black text-primary font-mono"
-								>{time.days}</span
-							>
-							<span class="text-[9px] uppercase tracking-widest text-zinc-500"
-								>Days</span
-							>
-						</div>
-						<span class="text-xl text-zinc-700 font-black mb-4">:</span>
-						<div class="flex flex-col items-center">
-							<span class="text-2xl font-black text-zinc-100 font-mono"
-								>{time.hours}</span
-							>
-							<span class="text-[9px] uppercase tracking-widest text-zinc-500"
-								>Hrs</span
-							>
-						</div>
-						<span class="text-xl text-zinc-700 font-black mb-4">:</span>
-						<div class="flex flex-col items-center">
-							<span class="text-2xl font-black text-zinc-100 font-mono"
-								>{time.minutes}</span
-							>
-							<span class="text-[9px] uppercase tracking-widest text-zinc-500"
-								>Min</span
-							>
-						</div>
-						<span class="text-xl text-zinc-700 font-black mb-4">:</span>
-						<div class="flex flex-col items-center">
-							<span
-								class="text-2xl font-black text-zinc-100 font-mono animate-pulse"
-								>{time.seconds}</span
-							>
-							<span class="text-[9px] uppercase tracking-widest text-zinc-500"
-								>Sec</span
-							>
-						</div>
-					</div>
-				{:else}
-					<div
-						class="text-sm font-black text-primary uppercase tracking-wider animate-pulse"
-					>
-						ALCHEMIZE HAS STARTED!
-					</div>
-				{/if}
 			</div>
 
 			<a
@@ -533,11 +557,6 @@
 				<Accordion
 					Title="What is a 'ship'?"
 					Content="A 'ship' is the project you submit to this event. You can ship any general project or a project related to one of the themes"
-					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
-				/>
-				<Accordion
-					Title="How do I participate?"
-					Content="Just Click on Get Started button on the home page or click on <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href={authUrl}>this</a> link."
 					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
 				/>
 				<Accordion
