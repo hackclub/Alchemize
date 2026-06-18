@@ -75,7 +75,7 @@
 <main
 	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
 >
-	<div class="fixed inset-0 bg-black/40 z-10"></div>
+	<div class="fixed inset-0 bg-black/90/40 z-10"></div>
 	<div class="relative z-50 mx-auto flex flex-col gap-8">
 		<div
 			class="flex justify-between items-end border-b-2 pb-[clamp(5px,1vh,16px)] border-primary/30 h-[clamp(60px,10vh,100px)]"
@@ -85,13 +85,13 @@
 				<img
 					alt="Profile Picture"
 					src={data.pfp}
-					class="border-2 border-primary bg-zinc-950 w-12 h-12 rounded-md shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
+					class="border-2 border-primary bg-black/90 w-12 h-12 rounded-md shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
 				/>
 				<div>
 					<h1
 						class="font-alchemize text-primary text-xl font-black uppercase tracking-wider"
 					>
-						Hi {data.name}
+						{data.name}
 					</h1>
 					<p class="text-zinc-400 text-xs font-sans tracking-normal">
 						{data.email}
@@ -99,10 +99,9 @@
 				</div>
 			</div>
 			<div
-				class="font-alchemize font-black uppercase tracking-widest text-primary text-2xl flex items-center gap-x-3"
+				class="font-alchemize font-black uppercase tracking-widest leading-none text-primary text-2xl flex items-center gap-x-1"
 			>
 				Alchemize
-				<img src="/Alchemist.webp" alt="" class="w-10 h-10 object-contain" />
 			</div>
 		</div>
 
@@ -114,7 +113,7 @@
 							class="absolute inset-0 bg-primary/20 translate-x-[4px] translate-y-[4px] rounded-md"
 						></div>
 						<div
-							class="relative flex flex-col gap-2 bg-zinc-950 border-2 border-primary/80 p-4 rounded-md"
+							class="relative flex flex-col gap-2 bg-black/90 border-2 border-primary/80 p-4 rounded-md"
 						>
 							<p
 								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
@@ -143,7 +142,7 @@
 							class="absolute inset-0 bg-primary/20 translate-x-[4px] translate-y-[4px] rounded-md"
 						></div>
 						<div
-							class="relative flex flex-col gap-2 bg-zinc-950 border-2 border-primary/80 p-4 rounded-md"
+							class="relative flex flex-col gap-2 bg-black/90 border-2 border-primary/80 p-4 rounded-md"
 						>
 							<p
 								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
@@ -173,7 +172,7 @@
 						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-zinc-950 border-2 border-primary p-5 rounded-md h-full"
+						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md h-full"
 					>
 						<h2
 							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
@@ -184,7 +183,7 @@
 						<div class="flex flex-col flex-1 gap-3 overflow-y-auto pr-1">
 							{#each projects as project}
 								<div
-									class="bg-zinc-950 border border-primary/30 p-4 rounded-md hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item"
+									class="bg-black/90 p-4 rounded-md hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item"
 								>
 									<div class="flex justify-between items-start gap-4">
 										<p
@@ -228,7 +227,7 @@
 						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-zinc-950 border-2 border-primary p-5 rounded-md"
+						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md"
 					>
 						<h2
 							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
@@ -239,7 +238,7 @@
 							<div class="gap-4 grid grid-cols-2 w-full">
 								<a
 									href="/dashboard/projects"
-									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
+									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
 								>
 									<Blocks class="w-6 h-6 stroke-2" />
 									<span
@@ -250,7 +249,7 @@
 
 								<a
 									href="/dashboard/shop"
-									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
+									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
 								>
 									<ShoppingBasket class="w-6 h-6 stroke-2" />
 									<span
@@ -261,7 +260,7 @@
 
 								<a
 									href="/dashboard/trade"
-									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
+									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
 								>
 									<ArrowRightLeft class="w-6 h-6 stroke-2" />
 									<span
@@ -272,7 +271,7 @@
 
 								<a
 									href="/refer"
-									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
+									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
 								>
 									<Users class="w-6 h-6 stroke-2" />
 									<span
@@ -284,7 +283,7 @@
 							{#if !!data.admin}
 								<a
 									href="/admin"
-									class="flex flex-col justify-center items-center gap-2 bg-zinc-950 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5 grid-cols-1"
+									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5 grid-cols-1"
 								>
 									<ShieldUser class="w-6 h-6 stroke-2" />
 									<span
@@ -302,7 +301,7 @@
 						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-zinc-950 border-2 border-primary p-5 rounded-md"
+						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md"
 					>
 						<h2
 							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
@@ -312,11 +311,9 @@
 
 						<div class="gap-4 grid grid-cols-2">
 							<div
-								class="flex items-center gap-3 bg-zinc-950 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
 							>
-								<div
-									class="bg-zinc-950 p-1.5 border border-primary/30 shrink-0"
-								>
+								<div class="bg-black/90 p-1.5 shrink-0 rounded">
 									<img
 										src="/alch-redstone.png"
 										alt="Redstone"
@@ -338,11 +335,9 @@
 							</div>
 
 							<div
-								class="flex items-center gap-3 bg-zinc-950 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
 							>
-								<div
-									class="bg-zinc-950 p-1.5 border border-primary/30 shrink-0"
-								>
+								<div class="bg-black/90 p-1.5 shrink-0 rounded">
 									<img
 										src="/alch-glowstone.png"
 										alt="Glowstone"
@@ -364,11 +359,9 @@
 							</div>
 
 							<div
-								class="flex items-center gap-3 bg-zinc-950 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
 							>
-								<div
-									class="bg-zinc-950 p-1.5 border border-primary/30 shrink-0"
-								>
+								<div class="bg-black/90 p-1.5 shrink-0 rounded">
 									<img
 										src="/alch-aquaregia.png"
 										alt="Aqua Regia"
@@ -390,11 +383,9 @@
 							</div>
 
 							<div
-								class="flex items-center gap-3 bg-zinc-950 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
 							>
-								<div
-									class="bg-zinc-950 p-1.5 border border-primary/30 shrink-0"
-								>
+								<div class="bg-black/90 p-1.5 shrink-0 rounded">
 									<img
 										src="/Alchemize.png"
 										alt="Potion Mix"
