@@ -519,7 +519,7 @@
 							<h3
 								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
 							>
-								Indie Game
+								Indie Gamedev
 							</h3>
 						</div>
 						<div class="flex-1">
