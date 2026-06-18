@@ -5,10 +5,7 @@
 	import {
 		CompassIcon,
 		Home,
-		Blocks,
 		ShoppingBag,
-		ArrowLeftRight,
-		Users,
 		ShieldUser,
 		UserStar,
 		Package,
@@ -16,12 +13,6 @@
 		Star,
 	} from "lucide-svelte"
 	const navItems = [
-		{
-			href: "/dashboard/",
-			label: "Home",
-			icon: Home,
-			description: "Main dashboard",
-		},
 		{
 			href: "/admin/",
 			label: "Admin",
@@ -33,6 +24,12 @@
 			label: "Fulfillement",
 			icon: Package,
 			description: "Fulfillement",
+		},
+		{
+			href: "/admin/shop",
+			label: "Shop",
+			icon: ShoppingBag,
+			description: "Manage the shop",
 		},
 		{
 			href: "/admin/review",
@@ -69,6 +66,15 @@
 		<Dialog.Header
 			class="flex flex-row justify-center items-center gap-3 px-6 py-4 border-blue-500/20 border-b"
 		>
+			<Dialog.Close>
+				<a href={"/dashboard"} class="group">
+					<div
+						class="self-baseline flex gap-1 hover:bg-blue-950/20 p-2 border border-blue-500/20 hover:border-blue-500/60 rounded-lg transition-all"
+					>
+						<Home class="w-6 h-6 text-indigo-900" />
+					</div>
+				</a>
+			</Dialog.Close>
 			<img
 				src="/Alchemize-Admin.png"
 				alt=""

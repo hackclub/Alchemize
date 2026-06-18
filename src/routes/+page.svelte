@@ -147,7 +147,7 @@
 				</h1>
 			</div>
 
-			<div class="grid grid-cols-2 gap-x-4 w-[50%]">
+			<div class="grid grid-cols-2 gap-x-4 w-[60%]">
 				<div
 					class="max-w-full border-l-4 border-primary p-4 md:p-6 rounded-none"
 				>
@@ -235,7 +235,7 @@
 			</div>
 
 			<div
-				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-[50%]"
+				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-[60%]"
 			>
 				<a
 					href={authUrl}
