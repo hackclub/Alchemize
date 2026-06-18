@@ -8,7 +8,6 @@
 			"name": "Getting Started",
 			"path": "/docs/getting-started/faq"
 		},
-
 		{
 			"name": "Themes",
 			"path": "/docs/getting-started/themes"
@@ -22,7 +21,7 @@
 			"path": "/docs/getting-started/faq"
 		}
 	],
-    	"Help": [
+	"Help": [
 		{
 			"name": "Introduction",
 			"path": "/docs/getting-started/introduction"
@@ -31,7 +30,6 @@
 			"name": "Getting Started",
 			"path": "/docs/getting-started/faq"
 		},
-
 		{
 			"name": "Themes",
 			"path": "/docs/getting-started/themes"
