@@ -7,7 +7,7 @@
 		Rocket,
 		ShoppingCart,
 		X,
-		Users,
+		Newspaper,
 	} from "lucide-svelte"
 	import { onMount } from "svelte"
 	import { browser } from "$app/environment"
@@ -273,17 +273,17 @@
 
 				<div class="group relative flex-1 flex items-stretch">
 					<a
-						href={referUrl}
+						href="/docs"
 						class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
 					>
-						<Users class="h-5 w-5 text-primary" />
-						<span>Refer People!</span>
+						<Newspaper class="h-5 w-5 text-primary" />
+						<span>Read the Docs!</span>
 					</a>
 
 					<div
 						class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 					>
-						Invite more people for cool rewards
+						Read the docs here!
 					</div>
 				</div>
 			</div>
