@@ -1,30 +1,99 @@
+# Welcome to Alchemize
 
+> Turn projects into currencies. Turn currencies into rewards.
 
-# Welcome to Alchemize!
-## The Basic Idea
-Alchemize is a YSWS(You Ship, We Ship) event under Hack Club(a non-profit organization) by teens for teens where all participants get 3 themes, and they work on those 3 themes to get currencies, which they can spend on the shop. In those 3 themes, each theme has it's own currency, and participants combine those currencies to get a bonus. The combined currency gives a different currency called Potion Mix they can use to buy items from the shop. 
+Alchemize is a seasonal coding event where you build projects, earn currencies, and spend them on real rewards.
 
-## The Season System
-Each season unlocks after the code time of all participants together reaches the cutoff hours (maybe 400 hours for the 2nd season to unlock). Basically, a mystery box which all participants together open with their coding hours. Maybe we can adjust the cutoff hours by observing the amount of participation, such that each season lasts for at least 2 - 3 weeks.
+Every season comes with **3 themes**. Each theme has its own currency, and the projects you build determine how much of that currency you earn. You can spend those currencies directly in the shop or combine them into a special currency called **Potion Mix**.
 
-Each season, the 3 themes change; the plan is to have 3 seasons, so a total of 9 themes.
+Build more. Earn more. Unlock more.
 
-When the new season starts, the thematic currencies reset for every participant to 0, but the Potion Mix persists.
+---
 
-## The Shop System
-The shop for this ysws consists of:
+## How It Works
 
-1. Theme based items(Bought using thematic currencies).
-2. General items(Bought using potion mix).
+1. Pick a theme.
+2. Build something that fits it.
+3. Log your coding hours.
+4. Earn that theme's currency.
+5. Spend it in the shop.
 
-The shop items are chosen by the participants through a suggestion system. The items suggested will be reviewed and then added to the shop.
+You can participate in a single theme, but experimenting with multiple themes lets you earn multiple currencies and create **Potion Mix**.
 
-## Themes of Season 1
-1. Endless: Create a project with an infinite Canvas. It can be a game where levels generate endlessly(like Pac-Man), It can be a paint app with an infinite canvas, or it can also be a scientific simulation which keeps on running indefinitely. It can be anything as long as it has an element of infinity to it(and it never ends).
-   
-2. No Internet: Make something that works without an internet connection, no APIs, no CDNs, no fetching data from the internet (and obviously no websites), it can be a game that doesn't require an internet connection, an app that uses Bluetooth to chat with friends, a robot that does something cool, anything as long as it works without internet.
-   
-3. Indie Game: Make a game inspired by the indie game genre. It can be a platformer with a unique art style, a narrative-driven experience, a puzzle game with innovative mechanics, or anything else that captures the spirit of indie games. Create your own art styles here that give vibes of indie pixel art and hand-drawn aesthetics. The game should reflect the creativity and innovation that indie games are known for.
+Think of each theme as a different ingredient. Combining ingredients creates stronger potions.
 
-## Our Motive 
-To make participants explore underexplored themes and to make participants explore multiple themes at once as the short span of a season and the currency system promote earning multiple currencies together.
+---
+
+## Seasons
+
+Alchemize runs in seasons.
+
+Each season introduces **3 new themes**, a refreshed shop, and new opportunities to earn rewards. Season 1 lasts for about a month, though future seasons may vary.
+
+When a season ends:
+
+* Themes rotate out
+* New themes are introduced
+* The shop gets refreshed
+* A new season begins
+
+No two seasons are guaranteed to be the same.
+
+---
+
+## Rewards
+
+Everything you earn can be spent in the shop.
+
+### Theme Rewards
+
+Some rewards are tied to specific themes and can only be purchased using that theme's currency.
+
+For example, a reward related to game development might only be purchasable using currency earned from the **Indie Gamedev** theme.
+
+### Potion Mix Rewards
+
+Currencies from different themes can be combined into **Potion Mix**.
+
+Potion Mix can be used to purchase special rewards that aren't tied to any single theme.
+
+### Seasonal Bonuses
+
+Some rewards are reserved for participants who go above and beyond.
+
+These may include:
+
+* Top participants
+* Exceptional projects
+* Community contributors
+* Successful referrals
+
+The reward lineup may change every season.
+
+---
+
+## Season 1 Themes
+
+Curious what counts for each theme?
+
+Read the guide:
+
+**→ [What Counts in a Theme?](/docs/themes/what-counts)**
+
+Inside you'll find:
+
+* Theme explanations
+* Example projects
+* Eligibility rules
+* Common edge cases
+
+---
+
+## Need Help?
+
+Stuck on an idea? Unsure whether your project qualifies? Need technical help?
+
+* Ask in **#alchemize-help** on Hack Club Slack
+* Read **HW Docs** at [HW Docs](https://hwdocs.hackclub.dev/?utm_source=chatgpt.com) for community-written hardware guides and documentation
+
+Happy shipping.

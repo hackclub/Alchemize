@@ -1,8 +1,7 @@
 import type { RequestHandler } from "@sveltejs/kit"
 import { BOT_AUTH, USER_JWT_SECRET } from '$env/static/private';
-import looseJson from 'loose-json'
 import type { Item, UserCurrency } from "$lib/types"
-import { createOrder, getUserByEmail, patchUserCurrency, getShopItemById } from "$lib/db";
+import { atomicPurchaseItem, getShopItemById } from "$lib/db";
 import jwt from 'jsonwebtoken';
 import type {UserAuthToken} from "$lib/types";
 interface RequestBody {
@@ -19,11 +18,6 @@ const getCurrency = (itemPrice: UserCurrency): keyof UserCurrency => {
     }else{
         return "potion_mix"
     }
-}
-const purchaseItem = (item: Item, quantity: number, userCurrency: UserCurrency): UserCurrency => {
-    const currencyType = getCurrency(item.itemPrice);
-    const totalCost = item.itemPrice[currencyType] * quantity;
-    return { ...userCurrency, [currencyType]: userCurrency[currencyType] - totalCost };
 }
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const body: RequestBody = await request.json();
@@ -65,48 +59,32 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!uid || !email) {
         return new Response("Unauthorized", { status: 401 })
     }
-    const userResponse = await getUserByEmail(email);
-    if (!userResponse.ok) {
-        return new Response("Failed to fetch user data from Airtable", { status: 500 })
-    }
-    const userData = await userResponse.json();
-    const userRecord = userData.records[0];
-    if (!userRecord) {
-        return new Response("User not found", { status: 404 })
-    }
-    const currentCurrency = looseJson(userRecord.fields.currency) as UserCurrency;
     const currencyUsed = getCurrency(item.itemPrice);
     const totalPrice = item.itemPrice[currencyUsed] * body.quantity;
-    const hasThatCurrency = currentCurrency[currencyUsed];
-    if (hasThatCurrency < totalPrice) {
-        console.log(hasThatCurrency, totalPrice);
-        return new Response("Insufficient currency: " + hasThatCurrency + " < " + totalPrice, { status: 400 })
-    }
-    const updatedCurrency = purchaseItem(item, body.quantity, currentCurrency);
-    const [updatedUserResponse, purchaseRecord] = await Promise.all([
-        patchUserCurrency(email, updatedCurrency),
-        createOrder({
-                orderItem: item.name,
-                itemID: item.itemID,
-                qty: body.quantity,
-                ordererEmail: email,
-                ordererUid: uid,
-                status: "pending",
-                fulfiller: "",
-                moreData: ""
-            })
 
-    ])
+    // Atomic purchase: deducts currency and creates order in a single transaction
+    const purchaseResult = await atomicPurchaseItem(
+        email,
+        currencyUsed,
+        totalPrice,
+        body.quantity,
+        item.name,
+        item.itemID,
+        uid
+    );
 
-    if (!updatedUserResponse.ok) {
-        console.log("Failed to update user currency:", await updatedUserResponse.text());
-        return new Response("Failed to update user currency", { status: 500 })
+    if (!purchaseResult.ok) {
+        const errorText = await purchaseResult.text();
+        if (purchaseResult.status === 400) {
+            return new Response(errorText, { status: 400 });
+        }
+        if (purchaseResult.status === 404) {
+            return new Response(errorText, { status: 404 });
+        }
+        return new Response(errorText, { status: 500 });
     }
 
-    if (!purchaseRecord.ok) {
-        console.log("Failed to create purchase record:", await purchaseRecord.text());
-        return new Response("Failed to create purchase record", { status: 500 })
-    }
+    const purchaseData = await purchaseResult.json();
     const botResponse = await fetch("https://aoishik.qzz.io/fulfill_pending", {
         method: "POST",
         headers: {
@@ -114,7 +92,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             "Authorization": `Bearer ${BOT_AUTH}`
         },
         body: JSON.stringify(
-            { "user_id": data?.slack_id, "order_id": "< _Some random ID_ >", "item_name": item.name, "qty": `${body.quantity}`, "cost": `${totalPrice} ${currencyUsed.charAt(0).toUpperCase() + currencyUsed.slice(1)}` }
+            { "user_id": data?.slack_id, "order_id": purchaseData.orderId, "item_name": item.name, "qty": `${body.quantity}`, "cost": `${totalPrice} ${currencyUsed.charAt(0).toUpperCase() + currencyUsed.slice(1)}` }
         )
     })
     if (!botResponse.ok) {

@@ -24,7 +24,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
         throw new Error("Failed to fetch items from the database");
     }
     const itemsData = await itemsResponse.json();
-    console.log("Fetched items data:", JSON.stringify(itemsData, null, 2));
     const items: Item[] = itemsData.records.map((record: any) => ({
         itemID: record.id,
         name: record.fields.name,
@@ -36,7 +35,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
     const userData = await userResponse.json();
     const userRecord = userData.records[0];
-    console.log(userRecord);
     return {
         items,
         userRecord

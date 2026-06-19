@@ -23,7 +23,7 @@
 		)
 	}
 	let loading = $state(false)
-	const convertDisabled = potionMixAmount <= 0
+	const convertDisabled = false
 	const updatePotionMix = async () => {
 		if (potionMixAmount <= 0) {
 			toast.error("Please enter valid amounts to convert.")
