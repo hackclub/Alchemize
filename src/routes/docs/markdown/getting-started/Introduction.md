@@ -1,21 +1,99 @@
+# Welcome to Alchemize
 
+> Turn projects into currencies. Turn currencies into rewards.
 
-# Welcome to Alchemize!
+Alchemize is a seasonal coding event where you build projects, earn currencies, and spend them on real rewards.
 
-You will be making projects in 3 themes, and spending them on the shop. Each theme has its own currency, and you can combine those currencies to get a bonus currency called Potion Mix, which you can also spend on the shop.
+Every season comes with **3 themes**. Each theme has its own currency, and the projects you build determine how much of that currency you earn. You can spend those currencies directly in the shop or combine them into a special currency called **Potion Mix**.
 
-## How do we work?
-Participants create projects in the 3 themes, and earn thematic currencies by doing so. The amount of currency they earn depends on the number of hours they code on their project. Participants can then use these thematic currencies to buy items from the shop, or they can combine them to get Potion Mix, which can also be used to buy items from the shop.
+Build more. Earn more. Unlock more.
 
-## Themes and Seasons?
-Alchemize runs in seasons, each season has its own 3 different themes, Seasons last a fixed amount of time(around a month for S1) and at the end of each season, a new season with new themes starts. Participants can create projects in any theme they want, but they are encouraged to create projects in multiple themes to earn more currencies and get more rewards from the shop.
+---
 
-## What will I get from participating in Alchemize?
-We have a varierty of rewards in our shop, you can use your earned currencies to buy these rewards, and the rewards will be updated every season, we have some non-themed rewards that you can buy with Potion Mix, and we also have some themed rewards that you can only buy with the thematic currencies. We also have some special rewards for the top participants of each season, and for the participants who refer their friends to Alchemize.
+## How It Works
 
-## What themes are running in the first season?
-Checkout themes docs [here](/docs/themes/what-counts) to know more about the themes of the first season, and the rewards you can get from them.
+1. Pick a theme.
+2. Build something that fits it.
+3. Log your coding hours.
+4. Earn that theme's currency.
+5. Spend it in the shop.
 
-## Need help?
-- If you have any questions, feel free to ask on #alchemize-help on Hack Club Slack
-- Checkout HW Docs written by Hack Clubbers [here](https://hwdocs.hackclub.dev/) for hardware specific docs(Hardware in S2)
+You can participate in a single theme, but experimenting with multiple themes lets you earn multiple currencies and create **Potion Mix**.
+
+Think of each theme as a different ingredient. Combining ingredients creates stronger potions.
+
+---
+
+## Seasons
+
+Alchemize runs in seasons.
+
+Each season introduces **3 new themes**, a refreshed shop, and new opportunities to earn rewards. Season 1 lasts for about a month, though future seasons may vary.
+
+When a season ends:
+
+* Themes rotate out
+* New themes are introduced
+* The shop gets refreshed
+* A new season begins
+
+No two seasons are guaranteed to be the same.
+
+---
+
+## Rewards
+
+Everything you earn can be spent in the shop.
+
+### Theme Rewards
+
+Some rewards are tied to specific themes and can only be purchased using that theme's currency.
+
+For example, a reward related to game development might only be purchasable using currency earned from the **Indie Gamedev** theme.
+
+### Potion Mix Rewards
+
+Currencies from different themes can be combined into **Potion Mix**.
+
+Potion Mix can be used to purchase special rewards that aren't tied to any single theme.
+
+### Seasonal Bonuses
+
+Some rewards are reserved for participants who go above and beyond.
+
+These may include:
+
+* Top participants
+* Exceptional projects
+* Community contributors
+* Successful referrals
+
+The reward lineup may change every season.
+
+---
+
+## Season 1 Themes
+
+Curious what counts for each theme?
+
+Read the guide:
+
+**→ [What Counts in a Theme?](/docs/themes/what-counts)**
+
+Inside you'll find:
+
+* Theme explanations
+* Example projects
+* Eligibility rules
+* Common edge cases
+
+---
+
+## Need Help?
+
+Stuck on an idea? Unsure whether your project qualifies? Need technical help?
+
+* Ask in **#alchemize-help** on Hack Club Slack
+* Read **HW Docs** at [HW Docs](https://hwdocs.hackclub.dev/?utm_source=chatgpt.com) for community-written hardware guides and documentation
+
+Happy shipping.

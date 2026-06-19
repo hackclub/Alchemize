@@ -11,37 +11,46 @@
             "filePath": "/markdown/getting-started/Getting Started.md"
         },
         {
-            "name": "FAQ",
-            "path": "/docs/getting-started/faq",
-            "filePath": "/markdown/getting-started/FAQ.md"
-        }
-    ],
-    "Guides": [
-        {
-            "name": "Dashboard Guide",
-            "path": "/docs/guides/dashboard-guide",
-            "filePath": "/markdown/guides/Dashboard Guide.md"
-        }
-    ],
-    "Hardware": [
-        {
-            "name": "Tips",
-            "path": "/docs/hardware/tips",
-            "filePath": "/markdown/hardware/TIps.md"
-        }
-    ],
-    "Shipping": [
-        {
-            "name": "Shipping",
-            "path": "/docs/shipping/shipping",
-            "filePath": "/markdown/shipping/Shipping.md"
+            "name": "Setting Up Hackatime",
+            "path": "/docs/getting-started/setting-up-hackatime",
+            "filePath": "/markdown/getting-started/Setting Up Hackatime.md"
         },
-        {
-            "name": "Shipping Your Design",
-            "path": "/docs/shipping/shipping-your-design",
-            "filePath": "/markdown/shipping/Shipping Your Design.md"
-        }
+		{
+			"name": "Dashboard Guide",
+			"path": "/docs/guides/dashboard-guide",
+			"filePath": "/markdown/getting-started/Dashboard Guide.md"
+		},
+		
+		{
+			"name": "Setting Up Git",
+			"path": "/docs/guides/setting-up-git",
+			"filePath": "/markdown/getting-started/Setting Up Git.md"
+		}
     ],
+    "Themes":[
+		        {
+            "name": "What Counts",
+            "path": "/docs/themes/what-counts",
+            "filePath": "/markdown/themes/What counts.md"
+        },
+				        {
+            "name": "Submission Requirements",
+            "path": "/docs/themes/submission-requirements",
+            "filePath": "/markdown/themes/submission-req.md"
+        }
+	],
+    "Stones and Shops": [
+		{
+			"name": "The Stones",
+			"path": "/docs/stones-and-shops/the-stones",
+			"filePath": "/markdown/shop-and-stones/The Stones.md"
+		},
+				{
+			"name": "Mastering Alchemy",
+			"path": "/docs/stones-and-shops/mixing-stones",
+			"filePath": "/markdown/shop-and-stones/Mixing Stones.md"
+		}
+	],
     "Software": [
         {
             "name": "Tips",

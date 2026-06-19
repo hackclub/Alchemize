@@ -6,13 +6,13 @@
 <div
 	class="fixed -z-20  bg-cover bg-center w-screen h-screen blur-sm"
 ></div>
-<main class="body flex font-alchemize">
+<main class="body flex font-alchemize overflow-hidden">
 	<div class="fixed inset-0 bg-black z-0 pointer-events-none"></div>
 	<div
 		class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#6080600a_1px,transparent_2px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-80"
 	></div>
 	<aside
-		class="relative bg-black z-10 sidebar h-screen min-w-1/4 max-w-80 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset]"
+		class="relative bg-black z-10 sidebar min-h-screen min-w-1/4 max-w-80 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset]"
 	>
 		<div
 			class="sidebar-group flex items-center px-2 w-full pb-5 border-b-primary border-b"
@@ -56,7 +56,7 @@
 			</div>
 		{/each}
 	</aside>
-	<div class="relative min-h-full w-full p-10 font-light text-admin-text">
+	<div class="relative min-h-full max-h-full w-full p-10 pb-20 font-light text-admin-text box-border">
 		{@render children()}
 	</div>
 </main>
