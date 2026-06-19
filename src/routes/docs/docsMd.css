@@ -41,7 +41,6 @@
 .md{
     overflow-y: scroll;
     height: 100vh;
-    width:50vw;
     scrollbar-width: 0px; 
     
     -ms-overflow-style: none; 
