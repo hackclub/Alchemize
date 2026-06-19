@@ -16,7 +16,7 @@ import "../../docsMd.css"
     // Eagerly load all markdown files as raw strings
     const markdownFiles = import.meta.glob("../../markdown/**/*.md", {
         eager: true,
-        as: "raw"
+          query: "?raw",
     });
 
     let { params } = $props();
