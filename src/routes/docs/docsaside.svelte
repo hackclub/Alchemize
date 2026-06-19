@@ -10,14 +10,14 @@
 </script>
 
 <aside
-	class="relative z-10 sidebar h-screen min-w-1/4 max-w-80 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset]"
+	class="relative z-10 h-full max-h-screen overflow-y-auto sidebar w-1/4 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
 >
 	<div
 		class="sidebar-group flex items-center px-2 w-full pb-5 border-b-primary border-b"
 	>
 		<div class="">
 			<span
-				class="font-alchemize text-primary font-extrabold text-3xl tracking-tight"
+				class="font-alchemize text-primary font-extrabold sm:text-3xl text-3xl tracking-tight"
 				>ALCHEMIZE</span
 			>
 			<span

@@ -17,14 +17,18 @@
 	class="fixed -z-20 bg-[url('/alchbg.png')] bg-cover bg-center w-screen h-screen blur-sm"
 ></div>
 <main
-	class="body flex font-alchemize selection:bg-primary selection:text-primary-foreground"
+	class="body flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden"
 >
 	<div class="fixed inset-0 bg-black/80 z-0 pointer-events-none"></div>
 	<div
 		class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_2px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-80"
 	></div>
+
 	<Docsaside {openGroups} {toggleGroup} />
-	<div class="relative min-h-full w-full p-10 font-light text-admin-text">
+
+	<div
+		class="relative h-full max-h-screen w-full overflow-y-auto p-10 font-light text-admin-text"
+	>
 		{@render children()}
 	</div>
 </main>
