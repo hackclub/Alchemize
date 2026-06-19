@@ -24,7 +24,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
             reHackatime: false,
         }
     }
-    if (!hackatimeToken || !hackatimeVerified || hackatimeToken === "" || hackatimeVerified === "") {
+    if (!hackatimeVerified ||  hackatimeVerified === "") {
         throw redirect(302, hackatimeAuthUrl);
         return {
             allowed: false,

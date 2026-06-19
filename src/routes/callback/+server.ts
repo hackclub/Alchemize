@@ -1,5 +1,6 @@
 import { env } from "$env/dynamic/private"
 import {PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT} from "$env/static/public"
+import { hackatimeAuthUrl } from "$lib/utils"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
@@ -43,7 +44,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	
 	const code = url.searchParams.get("code")
 	const referCookie = cookies.get("refer")
-
+	
 	let userHackatime = ""
 	if (!code) {
 		throw error(400, "Missing authorization code")
@@ -170,13 +171,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		path: "/",
 	})
 	if(userData.length > 0 && userData[0].fields.hackatime){
-		cookies.set("hackatime_token", userData[0].fields.hackatime, {
-			httpOnly: true,
-			secure: true,
-			sameSite: "lax",
-			maxAge: 60 * 60 * 24 * 365, // 1 year
-			path: "/",
-		})
+		
 		cookies.set("hackatime_verified", "true", {
 			httpOnly: false,
 			secure: true,
@@ -184,6 +179,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			maxAge: 60 * 60 * 24 * 365, // 1 year
 			path: "/",
 		})
+	}else{
+		throw redirect(303, hackatimeAuthUrl)
 	}
 	throw redirect(303, "/dashboard")
 }

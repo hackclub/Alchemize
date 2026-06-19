@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { START_DATE, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
 import { getProjectsByOwner, getUserByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
+import { hackatimeAuthUrl } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
 import jwt from "jsonwebtoken"
 
@@ -30,32 +31,21 @@ export const load: PageServerLoad = async ({ cookies }) => {
         throw new Error("Invalid user token");
     }
 
-    let hackatimeAccessToken = cookies.get('hackatime_token');
-    let hacks: any = ""
-    if (!hackatimeAccessToken) {
-        cookies.set('hackatime_verified', 'false', { path: '/' });
-        cookies.set('hackatime_token', '', { path: '/', expires: new Date(0) });
-        return redirect(303, "/")
-    }
+    
 
-    let [hackatimes, projectsResponse, userResponse, slackprofile] = await Promise.all([
-        fetch(`https://hackatime.hackclub.com/api/v1/authenticated/projects?include_archived=false&start=${START_DATE}`, {
-            headers: {
-                Authorization: `Bearer ${hackatimeAccessToken}`,
-                "Content-Type": 'application/json'
-            }
-        }),
+
+    let [projectsResponse, userResponse, slackprofile] = await Promise.all([
+
         getProjectsByOwner(decodedToken.email),
         getUserByEmail(decodedToken.email),
         getSlackProfile(decodedToken.slack_id)
     ])
 
-    hacks = await hackatimes.json()
 
     if (!at) {
         return {
             projects: [],
-            hacks: hacks,
+            hacks: [],
             email: decodedToken.email,
             eligiblity: decodedToken.ysws_eligible,
             name: slackprofile?.display_name || decodedToken.first_name,
@@ -69,7 +59,17 @@ export const load: PageServerLoad = async ({ cookies }) => {
     const projectsData = typeof projectsResponse.json === 'function' ? await projectsResponse.json() : projectsResponse;
     const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;
     const admin = !!cookies.get("admin_access_token")
-
+    let hackatimeAccessToken = userData?.records?.[0]?.fields?.hackatime;
+if (!hackatimeAccessToken || hackatimeAccessToken === "") {
+    throw redirect(303, hackatimeAuthUrl)
+}
+    let hackatimes = await fetch(`https://hackatime.hackclub.com/api/v1/authenticated/projects?include_archived=false&start=${START_DATE}`, {
+            headers: {
+                Authorization: `Bearer ${hackatimeAccessToken}`,
+                "Content-Type": 'application/json'
+            }
+        });
+    let hacks = await hackatimes.json()
     return {
         projects: projectsData?.records || [],
         hacks: hacks,

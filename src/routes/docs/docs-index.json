@@ -1,46 +1,62 @@
 {
-	"Getting Started": [
-		{
-			"name": "Introduction",
-			"path": "/docs/getting-started/introduction"
-		},
-		{
-			"name": "Getting Started",
-			"path": "/docs/getting-started/faq"
-		},
-		{
-			"name": "Themes",
-			"path": "/docs/getting-started/themes"
-		},
-		{
-			"name": "Submission Guidelines",
-			"path": "/docs/getting-started/submission-guidelines"
-		},
-		{
-			"name": "FAQ",
-			"path": "/docs/getting-started/faq"
-		}
-	],
-	"Help": [
-		{
-			"name": "Introduction",
-			"path": "/docs/getting-started/introduction"
-		},
-		{
-			"name": "Getting Started",
-			"path": "/docs/getting-started/faq"
-		},
-		{
-			"name": "Themes",
-			"path": "/docs/getting-started/themes"
-		},
-		{
-			"name": "Submission Guidelines",
-			"path": "/docs/getting-started/submission-guidelines"
-		},
-		{
-			"name": "FAQ",
-			"path": "/docs/getting-started/faq"
-		}
-	]
+    "Getting Started": [
+        {
+            "name": "Introduction",
+            "path": "/docs/getting-started/introduction",
+            "filePath": "/markdown/getting-started/Introduction.md"
+        },
+        {
+            "name": "Getting Started",
+            "path": "/docs/getting-started/getting-started",
+            "filePath": "/markdown/getting-started/Getting Started.md"
+        },
+        {
+            "name": "FAQ",
+            "path": "/docs/getting-started/faq",
+            "filePath": "/markdown/getting-started/FAQ.md"
+        }
+    ],
+    "Guides": [
+        {
+            "name": "Dashboard Guide",
+            "path": "/docs/guides/dashboard-guide",
+            "filePath": "/markdown/guides/Dashboard Guide.md"
+        }
+    ],
+    "Hardware": [
+        {
+            "name": "Tips",
+            "path": "/docs/hardware/tips",
+            "filePath": "/markdown/hardware/TIps.md"
+        }
+    ],
+    "Shipping": [
+        {
+            "name": "Shipping",
+            "path": "/docs/shipping/shipping",
+            "filePath": "/markdown/shipping/Shipping.md"
+        },
+        {
+            "name": "Shipping Your Design",
+            "path": "/docs/shipping/shipping-your-design",
+            "filePath": "/markdown/shipping/Shipping Your Design.md"
+        }
+    ],
+    "Software": [
+        {
+            "name": "Tips",
+            "path": "/docs/software/tips",
+            "filePath": "/markdown/Software/Tips.md"
+        },
+        {
+            "name": "Getting Started With Unreal Engine",
+            "path": "/docs/unreal-engine/getting-started-with-unreal-engine",
+            "filePath": "/markdown/Software/UnrealEngine/GettingStartedWithUnrealEngine/GettingStarted.md"
+        },
+        {
+            "name": "Creating A 2D Game With Unreal Engine",
+            "path": "/docs/unreal-engine/creating-a-2d-game-with-unreal-engine",
+            "filePath": "/markdown/Software/UnrealEngine/CreatingA2DGameWithUnrealEngine/Guide.md"
+        }
+    ]
 }
