@@ -1,9 +1,9 @@
-import type { RequestHandler } from "@sveltejs/kit"
-import {  BOT_AUTH, USER_JWT_SECRET } from "$env/static/private"
-import {START_DATE} from "$env/static/private"
-import { getDataFromAccessToken } from "$lib/utils"
+import { redirect, type RequestHandler } from "@sveltejs/kit"
+import { BOT_AUTH, USER_JWT_SECRET } from "$env/static/private"
+import { START_DATE } from "$env/static/private"
+import { hackatimeAuthUrl} from "$lib/utils"
 import type { Log } from "$lib/types"
-import { getProjectById, patchProjectForShip } from "$lib/db"
+import { getProjectById, getUserByEmail, patchProjectForShip } from "$lib/db"
 import jwt from "jsonwebtoken"
 /* REQUEST BODY
 	-Hackatime Access token(Now derived from Cookies)
@@ -33,7 +33,7 @@ async function getProject(recordId: string) {
 	return data
 }
 async function getHackatimeProject(accessToken: string, hackatimeProjectName: string) {
-	const hackatimes = await fetch(`https://hackatime.hackclub.com/api/v1/authenticated/projects?include_archived=false&start=${START_DATE}`,{
+	const hackatimes = await fetch(`https://hackatime.hackclub.com/api/v1/authenticated/projects?include_archived=false&start=${START_DATE}`, {
 		headers: {
 			Authorization: `Bearer ${accessToken}`,
 			"Content-Type": 'application/json'
@@ -89,7 +89,7 @@ function updateLog(log: Log[], deltaTime: number, changelog: string): Log[] {
 			message: [...lastLog.message, { userExternal: changelog, internalNote: "", justification: "", timestamp: new Date().toISOString(), reviewerName: "user" }],
 			submmitedToHQ: false
 		}]
-	}else{
+	} else {
 		return log
 	}
 
@@ -101,39 +101,45 @@ function calculateRecordedTime(log: Log[]): number {
 	}
 	return totalTime
 }
-export const POST: RequestHandler = async ({ request,cookies }) => {
+export const POST: RequestHandler = async ({ request, cookies }) => {
+	//Confirm ownership by comparing email from access token with project owner email
+	const authToken = cookies.get('user_token');
+	let decoded = null;
+	try {
+		if (authToken) {
+			decoded = jwt.verify(authToken, USER_JWT_SECRET);
+		}
+	} catch (error) {
+		console.error('Invalid user token:', error);
+	}
+
 	const { recordId, changelog } = await request.json()
 	const accessToken = cookies.get('access_token_new')
-	const hackatimeToken = cookies.get('hackatime_token')
-	if (!hackatimeToken || !recordId || !accessToken) {
+	if ( !recordId || !accessToken) {
 		return new Response("Missing required fields", { status: 400 })
 	}
-	const projectData = await getProject(recordId)
-	const hackatimeProject = await getHackatimeProject(hackatimeToken, projectData.fields.hackatime)
-	const previousLogs= parseLog(projectData.fields.log || "[]")
+	const [projectData, userDbRes] = await Promise.all([getProject(recordId), getUserByEmail((decoded as any).email)])
+	let htToken = (await userDbRes.json())?.records?.[0]?.fields?.hackatime
+	if (!htToken || htToken === "") {
+		throw redirect(303, hackatimeAuthUrl)
+	}
+	const hackatimeProject = await getHackatimeProject(htToken, projectData.fields.hackatime)
+	const previousLogs = parseLog(projectData.fields.log || "[]")
 	const recordedTime = calculateRecordedTime(previousLogs)
 	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
 	const deltaTime = hackatimeTime - recordedTime
 	if (deltaTime <= 0) {
 		return new Response("No new time recorded since last ship", { status: 400 })
 	}
-	//Confirm ownership by comparing email from access token with project owner email
-	const authToken = cookies.get('user_token');
-	let decoded = null;
-try {
-	if(authToken){
-		decoded = jwt.verify(authToken, USER_JWT_SECRET);
-	}
-} catch (error) {
-	console.error('Invalid user token:', error);
-}
-const userData = decoded ? (decoded as any) : null;
-	if(projectData.fields.owner){
+
+	const userData = decoded ? (decoded as any) : null;
+	if (projectData.fields.owner) {
 		if (userData.email !== projectData.fields.owner) {
-		return new Response("Unauthorized: You do not own this project", { status: 403 })
-	}
-	}else{
-		console.warn(`Missing/Malformed owner email for project ${recordId}. Proceeding without ownership verification.`)
+			return new Response("Unauthorized: You do not own this project", { status: 403 })
+		}
+	} else {
+		console.error(`Missing/Malformed owner email for project ${recordId}.`)
+		throw new Response("Project owner information is missing or malformed", { status: 500 })
 	}
 	const currentTime = Date.now()
 	const updatedLog = updateLog(previousLogs, deltaTime, changelog)

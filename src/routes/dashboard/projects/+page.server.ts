@@ -1,10 +1,11 @@
 import type { Actions, PageServerLoad } from './$types';
 import { jwtDecode } from 'jwt-decode';
 import { env } from '$env/dynamic/private';
-import { getDataFromAccessToken } from '$lib/utils';
-import { getProjectsByOwner, createProject, updateProject } from '$lib/db';
+import { hackatimeAuthUrl } from '$lib/utils';
+import { getProjectsByOwner, createProject, updateProject, getUserByEmail } from '$lib/db';
 import { USER_JWT_SECRET } from '$env/static/private';
 import type { UserAuthToken } from "$lib/types";
+import {redirect} from "@sveltejs/kit"
 import jwt from 'jsonwebtoken';
 export const actions = {
     create: async (event) => {
@@ -222,7 +223,18 @@ export const load: PageServerLoad = async ({ cookies }) => {
             projects: []
         }
     }
-    let hackatimeAccessToken = cookies.get('hackatime_token');
+    const userResponse = await getUserByEmail(email);
+    if (!userResponse.ok) {
+        console.error("Database error:", await userResponse.text())
+        return {
+            error: 'Database error',
+            projects: []
+        }
+    }
+    const hackatimeAccessToken = (await userResponse.json())?.records?.[0]?.fields?.hackatime;
+    if (!hackatimeAccessToken || hackatimeAccessToken === "") {
+        throw redirect(303, hackatimeAuthUrl)
+    }
     let hacks = ""
     if (hackatimeAccessToken) {
 

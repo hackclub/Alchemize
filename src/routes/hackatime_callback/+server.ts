@@ -78,13 +78,6 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		throw error(patchResponse.status, patchBody?.error?.message ?? 'Failed to update Postgress user');
 	}
 
-	cookies.set('hackatime_token', tokenBody.access_token, {
-		httpOnly: true,
-		secure: true,
-		sameSite: 'lax',
-		path: '/',
-		maxAge: 60 * 60 * 24 * 30
-	});
 
 	cookies.set('hackatime_verified', 'true', {
 		httpOnly: false,
