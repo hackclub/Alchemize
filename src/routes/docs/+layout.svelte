@@ -13,11 +13,8 @@
 	}
 </script>
 
-<div
-	class="fixed -z-20 bg-[url('/alchbg.png')] bg-cover bg-center w-screen h-screen blur-sm"
-></div>
 <main
-	class="body flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden"
+	class="body flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-gradbg"
 >
 	<div class="fixed inset-0 bg-black/80 z-0 pointer-events-none"></div>
 	<div

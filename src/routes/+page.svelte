@@ -7,16 +7,17 @@
 		Rocket,
 		ShoppingCart,
 		X,
-		Users,
+		Newspaper,
 	} from "lucide-svelte"
 	import { onMount } from "svelte"
 	import { browser } from "$app/environment"
 	import {
 		PUBLIC_HACKCLUB_AUTH,
 		PUBLIC_HACKCLUB_REDIRECT,
+		PUBLIC_TURNED_OFF,
 	} from "$env/static/public"
 	import Accordion from "$lib/components/accordion.svelte"
-
+	console.log(PUBLIC_TURNED_OFF !== "false")
 	let { data } = $props()
 	let rsvpCount: number | "Fetching" = $state("Fetching")
 	let showRotator = $state(false)
@@ -30,10 +31,13 @@
 	)
 
 	let authUrl = $derived(
-		hasaccessToken
-			? `./dashboard`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./dashboard`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 	)
+
 	let referUrl = $state(`./refer`)
 
 	const targetDate = new Date("2026-06-21T01:00:00Z").getTime()
@@ -80,16 +84,20 @@
 			document.cookie.split("; ").find(row => row.startsWith("slack_id=")) !==
 			undefined
 
-		authUrl = hasaccessToken
-			? `./dashboard`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		authUrl = PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./dashboard`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
 
-		referUrl = hasaccessToken
-			? `./refer`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		referUrl = PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./refer`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
@@ -265,17 +273,17 @@
 
 				<div class="group relative flex-1 flex items-stretch">
 					<a
-						href={referUrl}
+						href="/docs"
 						class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
 					>
-						<Users class="h-5 w-5 text-primary" />
-						<span>Refer People!</span>
+						<Newspaper class="h-5 w-5 text-primary" />
+						<span>Read the Docs!</span>
 					</a>
 
 					<div
 						class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 					>
-						Invite more people for cool rewards
+						Read the docs here!
 					</div>
 				</div>
 			</div>

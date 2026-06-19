@@ -1,56 +1,72 @@
 import type { RequestHandler } from "@sveltejs/kit";
-import { getUserByEmail, patchUserCurrency } from "$lib/db"
-import type { UserCurrency } from "$lib/types";
-import looseJson from "loose-json"
-import {currenciesToPotionMix} from "$lib/utils"
+import { atomicTradeCurrency } from "$lib/db"
+import { currenciesToPotionMix } from "$lib/utils"
+import { USER_JWT_SECRET } from "$env/static/private";
+import jwt from "jsonwebtoken";
+import type { UserAuthToken } from "$lib/types";
+
 export const POST: RequestHandler = async ({ request, cookies }) => {
-    const at = cookies.get('access_token_new');
     const { redstone, glowstone, aqua_regia } = await request.json();
     if (redstone < 0 || glowstone < 0 || aqua_regia < 0) {
         return new Response(JSON.stringify({
             error: "Invalid currency amounts"
         }), { status: 400 })
     }
-    const fetchRes = await fetch("https://auth.hackclub.com/api/v1/me", {
-        headers: {
-            Authorization: `Bearer ${at}`,
-        },
-        method: "GET"
-    })
 
-    const userData = await fetchRes.json()
-    if (!fetchRes.ok) {
+    const userToken = cookies.get('user_token');
+    if (!userToken) {
         return new Response(JSON.stringify({
-            error: userData?.message ?? "Failed to fetch user data"
-        }), { status: 500 })
+            error: "Unauthorized"
+        }), { status: 401 })
     }
-    const userResponse = await getUserByEmail(userData.identity.primary_email);
-    const userData2 = await userResponse.json();
-    const user = userData2.records[0].fields
-    const userCurrencies = user.currency ? looseJson(user.currency) : {} as UserCurrency;
-    const newPotionMix = currenciesToPotionMix(redstone, glowstone, aqua_regia);
-    if(userCurrencies.redstone < redstone || userCurrencies.glowstone < glowstone || userCurrencies.aqua_regia < aqua_regia) {
+
+    let data: UserAuthToken | null = null;
+    try {
+        data = jwt.verify(userToken, USER_JWT_SECRET) as UserAuthToken;
+    } catch (err) {
+        console.error("Error verifying JWT:", err);
         return new Response(JSON.stringify({
-            error: "Insufficient currency"
+            error: "Invalid user token"
+        }), { status: 401 })
+    }
+
+    const email = data.email;
+    if (!email) {
+        return new Response(JSON.stringify({
+            error: "Unauthorized"
+        }), { status: 401 })
+    }
+
+    const newPotionMix = currenciesToPotionMix(redstone, glowstone, aqua_regia);
+    if (newPotionMix <= 0) {
+        return new Response(JSON.stringify({
+            error: "Invalid trade amounts"
         }), { status: 400 })
     }
-    const newCurrency = {
-        redstone: (userCurrencies.redstone ?? 0) - redstone,
-        glowstone: (userCurrencies.glowstone ?? 0) - glowstone,
-        aqua_regia: (userCurrencies.aqua_regia ?? 0) - aqua_regia,
-        potion_mix: userCurrencies.potion_mix + newPotionMix,
-    }
-    const patchRes = await patchUserCurrency(userData.identity.primary_email, newCurrency)
-    if (!patchRes.ok) {
-        const errorData = await patchRes.json()
+
+    // Atomic trade: validates balance and updates currency in a single transaction
+    const tradeResult = await atomicTradeCurrency(email, redstone, glowstone, aqua_regia, newPotionMix);
+
+    if (!tradeResult.ok) {
+        const errorData = await tradeResult.json();
+        if (tradeResult.status === 400) {
+            return new Response(JSON.stringify({
+                error: errorData.message || "Insufficient currency"
+            }), { status: 400 })
+        }
+        if (tradeResult.status === 404) {
+            return new Response(JSON.stringify({
+                error: errorData.message || "User not found"
+            }), { status: 404 })
+        }
         return new Response(JSON.stringify({
-            error: errorData?.message ?? "Failed to update user currency"
+            error: errorData.message || "Trade failed"
         }), { status: 500 })
     }
 
+    const tradeData = await tradeResult.json();
     return new Response(JSON.stringify({
         success: true,
-        newCurrency: newCurrency
+        newCurrency: tradeData.newCurrency
     }), { status: 200 })
-
 }

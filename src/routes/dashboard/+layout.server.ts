@@ -2,12 +2,15 @@
 import type { LayoutServerLoad } from './$types';
 import { getDataFromAccessToken } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
-import { PUBLIC_HACKATIME_AUTH, PUBLIC_HACKATIME_REDIRECT, PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT } from '$env/static/public';
+import { PUBLIC_HACKATIME_AUTH, PUBLIC_HACKATIME_REDIRECT, PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT,PUBLIC_TURNED_OFF } from '$env/static/public';
 import { ALLOWED_EMAILS, USER_JWT_SECRET } from '$env/static/private';
 import type {UserAuthToken} from "$lib/types"
 import jwt from 'jsonwebtoken';
 export const load: LayoutServerLoad = async ({ cookies }) => {
     //Check if any user cookies is not present/ invalid, if so make the user relogin
+    if(PUBLIC_TURNED_OFF !== "false"){
+        throw redirect(302, "/turned-off")
+    }
     const accessToken = cookies.get('access_token_new');
     const hackatimeToken = cookies.get('hackatime_token');
     const hackatimeVerified = cookies.get('hackatime_verified');
