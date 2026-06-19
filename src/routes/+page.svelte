@@ -14,9 +14,10 @@
 	import {
 		PUBLIC_HACKCLUB_AUTH,
 		PUBLIC_HACKCLUB_REDIRECT,
+		PUBLIC_TURNED_OFF,
 	} from "$env/static/public"
 	import Accordion from "$lib/components/accordion.svelte"
-
+	console.log(PUBLIC_TURNED_OFF !== "false")
 	let { data } = $props()
 	let rsvpCount: number | "Fetching" = $state("Fetching")
 	let showRotator = $state(false)
@@ -30,10 +31,13 @@
 	)
 
 	let authUrl = $derived(
-		hasaccessToken
-			? `./dashboard`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./dashboard`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 	)
+
 	let referUrl = $state(`./refer`)
 
 	const targetDate = new Date("2026-06-21T01:00:00Z").getTime()
@@ -80,16 +84,20 @@
 			document.cookie.split("; ").find(row => row.startsWith("slack_id=")) !==
 			undefined
 
-		authUrl = hasaccessToken
-			? `./dashboard`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		authUrl = PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./dashboard`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
 
-		referUrl = hasaccessToken
-			? `./refer`
-			: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		referUrl = PUBLIC_TURNED_OFF !== "false"
+			? `./turned-off`
+			: hasaccessToken
+				? `./refer`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
