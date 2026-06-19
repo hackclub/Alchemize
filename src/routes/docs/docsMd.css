@@ -1,0 +1,43 @@
+.md h1{
+    font-size: 2.5em;
+    border-bottom: 1px solid #600 ;
+    
+    margin-bottom: 0.5em;
+}
+.md h2{
+    font-size: 1.8em;
+    margin-bottom: 0.5em;
+}
+.md h3{
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+.md p{
+    font-size: 1em;
+    margin-bottom: 1em;
+}
+.md ul {
+    margin-bottom: 1em;
+    list-style-type: circle;
+      list-style-position: inside;
+}
+.md ol{
+    margin-bottom: 1em;
+      list-style-position: inside;
+}
+.md li {
+    list-style-type:circle;
+  list-style-position: inside;
+}
+.md{
+    overflow-y: scroll;
+    height: 100vh;
+    width:50vw;
+    scrollbar-width: 0px; 
+    
+    -ms-overflow-style: none; 
+}
+
+.md::-webkit-scrollbar {
+  display: none; 
+}

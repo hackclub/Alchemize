@@ -48,7 +48,7 @@
 		"jsonwebtoken": "^9.0.3",
 		"jwt-decode": "^4.0.0",
 		"lucide-svelte": "^1.0.1",
-		"marked": "^18.0.2",
+		"marked": "^18.0.5",
 		"p-limit": "^7.3.0",
 		"pg": "^8.21.0",
 		"radix-ui": "^1.4.3",
