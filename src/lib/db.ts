@@ -115,6 +115,155 @@ const pool = new Pool({
 
 const db = drizzle(pool); //Database Connection
 
+// Export pool for transaction support
+export { pool };
+
+// Transaction helper: performs a callback within a database transaction with row-level locking
+export const withTransaction = async <T>(callback: (client: import('pg').PoolClient) => Promise<T>): Promise<T> => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const result = await callback(client);
+        await client.query('COMMIT');
+        return result;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
+// Atomic trade: deduct source currencies and add potion_mix in a single transaction
+export const atomicTradeCurrency = async (
+    email: string,
+    deductRedstone: number,
+    deductGlowstone: number,
+    deductAquaRegia: number,
+    addPotionMix: number
+): Promise<DBResponse> => {
+    try {
+        return await withTransaction(async (client) => {
+            // Lock the user row for update to prevent race conditions
+            const lockResult = await client.query(
+                'SELECT currency FROM users WHERE email = $1 FOR UPDATE',
+                [email]
+            );
+            if (lockResult.rows.length === 0) {
+                return {
+                    ok: false,
+                    status: 404,
+                    json: async () => ({ message: "User not found" }),
+                    text: async () => JSON.stringify({ message: "User not found" }),
+                };
+            }
+            const currentCurrency: UserCurrency = JSON.parse(lockResult.rows[0].currency || '{}');
+            // Validate sufficient funds
+            if ((currentCurrency.redstone ?? 0) < deductRedstone ||
+                (currentCurrency.glowstone ?? 0) < deductGlowstone ||
+                (currentCurrency.aqua_regia ?? 0) < deductAquaRegia) {
+                return {
+                    ok: false,
+                    status: 400,
+                    json: async () => ({ message: "Insufficient currency" }),
+                    text: async () => JSON.stringify({ message: "Insufficient currency" }),
+                };
+            }
+            const newCurrency: UserCurrency = {
+                redstone: (currentCurrency.redstone ?? 0) - deductRedstone,
+                glowstone: (currentCurrency.glowstone ?? 0) - deductGlowstone,
+                aqua_regia: (currentCurrency.aqua_regia ?? 0) - deductAquaRegia,
+                potion_mix: (currentCurrency.potion_mix ?? 0) + addPotionMix,
+            };
+            await client.query(
+                'UPDATE users SET currency = $1 WHERE email = $2',
+                [JSON.stringify(newCurrency), email]
+            );
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({ message: "Trade successful", newCurrency }),
+                text: async () => JSON.stringify({ message: "Trade successful", newCurrency }),
+            };
+        });
+    } catch (error) {
+        console.error("Atomic trade failed:", error);
+        return {
+            ok: false,
+            status: 500,
+            json: async () => ({ message: "Trade failed" }),
+            text: async () => JSON.stringify({ message: "Trade failed" }),
+        };
+    }
+};
+
+// Atomic shop purchase: deduct currency and create order in a single transaction
+export const atomicPurchaseItem = async (
+    email: string,
+    currencyType: keyof UserCurrency,
+    totalPrice: number,
+    quantity: number,
+    itemName: string,
+    itemID: string,
+    ordererUid: string
+): Promise<DBResponse> => {
+    try {
+        return await withTransaction(async (client) => {
+            // Lock the user row for update to prevent race conditions
+            const lockResult = await client.query(
+                'SELECT currency FROM users WHERE email = $1 FOR UPDATE',
+                [email]
+            );
+            if (lockResult.rows.length === 0) {
+                return {
+                    ok: false,
+                    status: 404,
+                    json: async () => ({ message: "User not found" }),
+                    text: async () => JSON.stringify({ message: "User not found" }),
+                };
+            }
+            const currentCurrency: UserCurrency = JSON.parse(lockResult.rows[0].currency || '{}');
+            // Validate sufficient funds
+            if ((currentCurrency[currencyType] ?? 0) < totalPrice) {
+                return {
+                    ok: false,
+                    status: 400,
+                    json: async () => ({ message: `Insufficient currency: ${currentCurrency[currencyType] ?? 0} < ${totalPrice}` }),
+                    text: async () => JSON.stringify({ message: `Insufficient currency: ${currentCurrency[currencyType] ?? 0} < ${totalPrice}` }),
+                };
+            }
+            // Deduct currency
+            const newCurrency: UserCurrency = {
+                ...currentCurrency,
+                [currencyType]: (currentCurrency[currencyType] ?? 0) - totalPrice,
+            };
+            await client.query(
+                'UPDATE users SET currency = $1 WHERE email = $2',
+                [JSON.stringify(newCurrency), email]
+            );
+            // Create order
+            const orderResult = await client.query(
+                'INSERT INTO orders ("orderItem", "itemID", qty, "ordererEmail", "ordererUid", status, fulfiller, "moreData") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', '']
+            );
+            return {
+                ok: true,
+                status: 200,
+                json: async () => ({ message: "Purchase successful", newCurrency, orderId: String(orderResult.rows[0].id) }),
+                text: async () => JSON.stringify({ message: "Purchase successful", newCurrency, orderId: String(orderResult.rows[0].id) }),
+            };
+        });
+    } catch (error) {
+        console.error("Atomic purchase failed:", error);
+        return {
+            ok: false,
+            status: 500,
+            json: async () => ({ message: "Purchase failed" }),
+            text: async () => JSON.stringify({ message: "Purchase failed" }),
+        };
+    }
+};
+
 // Database Compatiblity Layer
 
 //User Functions
