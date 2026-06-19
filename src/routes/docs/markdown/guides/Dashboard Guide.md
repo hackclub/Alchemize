@@ -1,7 +1,4 @@
----
-title: Dashboard Guide - Alchemize
-description: Dashboard Guide for Alchemize
----
+
 # Dashboard Guide
 ## Navbar
 It shows your username, Email, and profile photo.

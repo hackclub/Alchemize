@@ -1,3 +1,4 @@
+@import "tailwindcss";
 .md h1{
     font-size: 2.5em;
     border-bottom: 1px solid #600 ;
@@ -19,15 +20,18 @@
 .md ul {
     margin-bottom: 1em;
     list-style-type: circle;
-      list-style-position: inside;
+      /* list-style-position: inside; */
+    margin-left: 1.2em;
 }
 .md ol{
     margin-bottom: 1em;
-      list-style-position: inside;
+      /* list-style-position: inside; */
+      margin-left: 1.2em;
 }
 .md li {
+    @apply my-3;
     list-style-type:circle;
-  list-style-position: inside;
+  /* list-style-position: inside; */
 }
 .md{
     overflow-y: scroll;
