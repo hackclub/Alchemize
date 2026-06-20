@@ -7,6 +7,7 @@
 	import type { Project, AirtableProject, Log } from "$lib/types"
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
+	import { Newspaper } from "lucide-svelte"
 
 	let { data } = $props()
 	let detailsOpen = $state(false)
@@ -247,63 +248,80 @@
 	</aside>
 
 	<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
-		<nav
-			class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
-		>
-			<button
-				onclick={() => (mode = 1)}
-				class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
+		<div class="flex items-center gap-x-3">
+			<div class="relative group">
+				<a href="/">
+					<button
+						onclick={() => (mode = 1)}
+						class="p-2.5 min-h-full text-sm font-medium rounded-lg transition-all flex items-center gap-2 bg-zinc-800 border"
+					>
+						<Newspaper class="text-admin-text" />
+					</button>
+				</a>
+				<div
+					class="absolute top-full left-0 mt-2 hidden group-hover:block p-2 z-50 bg-zinc-900 border-2 border-zinc-700 rounded-sm text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate transition-all"
+				>
+					Guides
+				</div>
+			</div>
+			<nav
+				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
+			>
+				<button
+					onclick={() => (mode = 1)}
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
                 {mode === 1
-					? 'bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/20'
-					: 'text-zinc-400 hover:text-zinc-200'}"
-			>
-				Pending <span
-					class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-amber-500"
-					>{pendingCount}</span
+						? 'bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/20'
+						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-			</button>
+					Pending <span
+						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-amber-500"
+						>{pendingCount}</span
+					>
+				</button>
 
-			<button
-				onclick={() => (mode = 3)}
-				class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
+				<button
+					onclick={() => (mode = 3)}
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
                 {mode === 3
-					? 'bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/20'
-					: 'text-zinc-400 hover:text-zinc-200'}"
-			>
-				Rejected <span
-					class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-rose-500"
-					>{rejectedCount}</span
+						? 'bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/20'
+						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-			</button>
+					Rejected <span
+						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-rose-500"
+						>{rejectedCount}</span
+					>
+				</button>
 
-			<button
-				onclick={() => (mode = 2)}
-				class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
+				<button
+					onclick={() => (mode = 2)}
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
                 {mode === 2
-					? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20'
-					: 'text-zinc-400 hover:text-zinc-200'}"
-			>
-				Approved <span
-					class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-emerald-500"
-					>{approvedCount}</span
+						? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20'
+						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-			</button>
+					Approved <span
+						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-emerald-500"
+						>{approvedCount}</span
+					>
+				</button>
 
-			<div class="h-4 w-px bg-zinc-800 mx-1"></div>
+				<div class="h-4 w-px bg-zinc-800 mx-1"></div>
 
-			<button
-				onclick={() => (mode = 0)}
-				class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
+				<button
+					onclick={() => (mode = 0)}
+					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
                 {mode === 0
-					? 'bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20'
-					: 'text-zinc-400 hover:text-zinc-200'}"
-			>
-				Total <span
-					class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-indigo-400"
-					>{totalCount}</span
+						? 'bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20'
+						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-			</button>
-		</nav>
+					Total <span
+						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-indigo-400"
+						>{totalCount}</span
+					>
+				</button>
+			</nav>
+		</div>
 
 		<div
 			class="flex-1 bg-zinc-900/30 border border-zinc-800 rounded-2xl p-6 overflow-y-auto"
