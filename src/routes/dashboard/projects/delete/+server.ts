@@ -3,6 +3,9 @@ import { deleteProject } from "$lib/db"
 import jwt from "jsonwebtoken";
 import { USER_JWT_SECRET } from "$env/static/private";
 export const DELETE: RequestHandler = async ({ request, cookies }) => {
+    //TEMP DISABLED
+    return new Response(JSON.stringify({ message: "Project deletion is temporarily disabled" }), { status: 503 });
+    /*
     const { recordId} = await request.json();
     if (!recordId ) {
         return new Response(JSON.stringify({ message: "Record ID and email are required" }), { status: 400 });
@@ -24,5 +27,5 @@ export const DELETE: RequestHandler = async ({ request, cookies }) => {
         return new Response(JSON.stringify({ message: "Project deleted successfully" }), { status: 200 });
     } else {
         return new Response(JSON.stringify({ message: "Failed to delete project "+(await response.text()) }), { status: 500 });
-    }
+    }*/
 }
