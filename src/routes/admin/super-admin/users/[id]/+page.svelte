@@ -113,7 +113,7 @@
 			>
 				<div>
 					<p class="font-medium">Fulfillment</p>
-					<p class="text-sm text-zinc-400">Handles fulfillement</p>
+					<p class="text-sm text-zinc-400">Handles fulfillment</p>
 				</div>
 
 				<Switch bind:checked={isFulfiller} />
