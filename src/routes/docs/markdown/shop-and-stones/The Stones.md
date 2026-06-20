@@ -14,9 +14,9 @@ Season 1 currencies:
 
 | Theme         | Currency   |
 | ------------- | ---------- |
-| Indie Gamedev | Aqua Regia |
+| Indie Gamedev | Redstone   |
 | No Internet   | Glowstone  |
-| Endless       | Redstone   |
+| Endless       | Aqua Regia |
 
 Examples:
 

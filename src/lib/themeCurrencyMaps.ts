@@ -1,7 +1,7 @@
 export const themeCurrencyMaps = {
-    "endless": "redstone",
+    "endless": "aqua_regia",
     "no-internet": "glowstone",
-    "indie-game": "aqua_regia",
+    "indie-game": "redstone",
     "gen": "potion_mix"
 }
 export const currencyValueRelativeToPotionMix = {

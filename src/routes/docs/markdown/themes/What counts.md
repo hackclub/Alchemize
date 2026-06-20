@@ -12,13 +12,15 @@ This document explains exactly what qualifies for each theme, what does not qual
 
 ### Core Idea
 
-Build a game.
+Build a game (with a unique taste).
 
 If your project is primarily a game created by you, it likely qualifies for this theme.
 
 You may use any programming language, framework, game engine, or toolchain.
 
 The focus is on creating an original game experience rather than building tools or services around games.
+
+PS: Indie Games are known for their experimental and unique vibe, try to incorporate that too
 
 ### What Counts
 
@@ -260,7 +262,7 @@ Ask yourself:
 
 ### Indie Gamedev
 
-"Am I building a game?"
+"Am I building a game with a unique taste?"
 
 ### No Internet
 
