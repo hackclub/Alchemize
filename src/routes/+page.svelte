@@ -17,6 +17,7 @@
 		PUBLIC_TURNED_OFF,
 	} from "$env/static/public"
 	import Accordion from "$lib/components/accordion.svelte"
+	import { User } from "@lucide/svelte"
 	console.log(PUBLIC_TURNED_OFF !== "false")
 	let { data } = $props()
 	let rsvpCount: number | "Fetching" = $state("Fetching")
@@ -84,20 +85,22 @@
 			document.cookie.split("; ").find(row => row.startsWith("slack_id=")) !==
 			undefined
 
-		authUrl = PUBLIC_TURNED_OFF !== "false"
-			? `./turned-off`
-			: hasaccessToken
-				? `./dashboard`
-				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		authUrl =
+			PUBLIC_TURNED_OFF !== "false"
+				? `./turned-off`
+				: hasaccessToken
+					? `./dashboard`
+					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
 
-		referUrl = PUBLIC_TURNED_OFF !== "false"
-			? `./turned-off`
-			: hasaccessToken
-				? `./refer`
-				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+		referUrl =
+			PUBLIC_TURNED_OFF !== "false"
+				? `./turned-off`
+				: hasaccessToken
+					? `./refer`
+					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
@@ -242,9 +245,7 @@
 				</div>
 			</div>
 
-			<div
-				class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 max-w-[60%]"
-			>
+			<div class="grid grid-cols-2 sm:items-center gap-4 max-w-[60%]">
 				<a
 					href={authUrl}
 					class="group relative flex-1"
@@ -271,19 +272,36 @@
 					</div>
 				</a>
 
-				<div class="group relative flex-1 flex items-stretch">
-					<a
-						href="/docs"
-						class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
-					>
-						<Newspaper class="h-5 w-5 text-primary" />
-						<span>Read the Docs!</span>
-					</a>
+				<div class="grid grid-cols-2 gap-x-2">
+					<div class="group relative flex-1 flex items-stretch">
+						<a
+							href="/docs"
+							class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
+						>
+							<Newspaper class="h-5 w-5 text-primary" />
+							<span>Docs</span>
+						</a>
 
-					<div
-						class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-					>
-						Read the docs here!
+						<div
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+						>
+							Read the docs here!
+						</div>
+					</div>
+					<div class="group relative flex-1 flex items-stretch">
+						<a
+							href="/refer"
+							class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
+						>
+							<User class="h-5 w-5 text-primary" />
+							<span>Refer</span>
+						</a>
+
+						<div
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+						>
+							Refer more people!
+						</div>
 					</div>
 				</div>
 			</div>
