@@ -20,10 +20,10 @@
 			description: "Admin panel",
 		},
 		{
-			href: "/admin/fulfillement",
-			label: "Fulfillement",
+			href: "/admin/fulfillment",
+			label: "Fulfillment",
 			icon: Package,
-			description: "Fulfillement",
+			description: "Fulfillment",
 		},
 		{
 			href: "/admin/shop",

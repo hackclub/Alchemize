@@ -250,7 +250,7 @@
 	<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
 		<div class="flex items-center gap-x-3">
 			<div class="relative group">
-				<a href="/">
+				<a href="review/t1guides">
 					<button
 						onclick={() => (mode = 1)}
 						class="p-2.5 min-h-full text-sm font-medium rounded-lg transition-all flex items-center gap-2 bg-zinc-800 border"

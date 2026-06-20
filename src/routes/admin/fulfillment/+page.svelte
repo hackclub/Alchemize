@@ -21,7 +21,7 @@
 				<p class="font-alchemize">
 					Item orderd | Order number | Order placed by | Date placed on
 				</p>
-				<a href={`/admin/fulfillement/orders/id`}>
+				<a href={`/admin/fulfillment/orders/id`}>
 					<Button class="bg-admin-primary border border-muted hover:scale-104">
 						View Order
 					</Button>
