@@ -3,6 +3,7 @@ import {
 	PUBLIC_HACKATIME_REDIRECT,
 } from "$env/static/public"
 import { currencyValueRelativeToPotionMix } from "./themeCurrencyMaps"
+import type {Address} from "./types"
 interface Data {
 	id: string
 	email: string
@@ -10,18 +11,7 @@ interface Data {
 	first_name: string
 	last_name: string
 	verification_status: string
-	address: {
-		id: string
-		first_name: string
-		last_name: string
-		line_1: string
-		city: string
-		state: string
-		postal_code: string
-		country: string
-		phone_number: string
-		primary: boolean
-	}[]
+	address: Address[]
 	birthday: string
 }
 export const scopes =

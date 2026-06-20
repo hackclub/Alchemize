@@ -26,11 +26,9 @@ export interface Project {
 	demo?: string
 	code?: string
 	readme?: string
-	hackatime: string,
-	update?: boolean,
+	hackatime: string
+	update?: boolean
 	screenshot?: string
-
-
 }
 export interface AirtableProject {
 	id: string
@@ -54,7 +52,7 @@ export interface AirtableProject {
 	}
 }
 export interface AdminProjectView extends AirtableProject {
-	fields: AirtableProject['fields'] & {
+	fields: AirtableProject["fields"] & {
 		firstName: string
 		lastName: string
 		address: string
@@ -69,11 +67,11 @@ export interface AdminProjectViewNormal extends Project {
 	Theme: string
 }
 export interface Item {
-	itemID: string;
-	name: string;
-	description: string;
-	cdnImage: string;
-	itemPrice: UserCurrency;
+	itemID: string
+	name: string
+	description: string
+	cdnImage: string
+	itemPrice: UserCurrency
 }
 export interface UserCurrency {
 	redstone: number
@@ -82,29 +80,29 @@ export interface UserCurrency {
 	potion_mix: number
 }
 export interface AirtableReferRecord {
-	id: string;
-	createdTime: string;
+	id: string
+	createdTime: string
 	fields: {
-		referedEmail: string;
-		referer: string;
+		referedEmail: string
+		referer: string
 		yswsEligible: string
-		verified: string;
-		referedName: string;
+		verified: string
+		referedName: string
 	}
 }
 export interface Refers {
-	referer: string;
-	referedName: string;
+	referer: string
+	referedName: string
 }
 export interface AdminJWT {
 	slackId: string
 	email: string
 	name: string
-	roles: string,
-	isReviewer: boolean,
-	isT2Reviewer: boolean,
-	isSuperAdmin: boolean,
-	isFulfiller: boolean,
+	roles: string
+	isReviewer: boolean
+	isT2Reviewer: boolean
+	isSuperAdmin: boolean
+	isFulfiller: boolean
 }
 export interface AirtableUser {
 	id: string
@@ -120,7 +118,7 @@ export interface User {
 	email: string
 	currency: string
 }
-export interface UserAuthToken{
+export interface UserAuthToken {
 	id: string
 	dbid: string
 	email: string
@@ -130,4 +128,16 @@ export interface UserAuthToken{
 	slack_id: string
 	ysws_eligible: boolean
 	version: number
+}
+export interface Address {
+	id: string
+	first_name: string
+	last_name: string
+	line_1: string
+	city: string
+	state: string
+	postal_code: string
+	country: string
+	phone_number: string
+	primary: boolean
 }

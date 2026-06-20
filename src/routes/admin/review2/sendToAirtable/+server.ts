@@ -2,7 +2,7 @@ import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
 import { ADMIN_JWT_SECRET } from "$env/static/private"
 import type { RequestHandler } from "./$types";
-import type { Log,  AdminJWT, AdminProjectView } from "$lib/types";
+import type { Log,  AdminJWT, AdminProjectView, Address } from "$lib/types";
 import { getProjectById, patchProjectForShip, addToJustifications } from "$lib/db";
 
 const checkSubmittedToHQ = (log: Log[], justification: string): Log[] => {
@@ -22,9 +22,15 @@ const checkSubmittedToHQ = (log: Log[], justification: string): Log[] => {
     return newLog
 }
 const parseAddress = (address: string) => {
-
-    //Todo: use a proper address parsing library, when you get access
-    return address
+    if(address === "") return {
+        line_1: "",
+        city: "",
+        state: "",
+        country: "",
+        postal_code: ""
+    } as Address
+    
+    return JSON.parse(address)[0] as Address
 }
 const calculateNewHours = (log: Log[]) => {
     let minsSpent = 0 
@@ -43,7 +49,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         let decoded: AdminJWT
         try {
             decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-            if (!decoded.isReviewer) {
+            if (!decoded.isT2Reviewer) {
                 return error(401, "Unauthorized")
             }
         } catch (err) {
@@ -57,6 +63,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         const project = await projectResponse.json() as AdminProjectView
         const log = JSON.parse(project.fields.log) as Log[]
         const newLog = checkSubmittedToHQ(log, justification)
+        const address = parseAddress(project.fields.address || "")
+        
         const [patchResponse, sendToJustificationResponse] = await Promise.all([
             patchProjectForShip(projectId, newLog, "accepted"),
             addToJustifications({
@@ -66,11 +74,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             code: project.fields.code || "",
             description: project.fields.description,
             screenshot: project.fields.screenshot,
-            address: project.fields.address || "",
-            city: parseAddress(project.fields.address || ""),
-            state: parseAddress(project.fields.address || ""),
-            country: parseAddress(project.fields.address || ""),
-            zip: parseAddress(project.fields.address || ""),
+            address: address.line_1 ?? "",
+            city: address.city ?? "",
+            state: address.state ?? "",
+            country: address.country ?? "",
+            zip: address.postal_code ?? "",
             birthdate: project.fields.birthdate || "",
             overrideHoursSpent: (calculateNewHours(log) - subtraction) + "",
             justification: justification,
