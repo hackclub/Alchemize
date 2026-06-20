@@ -241,9 +241,7 @@
 											<div
 												class="flex items-center gap-1.5 text-[11px] text-zinc-500"
 											>
-												<span class="font-semibold text-zinc-400"
-													>{msg.reviewerName}</span
-												>
+												
 												<span>•</span>
 												<span
 													>{new Date(msg.timestamp).toLocaleString([], {
