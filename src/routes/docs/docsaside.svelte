@@ -10,10 +10,11 @@
 </script>
 
 <aside
-	class="relative z-10 h-full max-h-screen overflow-y-auto sidebar w-1/4 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
+	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] bg-black border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
+	style=""
 >
 	<div
-		class="sidebar-group flex items-center px-2 w-full pb-5 border-b-primary border-b"
+		class="sidebar-group flex items-center scrollbar-none px-2 w-full pb-5 border-b-primary border-b"
 	>
 		<div class="">
 			<span
@@ -64,3 +65,16 @@
 		</div>
 	{/each}
 </aside>
+<style>
+	@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+</style>

@@ -1,20 +1,28 @@
 @import "tailwindcss";
+:root{
+    --md-h1:clamp(1.5em, 2vw, 2.5em);
+    --md-h2:clamp(1.2em, 1.7vw, 1.8em);
+    --md-h3:clamp(1em, 1.4vw, 1.5em);
+    --md-h4:clamp(0.9em, 1.2vw, 1.3em);
+    
+}
 .md h1{
-    font-size: 2.5em;
+    font-size: var(--md-h1);
     border-bottom: 1px solid #600 ;
     font-weight: 700;
     margin-bottom: 0.5em;
 }
 .md h2{
-    font-size: 1.8em;
+    font-size: var(--md-h2);
     margin-bottom: 0.5em;
     font-weight: 700;
     border-left: 4px solid #700;
     padding-left: 0.5em;
 }
 .md h3{
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
+    font-size: var(--md-h3);
+    margin-top: 0.5em;
+        margin-bottom: 0.2em;
     font-weight: 600;
 
 }
@@ -54,8 +62,9 @@
     margin-top: 2em;
 }
 .md h4{
-    font-size: 1.2em;
-    margin-bottom: 0.5em;
+    font-size: var(--md-h4);
+    margin-top: 0.5em;
+    margin-bottom: 0.3em;
     font-weight: 600;
 }
 .md a{
