@@ -410,8 +410,13 @@ Signed by ${data.name}, T2 Reviewer
 										<div
 											class="text-[11px] text-zinc-500 bg-zinc-950/30 p-2 rounded border border-zinc-900 space-y-1 font-mono"
 										>
-											<div class="text-zinc-400">
-												{log.message.at(-1)?.internalNote || "No notes yet."}
+											<div class="text-zinc-300">
+												User Feedback: {log.message.at(-1)?.userExternal || "No user feedback"}
+											</div>
+
+												{log.message.at(-1)?.justification || "No notes yet."}
+											<div class="text-zinc-500 text-xs">
+												By {log.message.at(-1)?.reviewerName || "Unknown User"}
 											</div>
 										</div>
 									</div>
