@@ -59,11 +59,11 @@
 	const renderBadge = (text: string) => {
 		switch (text.toLowerCase()) {
 			case "endless":
-				return "<img src='/alch-redstone.png' alt='Redstone' class='w-4 h-4 object-contain' /> Endless"
+				return "<img src='/alch-aquaregia.png' alt='Aqua Regia' class='w-4 h-4 object-contain' /> Endless"
 			case "no-internet":
 				return "<img src='/alch-glowstone.png' alt='Glowstone' class='w-4 h-4 object-contain' /> No Internet"
 			case "indie-gamedev":
-				return "<img src='/alch-aquaregia.png' alt='Aqua Regia' class='w-4 h-4 object-contain' /> Indie Game Dev"
+				return "<img src='/alch-redstone.png' alt='Redstone' class='w-4 h-4 object-contain' /> Indie Game Dev"
 			case "potion mix":
 				return "<img src='/Alchemize.png' alt='Potion Mix' class='w-4 h-4 object-contain' /> Potion Mix"
 			default:
