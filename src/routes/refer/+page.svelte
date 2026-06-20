@@ -83,9 +83,9 @@
 	</div>
 
 	<div
-		class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full flex-1 items-stretch relative z-10 min-h-0 mt-4 mb-2"
+		class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full flex-1 items-stretch relative z-10 min-h-0 mt-4 mb-2"
 	>
-		<div class="relative w-full group flex flex-col h-full min-h-0 z-10">
+		<!-- <div class="relative w-full group flex flex-col h-full min-h-0 z-10">
 			<div
 				class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-xl transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5 z-0"
 			></div>
@@ -150,7 +150,7 @@
 					{/if}
 				</div>
 			</div>
-		</div>
+		</div> -->
 
 		<div class="relative w-full group flex flex-col h-full min-h-0 z-10">
 			<div
