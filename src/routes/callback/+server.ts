@@ -139,6 +139,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		last_name: name.split(" ").slice(1).join(" "),
 		slack_id: slackId,
 		ysws_eligible: yswsEligible,
+		version: 2,
 	}
 	const jwtToken = jwt.sign(userToken, env.USER_JWT_SECRET, { expiresIn: "120d" })
 	cookies.set("user_token", jwtToken, {

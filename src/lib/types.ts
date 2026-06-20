@@ -129,4 +129,5 @@ export interface UserAuthToken{
 	last_name: string
 	slack_id: string
 	ysws_eligible: boolean
+	version: number
 }

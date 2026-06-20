@@ -1,9 +1,10 @@
 <script>
 	let { children, data } = $props()
 	import {PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT} from "$env/static/public"
+	import { scopes } from "$lib/utils"
 	let clientId = PUBLIC_HACKCLUB_AUTH
 	let uri = PUBLIC_HACKCLUB_REDIRECT
-	let authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+	let authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=${scopes}&redirect_uri=${uri}`
 </script>
 
 {@render children()}

@@ -1,6 +1,6 @@
 
 import type { LayoutServerLoad } from './$types';
-import { getDataFromAccessToken } from '$lib/utils';
+import { getDataFromAccessToken, scopes } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
 import { PUBLIC_HACKATIME_AUTH, PUBLIC_HACKATIME_REDIRECT, PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT,PUBLIC_TURNED_OFF } from '$env/static/public';
 import { ALLOWED_EMAILS, USER_JWT_SECRET } from '$env/static/private';
@@ -17,7 +17,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
     const airtableUserRecordId = cookies.get('airtable_user_record_id');
     const userToken = cookies.get("user_token")
     const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
-    const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
+    const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=${scopes}&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
 
     if (!accessToken || !airtableUserRecordId || accessToken === "" || airtableUserRecordId === "" || !userToken || userToken === "") {
         throw redirect(302, authUrl);
@@ -45,7 +45,12 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
         throw redirect(302, authUrl);
     }
     const email = decodedToken.email;
-    if (!email || !allowedEmails.includes(email)) {
+    const isVersion2 = decodedToken.version === 2;
+    if(!isVersion2){
+        console.info("User token is not version 2, redirecting to re-login");
+        throw redirect(302, authUrl);
+    }
+    if (!email) {
         return {
             allowed: false,
             relogin: false,

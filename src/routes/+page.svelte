@@ -16,6 +16,7 @@
 		PUBLIC_HACKCLUB_REDIRECT,
 		PUBLIC_TURNED_OFF,
 	} from "$env/static/public"
+	import {scopes} from "$lib/utils"
 	import Accordion from "$lib/components/accordion.svelte"
 	import { User } from "@lucide/svelte"
 	console.log(PUBLIC_TURNED_OFF !== "false")
@@ -36,7 +37,7 @@
 			? `./turned-off`
 			: hasaccessToken
 				? `./dashboard`
-				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+				: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=${scopes}&redirect_uri=${uri}`
 	)
 
 	let referUrl = $state(`./refer`)
@@ -90,7 +91,7 @@
 				? `./turned-off`
 				: hasaccessToken
 					? `./dashboard`
-					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=${scopes}&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))
@@ -100,7 +101,7 @@
 				? `./turned-off`
 				: hasaccessToken
 					? `./refer`
-					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+					: `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=${scopes}&redirect_uri=${uri}`
 		fetch("/rsvp")
 			.then(res => res.json())
 			.then(data => (rsvpCount = data.count))

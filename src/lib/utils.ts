@@ -8,7 +8,7 @@ interface Data {
     last_name?: string
     verification_status?: string
 }
-
+export const scopes = "openid+profile+email+name+verification_status+slack_id+address+basic_info"
 type HackatimeProject = {
     name?: string
     project_name?: string
