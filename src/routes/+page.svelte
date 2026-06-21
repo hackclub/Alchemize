@@ -16,10 +16,10 @@
 		PUBLIC_HACKCLUB_REDIRECT,
 		PUBLIC_TURNED_OFF,
 	} from "$env/static/public"
-	import {scopes} from "$lib/utils"
+	import { scopes } from "$lib/utils"
 	import Accordion from "$lib/components/accordion.svelte"
 	import { User } from "@lucide/svelte"
-	console.log(PUBLIC_TURNED_OFF !== "false")
+
 	let { data } = $props()
 	let rsvpCount: number | "Fetching" = $state("Fetching")
 	let showRotator = $state(false)
@@ -121,29 +121,29 @@
 	></div>
 
 	<div
-		class="fixed top-0 right-0 w-[260px] h-[260px] overflow-hidden z-50 pointer-events-none"
+		class="fixed top-0 left-0 w-full md:left-auto md:right-0 md:w-[260px] md:h-[260px] md:overflow-hidden z-50 pointer-events-none"
 	>
 		<div
-			class="absolute top-[88px] -right-[70px] w-[360px] h-11 bg-primary/70 shadow-black shadow-md backdrop-blur-sm text-primary-foreground text-xs md:text-sm font-mono font-black uppercase tracking-[0.2em] rotate-45 border-y-2 border-black pointer-events-auto select-none flex items-center justify-center text-center"
+			class="w-full h-8 md:absolute md:top-[88px] md:-right-[70px] md:w-[360px] md:h-11 bg-primary/70 shadow-black shadow-md backdrop-blur-sm text-primary-foreground text-[10px] md:text-sm font-mono font-black uppercase tracking-[0.2em] md:rotate-45 border-b-2 md:border-y-2 border-black pointer-events-auto select-none flex items-center justify-center text-center"
 		>
-			LAUNCHES // 21st June 2026
+			LAUNCHES on 21st June 2026
 		</div>
 	</div>
 
 	<div
 		class="absolute top-3 left-0 z-50 transition-transform duration-100 hover:scale-[1.02]"
 	>
-		<a href="https://hackclub.com/" class="">
+		<a href="https://hackclub.com/">
 			<img
-				class="w-40 backdrop-blur-sm p-1 rounded-none"
+				class="w-24 md:w-40 bg-transparent p-1 rounded-none"
 				src="https://assets.hackclub.com/banners/2026.svg"
 				alt="Hack Club"
 			/>
 		</a>
 	</div>
-	<main class="z-10 relative w-full px-6 md:px-10">
+	<main class="z-10 relative w-full px-4 sm:px-6 md:px-10">
 		<section
-			class="flex flex-col justify-center min-h-screen pt-12 pb-12 gap-y-7 relative"
+			class="flex flex-col justify-center min-h-screen pt-24 pb-12 gap-y-7 relative"
 		>
 			<div class="flex flex-col gap-2">
 				<div
@@ -153,13 +153,13 @@
 					<span>Season 1</span>
 				</div>
 				<h1
-					class="text-6xl md:text-8xl lg:text-9xl font-black font-alchemize tracking-tighter uppercase text-primary [text-shadow:4px_4px_0px_rgba(var(--primary),0.15)] selection:bg-white selection:text-black pointer-events-none select-none"
+					class="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black font-alchemize tracking-tighter uppercase text-primary [text-shadow:4px_4px_0px_rgba(var(--primary),0.15)] selection:bg-white selection:text-black pointer-events-none select-none break-all sm:break-normal"
 				>
 					ALCHEMIZE
 				</h1>
 			</div>
 
-			<div class="grid grid-cols-2 gap-x-4 w-[60%]">
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full lg:w-[60%]">
 				<div
 					class="max-w-full border-l-4 border-primary p-4 md:p-6 rounded-none"
 				>
@@ -187,37 +187,48 @@
 						// TIME_REMAINING_UNTIL_LAUNCH
 					</div>
 					{#if timeLeft > 0}
-						<div class="flex items-center gap-4 text-zinc-300">
+						<div
+							class="flex items-center gap-2 sm:gap-4 text-zinc-300 overflow-x-auto"
+						>
 							<div class="flex flex-col items-center">
-								<span class="text-2xl font-black text-primary font-mono"
+								<span
+									class="text-xl sm:text-2xl font-black text-primary font-mono"
 									>{time.days}</span
 								>
 								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
 									>Days</span
 								>
 							</div>
-							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<span class="text-lg sm:text-xl text-zinc-700 font-black mb-4"
+								>:</span
+							>
 							<div class="flex flex-col items-center">
-								<span class="text-2xl font-black text-zinc-100 font-mono"
+								<span
+									class="text-xl sm:text-2xl font-black text-zinc-100 font-mono"
 									>{time.hours}</span
 								>
 								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
 									>Hrs</span
 								>
 							</div>
-							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<span class="text-lg sm:text-xl text-zinc-700 font-black mb-4"
+								>:</span
+							>
 							<div class="flex flex-col items-center">
-								<span class="text-2xl font-black text-zinc-100 font-mono"
+								<span
+									class="text-xl sm:text-2xl font-black text-zinc-100 font-mono"
 									>{time.minutes}</span
 								>
 								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
 									>Min</span
 								>
 							</div>
-							<span class="text-xl text-zinc-700 font-black mb-4">:</span>
+							<span class="text-lg sm:text-xl text-zinc-700 font-black mb-4"
+								>:</span
+							>
 							<div class="flex flex-col items-center">
 								<span
-									class="text-2xl font-black text-zinc-100 font-mono animate-pulse"
+									class="text-xl sm:text-2xl font-black text-zinc-100 font-mono animate-pulse"
 									>{time.seconds}</span
 								>
 								<span class="text-[9px] uppercase tracking-widest text-zinc-500"
@@ -246,17 +257,17 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-2 sm:items-center gap-4 max-w-[60%]">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-[60%]">
 				<a
 					href={authUrl}
-					class="group relative flex-1"
+					class="group relative w-full"
 					onclick={() => (showRotator = true)}
 				>
 					<div
 						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-none transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
 					></div>
 					<div
-						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary font-black uppercase tracking-widest text-center px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
+						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary font-black uppercase tracking-widest text-center px-4 md:px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
 					>
 						<span>GET STARTED</span>
 						{#if showRotator}
@@ -273,13 +284,13 @@
 					</div>
 				</a>
 
-				<div class="grid grid-cols-2 gap-x-2">
-					<div class="group relative flex-1 flex items-stretch">
+				<div class="grid grid-cols-2 gap-x-2 w-full">
+					<div class="group relative flex items-stretch">
 						<a
 							href="/docs"
-							class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-xs md:text-sm"
 						>
-							<Newspaper class="h-5 w-5 text-primary" />
+							<Newspaper class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
 							<span>Docs</span>
 						</a>
 
@@ -289,12 +300,12 @@
 							Read the docs here!
 						</div>
 					</div>
-					<div class="group relative flex-1 flex items-stretch">
+					<div class="group relative flex items-stretch">
 						<a
 							href="/refer"
-							class="flex items-center justify-center gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)]"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-xs md:text-sm"
 						>
-							<User class="h-5 w-5 text-primary" />
+							<User class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
 							<span>Refer</span>
 						</a>
 
@@ -674,7 +685,7 @@
 			</div>
 
 			<div
-				class="border border-zinc-800 p-4 bg-zinc-950/60 max-w-xs lg:text-right flex flex-col gap-1 lg:items-end"
+				class="border border-zinc-800 p-4 bg-zinc-950/60 max-w-xs lg:text-right flex flex-col gap-1 lg:items-end w-full sm:w-auto"
 			>
 				<div class="text-[10px] tracking-widest text-zinc-500 font-mono">
 					// Credits
