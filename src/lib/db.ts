@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte } from 'drizzle-orm'
 import { integer, pgTable, varchar, uuid, jsonb } from "drizzle-orm/pg-core";
-import type { UserCurrency, Log, Address } from './types'
+import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
 import { DATABASE_URL } from "$env/static/private"
@@ -205,9 +205,7 @@ export const atomicPurchaseItem = async (
     quantity: number,
     itemName: string,
     itemID: string,
-    ordererUid: string,
-    address: Address,
-    birthdate: string,
+    ordererUid: string
 ): Promise<DBResponse> => {
     try {
         return await withTransaction(async (client) => {
@@ -246,7 +244,7 @@ export const atomicPurchaseItem = async (
             // Create order
             const orderResult = await client.query(
                 'INSERT INTO orders ("orderItem", "itemID", qty, "ordererEmail", "ordererUid", status, fulfiller, "moreData") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', JSON.stringify({ address, birthdate })]
+                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', '']
             );
             return {
                 ok: true,

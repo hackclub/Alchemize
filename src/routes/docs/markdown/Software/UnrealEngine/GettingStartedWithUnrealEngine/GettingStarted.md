@@ -10,12 +10,12 @@ Download the Epic Games Launcher from [unrealengine.com](https://www.unrealengin
 2. The Unreal Project Browser will open. Click on create project on the left.
 3. The Unreal Project Browser will open. Choose a template (Blank, Third Person, First Person, etc).
 
-![Project Defaults settings](Images/ProjectTemplates.png)
+![Project Defaults settings](/docsStatic/GettingStartedWithUnrealEngine/Images/ProjectTemplates.png)
 
 3. Set your project to **Blueprint** (easier for beginners) or **C++**.
 4. Choose a project name and folder.
 
-![Project Defaults](Images/ProjectDefaults.png)
+![Project Defaults](/docsStatic/GettingStartedWithUnrealEngine/Images/ProjectDefaults.png)
 
 5. Click **Create**.
 
@@ -23,29 +23,29 @@ Download the Epic Games Launcher from [unrealengine.com](https://www.unrealengin
 
 Upon opening up your editor you will be greeted with something like this
 
-![NewProject](Images/NewProject.png)
+![NewProject](/docsStatic/GettingStartedWithUnrealEngine/Images/NewProject.png)
 
 This is the open world map, this is simply too complex to work with, so to get started go to
 
 **File** ----> **Create new level**
 
-![Create new level](Images/NewLevel.png)
+![Create new level](/docsStatic/GettingStartedWithUnrealEngine/Images/NewLevel.png)
 
 Then click on basic and create
 
-![alt text](Images/CreateNewLevel.png)
+![alt text](/docsStatic/GettingStartedWithUnrealEngine/Images/CreateNewLevel.png)
 
 Then click on save or simply **CTRL + S**, save it in contents
 
-![Save Map](Images/SaveMap.png)
+![Save Map](/docsStatic/GettingStartedWithUnrealEngine/Images/SaveMap.png)
 
 Then go to **edit** ---> **Project Settings** -------> **Maps and modes**
 
-![Maps and modes](Images/MapsAndModes.png)
+![Maps and modes](/docsStatic/GettingStartedWithUnrealEngine/Images/MapsAndModes.png)
 
 Click on both **Editor Startup Map** and **Game Default Startup Map** and select your saved level
 
-![Selecting New Map](Images/SettingNewMap.png)
+![Selecting New Map](/docsStatic/GettingStartedWithUnrealEngine/Images/SettingNewMap.png)
 
 What this essentially does is whenever you open your project again, it will always open up in this level as opposed to the default open world level. This is where we will learn the basics of Unreal Engine
 
@@ -56,7 +56,7 @@ What this essentially does is whenever you open your project again, it will alwa
 
 The 3D scene view. This is where you preview most of your stuff and build your level. To navigate around your 3D viewport, you can hold **Right Mouse Button** and move around using WASD using your mouse to look around. Alternately you can hold down the **Left Mouse Button** and move your mouse to move around but that is less accurate
 
-![Moving Around Viewport](Gifs/MovingAround.gif)
+![Moving Around Viewport](/docsStatic/GettingStartedWithUnrealEngine/Gifs/MovingAround.gif)
 
 You can add either **basic objects** or from the **content drawer**(discuss later) and interact with them. 
 When you click on an object, you can move it around, rotate it or scale it. These modes can be changed using **W, E, R** keys on the keyboard. 
@@ -65,14 +65,14 @@ When you click on an object, you can move it around, rotate it or scale it. Thes
 - E Key allows you to rotate them
 - R key allows you to scale them
 
-![Moving, Rotating and Scaling](Gifs/AddingCube.gif)
+![Moving, Rotating and Scaling](/docsStatic/GettingStartedWithUnrealEngine/Gifs/AddingCube.gif)
 
 (Recording did not capture it but I went to **Get Content** --> **Shapes** --> **Cube**)
 
 You can also duplicate objects by either using **CTRL+C** and **CTRL+V**
 or you can **hold ALT while moving an object** to duplicate
 
-![Moving, Rotating and Scaling](Gifs/DetailsPanel.gif)
+![Moving, Rotating and Scaling](/docsStatic/GettingStartedWithUnrealEngine/Gifs/DetailsPanel.gif)
 
 All level design is done in the viewport, it depends on how you wanna make your game.
 
@@ -80,12 +80,12 @@ All level design is done in the viewport, it depends on how you wanna make your 
 ### **Outliner**
 
 The outliner is this tab over here, it lists all the characters in your current level
-![Outliner](Images/Outliner.png)
+![Outliner](/docsStatic/GettingStartedWithUnrealEngine/Images/Outliner.png)
 
 It allows you to select your objects and view them in the details panel
 
 ### Note: My UE5 Layout might differ from yours, you can simply move windows around you by clicking on their tabs
-![WindowDocking](Gifs/WindowDocking.gif)
+![WindowDocking](/docsStatic/GettingStartedWithUnrealEngine/Gifs/WindowDocking.gif)
 
 ### **Details Panel**
 
@@ -93,7 +93,7 @@ The details panel is an important window,
 It is where we can view and change the properties of an object like size, location, rotation
 Shape, texture and any other properties we may link
 
-![DetailsPanel](Gifs/DetailsPanel.gif)
+![DetailsPanel](/docsStatic/GettingStartedWithUnrealEngine/Gifs/DetailsPanel.gif)
 
 
 
@@ -104,20 +104,20 @@ Everything we create or use in our project goes to content browser, everything f
 
 It is located on the bottom left
 
-![ContentBrowserButton'](Images/ContentBrowser.png)
+![ContentBrowserButton'](/docsStatic/GettingStartedWithUnrealEngine/Images/ContentBrowser.png)
 
-![ContentBrowser](Images/NewMapContentDrawer.png)
+![ContentBrowser](/docsStatic/GettingStartedWithUnrealEngine/Images/NewMapContentDrawer.png)
 
 You can create new items by **right clicking** and choosing whatever you wanna make.
 It is often recommended to **clean up your content drawer** so its easy to move around content drawers. 
 
-![ContentBrowser](Gifs/ContentDrawer.gif)
+![ContentBrowser](/docsStatic/GettingStartedWithUnrealEngine/Gifs/ContentDrawer.gif)
 
 You can also view and check out engine content but it is generally recommended not to mess around with it without a good knowledge of how the engine works
 
 you can do so by clicking the **gear icon** on the top right of the content drawer and check **engine content**.
 
-![EngineContentEnable](Images/EngineContent.png)
+![EngineContentEnable](/docsStatic/GettingStartedWithUnrealEngine/Images/EngineContent.png)
 
 you can go uncheck it if you don't wanna see it in your content drawer. 
 
@@ -125,7 +125,7 @@ you can go uncheck it if you don't wanna see it in your content drawer.
 
 To play your game in editor you click the **green icon** at the top or press **Alt + P**
 
-![PlayIcon](Images/PlayButton.png)
+![PlayIcon](/docsStatic/GettingStartedWithUnrealEngine/Images/PlayButton.png)
 
 While playing to break out you can press **Shift + F1** to break your cursor in editor
 Since we dont have a character, we possess a default pawn 
@@ -133,15 +133,15 @@ Since we dont have a character, we possess a default pawn
 To break out of the play through and view your level we can click the detach icon
 it allows us to view our own character and the level. 
 
-![Detach](Images/DetachButton.png)
+![Detach](/docsStatic/GettingStartedWithUnrealEngine/Images/DetachButton.png)
 
 You can also simulate the level by using the simulate button
 
-![SimulateButton](Images/SimulateLevel.png)
+![SimulateButton](/docsStatic/GettingStartedWithUnrealEngine/Images/SimulateLevel.png)
 
 (This gif below shows the entire playthrough session and how it works)
 
-![SimulateButton](Gifs/PlayTest.gif)
+![SimulateButton](/docsStatic/GettingStartedWithUnrealEngine/Gifs/PlayTest.gif)
 
 And once you are done playing just press **esc** on your keyboard to stop the session.
 
@@ -158,23 +158,23 @@ So lets say for eg. you have multiple different levels, so you can control how e
 To open level blueprint you open the Blueprint Class Dropdown given in the photo,
 then click on Level Blueprint
 
-![BlueprintIcon](Images/BlueprintClassDropdown.png)
+![BlueprintIcon](/docsStatic/GettingStartedWithUnrealEngine/Images/BlueprintClassDropdown.png)
 
 ### **A little extra setting**
 
 if your window opens like this and you want it to open in the main window like your project settings
 
-![BadWindow](Images/BadLayout.png)
+![BadWindow](/docsStatic/GettingStartedWithUnrealEngine/Images/BadLayout.png)
 
 you can simply go to **Edit** --> **Editor Preferences** --> Search for **Asset Editor Location** and set it to **main window**
 
-![Set Asset editor to main window](Images/EditorPreferences.png)
+![Set Asset editor to main window](/docsStatic/GettingStartedWithUnrealEngine/Images/EditorPreferences.png)
 
 Now your window will open in a new window :D
 
 so now your level blue print looks something like this
 
-![LevelBlueprint](Images/LevelBlueprint.png)
+![LevelBlueprint](/docsStatic/GettingStartedWithUnrealEngine/Images/LevelBlueprint.png)
 
 You can zoom in and out using your **scroll wheel**
 you can also move around by holding the **Right Mouse Button**.
@@ -187,11 +187,11 @@ Lets go over what each element is to understand it better
 
 - **Functions**: As the name suggests, they perform some instructions we give them. They may take input or give outputs. There are 2 types of functions, **pure** and **non-pure**. Pure functions are those which do not require execution pin (will discuss later) and non-pure require execution pins. Unreal has a bunch of inbuilt functions but we can create our own as well.
 
-![Functions](Images/Function.png)
+![Functions](/docsStatic/GettingStartedWithUnrealEngine/Images/Function.png)
 
 - **Variables**: They are used to store items, they are in various data types like **int**, **bool**, **float**, **string** etc. and they can be of different types like **singe**, **array**, **set**, **map** etc. We can tweak their properties in the details panel
 
-![Variables](Images/VariableDetails.png)
+![Variables](/docsStatic/GettingStartedWithUnrealEngine/Images/VariableDetails.png)
 
 There are a seperate type of variables called **Local Variables**, these exist only inside of functions and cannot be accessed outside.
 
@@ -200,12 +200,12 @@ That is all the basics of Level Blueprint, lets create a basic level blueprint t
 First we need to drag off the **execution pin** on event begin play (Execution pin the small triangle at the end BeginPlay)
 An execution pin is basically a pin that directs each event to fire. Its like a wire, when the we begin play, the wire is activated and all nodes connected to it also fire.
 
-![BeginPlayExecutionPin](Images/ExecutionPin.png)
+![BeginPlayExecutionPin](/docsStatic/GettingStartedWithUnrealEngine/Images/ExecutionPin.png)
 
 After we drag of beginplay we can search for **Print String**, after selecting that we can hit enter
 And then expand the drop down.
 
-![BeginPlayExecutionPin](Gifs/PrintString.gif)
+![BeginPlayExecutionPin](/docsStatic/GettingStartedWithUnrealEngine/Gifs/PrintString.gif)
 
 Here we can see a bunch of settings, for now we will only focus on these ones:
 - **In String**: This contains the thing you wanna print, for now I will leave that at Hello
@@ -213,13 +213,13 @@ Here we can see a bunch of settings, for now we will only focus on these ones:
 - **Text Colour**: Colour of the text we print
 - **Duration**: How long we want it to stay on the screen (In seconds)
 
-![PrintSettings](Images/PrintStringSettings.png)
+![PrintSettings](/docsStatic/GettingStartedWithUnrealEngine/Images/PrintStringSettings.png)
 
 These are my settings, you can copy them if you want or tweak and have fun yourself
 After that lets hit play
 And as you can see on the top left we have our message
 
-![PlayMessage](Images/EventBeginPrintString.png)
+![PlayMessage](/docsStatic/GettingStartedWithUnrealEngine/Images/EventBeginPrintString.png)
 
 Now we can also add a **delay node**, so we can stop our game by using **esc**.
 Go back to level blueprint
@@ -228,16 +228,16 @@ We can detatch nodes by 2 ways,
 
 1) We can hold **ALT** and **left mouse click** on the execution pin
 
-![RemovePin](Gifs/RemovePin.gif)
+![RemovePin](/docsStatic/GettingStartedWithUnrealEngine/Gifs/RemovePin.gif)
 
 2) Or we can hold **CTRL** and **click and drag** it around and **release** it on the pin we want to add it on
 
-![RemovePin](Gifs/ChangeExecPin.gif)
+![RemovePin](/docsStatic/GettingStartedWithUnrealEngine/Gifs/ChangeExecPin.gif)
 
 Do whatever feels best to you and add the delay nodes the same way we added our print node and join it to our print string
 It should look like this
 
-![DelayNodeAddedPrint](Images/DelayPrint.png)
+![DelayNodeAddedPrint](/docsStatic/GettingStartedWithUnrealEngine/Images/DelayPrint.png)
 
 If you press play again, you will see the print string after the duration you set
 
@@ -245,8 +245,8 @@ If you press play again, you will see the print string after the duration you se
 Similarly if you hooked print string into **Event Tick**
 you will see MULTIPLE print strings that spawn every frame
 
-![PrintStringEventTick](Images/EventTickPrint.png)
-![EventTickPrint](Images/TickPrint.png)
+![PrintStringEventTick](/docsStatic/GettingStartedWithUnrealEngine/Images/EventTickPrint.png)
+![EventTickPrint](/docsStatic/GettingStartedWithUnrealEngine/Images/TickPrint.png)
 
 For this guide I will only go over level blueprints as Blueprint classes are a little more complex and we will build in a more structured guide
 
@@ -258,7 +258,7 @@ For this guide I will only go over level blueprints as Blueprint classes are a l
 
 You should compile your blueprint after doing something big to check if everything works, you can compile by clicking the compile button on the top left
 
-![CompileButton](Images/CompileButton.png)
+![CompileButton](/docsStatic/GettingStartedWithUnrealEngine/Images/CompileButton.png)
 
 This ensures that no errors are present in case you create systems that are dependent on the current system.
 
@@ -272,7 +272,7 @@ or you can save the entire project if there are any unsaved Changes using **CTRL
 
 You can also add blueprints in between two blueprints by **right clicking** on the execution wire
 
-![AddingBluePrintInBetween](Gifs/AddingBlueprintsToExec.gif)
+![AddingBluePrintInBetween](/docsStatic/GettingStartedWithUnrealEngine/Gifs/AddingBlueprintsToExec.gif)
 
 ## **Wrapping Up**
 
@@ -286,4 +286,4 @@ Or there are plenty resources online
 
 Till then have a fantastic day
 
-![Magic](Gifs/Magic.gif)
+![Magic](/docsStatic/GettingStartedWithUnrealEngine/Gifs/Magic.gif)

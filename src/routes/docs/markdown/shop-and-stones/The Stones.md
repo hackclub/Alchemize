@@ -20,9 +20,9 @@ Season 1 currencies:
 
 Examples:
 
-* 15 hours on an Indie Gamedev project → 15 Aqua Regia
+* 15 hours on an Indie Gamedev project → 15 Redstone
 * 20 hours on a No Internet project → 20 Glowstone
-* 8 hours on an Endless project → 8 Redstone
+* 8 hours on an Endless project → 8 Aqua Regia
 
 The more you build, the more currency you earn.
 

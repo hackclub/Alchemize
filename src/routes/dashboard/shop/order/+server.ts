@@ -4,8 +4,6 @@ import type { Item, UserCurrency } from "$lib/types"
 import { atomicPurchaseItem, getShopItemById } from "$lib/db";
 import jwt from 'jsonwebtoken';
 import type {UserAuthToken} from "$lib/types";
-import {getDataFromAccessToken} from "$lib/utils";
-
 interface RequestBody {
     itemId: string;
     quantity: number;
@@ -22,8 +20,27 @@ const getCurrency = (itemPrice: UserCurrency): keyof UserCurrency => {
     }
 }
 export const POST: RequestHandler = async ({ request, cookies }) => {
+    const body: RequestBody = await request.json();
+    if(body.quantity <= 0){
+        return new Response("Quantity must be greater than 0", { status: 400 })
+    }
+    const itemResponse = await getShopItemById(body.itemId);
+    if (!itemResponse.ok) {
+        return new Response("Failed to fetch item from the database", { status: 500 })
+    }
+    const itemsData = await itemResponse.json();
+    const itemRecord = itemsData;
+    const item: Item = {
+        itemID: itemRecord.id,
+        name: itemRecord.fields.name,
+        description: itemRecord.fields.description,
+        itemPrice: itemRecord.fields.itemPrice,
+        cdnImage: itemRecord.fields.cdnImage,
+    }
     const userToken = cookies.get('user_token');
-
+    if (!item) {
+        return new Response("Item not found", { status: 404 })
+    }
     const at = cookies.get('access_token_new');
     if (!at) {
         return new Response("Unauthorized", { status: 401 })
@@ -36,27 +53,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         catch (err) {
             console.error("Error verifying JWT:", err);
         }
-    }
-    const body: RequestBody = await request.json();
-    if(body.quantity <= 0){
-        return new Response("Quantity must be greater than 0", { status: 400 })
-    }
-    const [itemResponse, userDataResponse] = await Promise.all([getShopItemById(body.itemId), getDataFromAccessToken(at)]);
-    if (!itemResponse.ok) {
-        return new Response("Failed to fetch item from the database", { status: 500 })
-    }
-
-    const itemsData = await itemResponse.json();
-    const itemRecord = itemsData;
-    const item: Item = {
-        itemID: itemRecord.id,
-        name: itemRecord.fields.name,
-        description: itemRecord.fields.description,
-        itemPrice: itemRecord.fields.itemPrice,
-        cdnImage: itemRecord.fields.cdnImage,
-    }
-    if (!item) {
-        return new Response("Item not found", { status: 404 })
     }
     const uid = data?.id;
     const email = data?.email;
@@ -74,9 +70,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         body.quantity,
         item.name,
         item.itemID,
-        uid,
-        userDataResponse?.address[0],
-        userDataResponse?.birthday || ""
+        uid
     );
 
     if (!purchaseResult.ok) {
