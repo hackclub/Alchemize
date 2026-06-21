@@ -284,7 +284,7 @@
 								variant="default"
 								class="w-full hover:bg-primary/70 hover:-translate-y-px"
 								onclick={ship}
-								disabled={shipButtonDisabled}
+								bind:disabled={shipButtonDisabled}
 							>
 								{#if showRotator}
 									<div
