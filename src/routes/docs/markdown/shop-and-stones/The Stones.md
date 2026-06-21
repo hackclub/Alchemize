@@ -32,7 +32,7 @@ The more you build, the more currency you earn.
 
 Each theme has rewards that can only be purchased using that theme's currency.
 
-### Aqua Regia
+### Redstone
 
 Earned from the **Indie Gamedev** theme.
 
@@ -44,7 +44,7 @@ Earned from the **No Internet** theme.
 
 Can be used to purchase No Internet-exclusive rewards.
 
-### Redstone
+### Aqua Regia
 
 Earned from the **Endless** theme.
 
