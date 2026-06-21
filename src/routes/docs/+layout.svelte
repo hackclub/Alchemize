@@ -13,6 +13,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | Docs</title>
+	<meta name="description" content="Alchemize Docs" />
+	<meta property="og:title" content="Alchemize | Docs" />
+</svelte:head>
+
 <main
 	class="body ml-4 flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-black"
 >

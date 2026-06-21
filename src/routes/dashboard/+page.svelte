@@ -72,6 +72,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | Dashboard</title>
+	<meta name="description" content="Alchemize dashboard" />
+	<meta property="og:title" content="Alchemize | Dashboard" />
+</svelte:head>
+
 <main
 	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
 >

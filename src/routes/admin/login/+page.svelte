@@ -9,6 +9,12 @@
 	let authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
 </script>
 
+<svelte:head>
+	<title>Admin Login</title>
+	<meta name="description" content="Alchemize admin" />
+	<meta property="og:title" content="Admin Login" />
+</svelte:head>
+
 <div
 	class="login w-screen h-screen flex items-center justify-center flex-col gap-y-4"
 >

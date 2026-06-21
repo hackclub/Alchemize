@@ -14,6 +14,12 @@
 	)
 </script>
 
+<svelte:head>
+	<title>Alchemize | Super Admin</title>
+	<meta name="description" content="Alchemize Super Admin" />
+	<meta property="og:title" content="Alchemize | Super Admin" />
+</svelte:head>
+
 <main class="w-full h-full p-5 flex items-center justify-center gap-x-5">
 	<div
 		class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll"

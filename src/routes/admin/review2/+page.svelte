@@ -146,6 +146,13 @@ Signed by ${data.name}, T2 Reviewer
 	let pending = $state(false)
 </script>
 
+
+<svelte:head>
+	<title>Alchemize | T2 Review</title>
+	<meta name="description" content="Alchemize T2 Review" />
+	<meta property="og:title" content="Alchemize | T2 Review" />
+</svelte:head>
+
 <main
 	class="w-screen h-screen text-admin-text font-sans overflow-hidden p-6 flex gap-6"
 >

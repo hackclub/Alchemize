@@ -51,6 +51,12 @@
 	</div>
 {/if}
 
+<svelte:head>
+	<title>Alchemize | Refer</title>
+	<meta name="description" content="Alchemize Refer" />
+	<meta property="og:title" content="Alchemize | Refer" />
+</svelte:head>
+
 <main
 	class="w-full h-screen max-h-screen bg-gradbg text-foreground p-4 md:p-6 flex flex-col justify-between select-none mx-auto relative z-10 overflow-hidden"
 >

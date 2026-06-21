@@ -86,6 +86,13 @@
 	}
 </script>
 
+
+<svelte:head>
+	<title>Alchemize | Manage Shop</title>
+	<meta name="description" content="Alchemize Manage Shop" />
+	<meta property="og:title" content="Alchemize | Manage Shop" />
+</svelte:head>
+
 <main
 	class="h-screen w-full text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-admin-primary selection:text-admin-foreground relative overflow-hidden flex flex-col"
 >
