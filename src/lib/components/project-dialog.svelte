@@ -64,7 +64,7 @@
 	let theme = $state("")
 	let hackatime = $state("")
 	let projectUpdate = $state(false)
-
+	let originalProject: AirtableProject | null = $state(project)
 	$effect(() => {
 		name = project?.fields.Name ?? ""
 		description = project?.fields.description ?? ""
@@ -73,6 +73,7 @@
 		type = project?.fields.type ?? ""
 		hackatime = project?.fields.hackatime ?? ""
 		projectUpdate = project?.fields.update ?? false
+		theme = project?.fields.Theme ?? ""
 	})
 
 	let descriptionCharCount = $derived(countCharacters(description))
@@ -110,6 +111,7 @@
 	let hasFile = $derived(files && files.length > 0)
 
 	$effect(() => {
+		
 		if (files && files.length > 0) {
 			const file = files[0]
 			const objectUrl = URL.createObjectURL(file)
@@ -120,20 +122,20 @@
 			return () => {
 				URL.revokeObjectURL(objectUrl)
 			}
-		} else {
+		} else if (mode === "update" && project?.fields.screenshot && !hasFile) {
+			fileinputPreview = project.fields.screenshot
+	}else {
 			fileinputPreview = ""
 		}
 	})
+	
 	let allFieldsFilled = $derived(
 		name &&
 			description &&
-			type &&
-			github &&
-			demo &&
-			hackatime &&
-			(mode === "update" || files?.length > 0) &&
-			descriptionCharCount >= 50 &&
-			(mode === "update" ? changelogCharCount >= 20 : true)
+			descriptionCharCount >= 50
+	)
+	let shipButtonDisabled = $derived(
+		!(allFieldsFilled && changelog.trim().length >= 20 && originalProject?.fields.Theme && originalProject?.fields.type && originalProject?.fields.code && originalProject?.fields.demo && originalProject?.fields.screenshot && originalProject.fields.hackatime)|| showSecondRotator || shipLoading 
 	)
 </script>
 
@@ -282,6 +284,7 @@
 								variant="default"
 								class="w-full hover:bg-primary/70 hover:-translate-y-px"
 								onclick={ship}
+								disabled={shipButtonDisabled}
 							>
 								{#if showRotator}
 									<div
@@ -393,7 +396,7 @@
 						</div>
 					</div>
 
-					{#if mode === "create"}
+					
 						<div class="space-y-2">
 							<Label
 								for="screenshot"
@@ -425,14 +428,14 @@
 										name="screenshot"
 										type="file"
 										accept="image/*"
-										required
+										
 										class="hidden"
 										bind:files
 									/>
 								</label>
 							</div>
 						</div>
-					{/if}
+					
 
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 						<div class="space-y-2">
@@ -456,7 +459,7 @@
 							</select>
 						</div>
 
-						{#if mode === "create"}
+						
 							<div class="space-y-2">
 								<Label
 									for="theme"
@@ -470,12 +473,12 @@
 									bind:value={theme}
 								>
 									<option value="" disabled selected>Choose Theme</option>
-									<option value="endless">Endless Track</option>
-									<option value="no-internet">No Internet Required</option>
-									<option value="indie-game">Indie Game Framework</option>
+									<option value="endless">Endless</option>
+									<option value="no-internet">No Internet</option>
+									<option value="indie-game">Indie Game</option>
 								</select>
 							</div>
-						{/if}
+						
 
 						<div class="space-y-2 {mode === 'update' ? 'sm:col-span-2' : ''}">
 							<Label
@@ -585,12 +588,7 @@
 									//Check for all the fields
 									if (
 										!name ||
-										!description ||
-										!type ||
-										!github ||
-										!demo ||
-										!hackatime ||
-										files?.length === 0
+										!description
 									) {
 										toast.error("Please fill in all required fields.")
 										return

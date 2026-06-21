@@ -123,6 +123,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	if (!htToken || htToken === "") {
 		throw redirect(303, hackatimeAuthUrl)
 	}
+	//Check if the project's all fields are filled, if not return 400
+	if (!projectData.fields.Name || !projectData.fields.description || !projectData.fields.Theme || !projectData.fields.type || !projectData.fields.code || !projectData.fields.demo || !projectData.fields.screenshot || !projectData.fields.hackatime) {
+		return new Response("All project fields are required", { status: 400 })
+	}
 	const hackatimeProject = await getHackatimeProject(htToken, projectData.fields.hackatime)
 	const previousLogs = parseLog(projectData.fields.log || "[]")
 	const recordedTime = calculateRecordedTime(previousLogs)
