@@ -7,6 +7,12 @@
 	$: status = $page.url.searchParams.get("status") || "500"
 </script>
 
+<svelte:head>
+	<title>Error</title>
+	<meta name="description" content="error" />
+	<meta property="og:title" content="Error" />
+</svelte:head>
+
 <div class="w-full h-screen flex flex-col items-center justify-center gap-y-4">
 	<img src="/Alchemize-Admin.png" alt="alchemize" class="h-40" />
 	<h1 class="text-6xl font-bold">Error {status}</h1>

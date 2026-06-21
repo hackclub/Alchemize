@@ -71,6 +71,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | Trade</title>
+	<meta name="description" content="Alchemize Trade" />
+	<meta property="og:title" content="Alchemize | Trade" />
+</svelte:head>
+
 <main
 	class="w-full h-screen bg-gradbg selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
 >

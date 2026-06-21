@@ -203,6 +203,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | Projects</title>
+	<meta name="description" content="Alchemize projects" />
+	<meta property="og:title" content="Alchemize | Projects" />
+</svelte:head>
+
 <div class="abosulte z-90">
 	<AlertDialog.Root
 		open={isDeleteDialogOpen}

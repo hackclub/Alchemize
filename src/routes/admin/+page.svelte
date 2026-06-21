@@ -11,6 +11,12 @@
 	})
 </script>
 
+<svelte:head>
+	<title>Alchemize | Admin</title>
+	<meta name="description" content="Alchemize Admin" />
+	<meta property="og:title" content="Alchemize | Admin" />
+</svelte:head>
+
 <div
 	class="admin-cont flex h-screen w-screen items-center justify-center flex-col gap-y-2"
 >

@@ -202,6 +202,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | T1 Review</title>
+	<meta name="description" content="Alchemize T1 Review" />
+	<meta property="og:title" content="Alchemize | T1 Review" />
+</svelte:head>
+
 <main
 	class="w-screen h-screen text-admin-text font-sans overflow-hidden p-6 flex gap-6"
 >

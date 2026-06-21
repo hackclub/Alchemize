@@ -104,6 +104,12 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Alchemize | Shop</title>
+	<meta name="description" content="Alchemize Shop" />
+	<meta property="og:title" content="Alchemize | Shop" />
+</svelte:head>
+
 <main
 	class="h-screen w-full bg-gradbg text-foreground px-2 py-2 md:p-6 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-hidden"
 >
