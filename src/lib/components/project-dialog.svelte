@@ -135,7 +135,7 @@
 			descriptionCharCount >= 50
 	)
 	let shipButtonDisabled = $derived(
-		!(allFieldsFilled && changelog.trim().length >= 20 && originalProject?.fields.Theme && originalProject?.fields.type && originalProject?.fields.code && originalProject?.fields.demo && originalProject?.fields.screenshot && originalProject.fields.hackatime)|| showSecondRotator || shipLoading 
+		!(allFieldsFilled && changelogCharCount >= 20 && originalProject?.fields.Theme && originalProject?.fields.type && originalProject?.fields.code && originalProject?.fields.demo && originalProject?.fields.screenshot && originalProject.fields.hackatime)|| showSecondRotator || shipLoading 
 	)
 </script>
 
