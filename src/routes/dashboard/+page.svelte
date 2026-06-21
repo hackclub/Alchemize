@@ -128,7 +128,7 @@
 							</p>
 							<div class="flex items-center gap-2">
 								<span
-									class="h-2 w-2 rounded-full animate-pulse {data.hackatimeVerified
+									class="h-2 w-2 rounded-full {data.hackatimeVerified
 										? 'bg-emerald-500'
 										: 'bg-red-500'}"
 								></span>
@@ -157,7 +157,7 @@
 							</p>
 							<div class="flex items-center gap-2">
 								<span
-									class="h-2 w-2 rounded-full animate-pulse {data.eligiblity
+									class="h-2 w-2 rounded-full {data.eligiblity
 										? 'bg-emerald-500'
 										: 'bg-red-500'}"
 								></span>
