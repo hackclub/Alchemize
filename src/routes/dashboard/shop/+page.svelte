@@ -6,6 +6,7 @@
 	import { ShoppingBag } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { cn } from "$lib/lib/utils"
+
 	let { data } = $props()
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
@@ -27,6 +28,12 @@
 		grayedOut?: boolean
 		primaryCurrency: keyof UserCurrency | "none"
 	}
+
+	type FilterOption = "all" | "affordable" | keyof UserCurrency
+	type SortOption = "none" | "affordable" | keyof UserCurrency
+
+	let activeFilter = $state<FilterOption>("all")
+	let activeSort = $state<SortOption>("none")
 
 	let isDialogOpen = $state(false)
 	let selectedItem = $state<ShopItem>({
@@ -81,18 +88,6 @@
 		},
 	}
 
-	const shopItems = $derived(
-		data?.items?.map((item: any) => ({
-			itemID: item.itemID,
-			name: item.name,
-			description: item.description,
-			price: item.itemPrice,
-			image: item.cdnImage,
-			grayedOut: isGrayedOut(currencies, item.itemPrice),
-			primaryCurrency: getPrimaryCurrency(item.itemPrice),
-		})) ?? []
-	)
-
 	function isGrayedOut(userHas: UserCurrency, itemPrice: UserCurrency) {
 		return (
 			userHas.redstone < itemPrice.redstone ||
@@ -101,6 +96,35 @@
 			userHas.potion_mix < itemPrice.potion_mix
 		)
 	}
+
+	const shopItems = $derived.by(() => {
+		const rawItems =
+			data?.items?.map((item: any) => ({
+				itemID: item.itemID,
+				name: item.name,
+				description: item.description,
+				price: item.itemPrice,
+				image: item.cdnImage,
+				grayedOut: isGrayedOut(currencies, item.itemPrice),
+				primaryCurrency: getPrimaryCurrency(item.itemPrice),
+			})) ?? []
+
+		let filtered = rawItems
+		if (activeFilter === "affordable") {
+			filtered = filtered.filter(item => !item.grayedOut)
+		} else if (activeFilter !== "all") {
+			filtered = filtered.filter(item => item.primaryCurrency === activeFilter)
+		}
+
+		if (activeSort === "affordable") {
+			filtered.sort((a, b) => (a.grayedOut ? 1 : 0) - (b.grayedOut ? 1 : 0))
+		} else if (activeSort !== "none") {
+			const currencyKey = activeSort as keyof UserCurrency
+			filtered.sort((a, b) => b.price[currencyKey] - a.price[currencyKey])
+		}
+
+		return filtered
+	})
 
 	function handleBuyClick(item: ShopItem) {
 		selectedItem = item
@@ -191,6 +215,40 @@
 			</div>
 		</div>
 	</header>
+
+	<div
+		class="relative z-10 w-full flex flex-wrap gap-4 items-center bg-zinc-950/60 p-3 border border-zinc-800 rounded text-xs shrink-0"
+	>
+		<div class="flex items-center gap-2">
+			<span class="text-zinc-500 font-bold uppercase">Filter:</span>
+			<select
+				bind:value={activeFilter}
+				class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
+			>
+				<option value="all">All Items</option>
+				<option value="affordable">Affordable</option>
+				<option value="redstone">Redstone Items</option>
+				<option value="glowstone">Glowstone Items</option>
+				<option value="aqua_regia">Aqua Regia Items</option>
+				<option value="potion_mix">Potion Mix Items</option>
+			</select>
+		</div>
+
+		<div class="flex items-center gap-2">
+			<span class="text-zinc-500 font-bold uppercase">Sort By:</span>
+			<select
+				bind:value={activeSort}
+				class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
+			>
+				<option value="none">Default</option>
+				<option value="affordable">Affordable First</option>
+				<option value="redstone">Highest Redstone Cost</option>
+				<option value="glowstone">Highest Glowstone Cost</option>
+				<option value="aqua_regia">Highest Aqua Regia Cost</option>
+				<option value="potion_mix">Highest Potion Mix Cost</option>
+			</select>
+		</div>
+	</div>
 
 	<div
 		class="relative z-10 flex-1 overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 align-start content-start justify-items-center"
