@@ -212,40 +212,42 @@
 	class="w-screen h-screen text-admin-text font-sans overflow-hidden p-6 flex gap-6"
 >
 	<aside
-		class="w-1/4 h-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col overflow-hidden"
+		class="w-1/4 h-full rounded-2xl bg-zinc-900/40 border border-zinc-800/80 flex flex-col overflow-hidden shadow-xl"
 	>
 		<div class="p-4 border-b border-zinc-800 bg-zinc-900/20">
-			<h3 class="font-semibold text-zinc-400 text-sm tracking-wider uppercase">
+			<h3
+				class="font-bold text-zinc-400 text-xs tracking-wider uppercase flex items-center gap-2"
+			>
+				<span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
 				Project Queue
 			</h3>
 		</div>
-		<div
-			class="flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-zinc-800/30"
-		>
+		<div class="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
 			{#each projects as item}
 				{#if filterProjectByMode(item)}
 					<button
-						class="w-full text-left p-3 rounded-xl transition duration-200 group flex flex-col gap-1.5
+						class="w-full text-left p-3.5 rounded-xl transition duration-200 group flex flex-col gap-2 border
                         {item.id === project.id
-							? 'bg-indigo-600/10 border border-indigo-500/30 text-indigo-200'
-							: 'hover:bg-zinc-800/60 border border-transparent text-zinc-300'}"
+							? 'bg-indigo-600/10 border-indigo-500/40 text-indigo-200 shadow-md'
+							: 'bg-zinc-900/20 hover:bg-zinc-800/40 border-transparent text-zinc-400 hover:text-zinc-200'}"
 						onclick={() => openProject(item.id)}
 					>
 						<h4
-							class="font-semibold text-base line-clamp-1 group-hover:text-white transition"
+							class="font-semibold text-sm line-clamp-1 group-hover:text-white transition"
 						>
 							{item.fields.Name || "Untitled Project"}
 						</h4>
 						<div
-							class="flex items-center justify-between w-full text-xs text-zinc-500 group-hover:text-zinc-400"
+							class="flex items-center justify-between w-full text-xs text-zinc-500"
 						>
 							<span
-								class="font-mono bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800/60"
-								>@{item.fields.slackId}</span
+								class="font-mono bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800/60"
 							>
-							<span class="italic max-w-[50%] truncate"
-								>{item.fields.Theme || "No Category"}</span
-							>
+								@{item.fields.slackId}
+							</span>
+							<span class="italic max-w-[50%] truncate">
+								{item.fields.Theme || "No Category"}
+							</span>
 						</div>
 					</button>
 				{/if}
@@ -253,61 +255,64 @@
 		</div>
 	</aside>
 
-	<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
-		<div class="flex items-center gap-x-3">
+	<div class="flex-1 h-full flex flex-col gap-4 overflow-hidden">
+		<div class="flex items-center gap-x-3 shrink-0">
 			<div class="relative group">
 				<a href="review/t1guides">
 					<button
-						onclick={() => (mode = 1)}
-						class="p-2.5 min-h-full text-sm font-medium rounded-lg transition-all flex items-center gap-2 bg-zinc-800 border"
+						class="p-2.5 h-10 text-sm font-medium rounded-xl transition-all flex items-center gap-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white"
 					>
-						<Newspaper class="text-admin-text" />
+						<Newspaper class="size-4" />
 					</button>
 				</a>
 				<div
-					class="absolute top-full left-0 mt-2 hidden group-hover:block p-2 z-50 bg-zinc-900 border-2 border-zinc-700 rounded-sm text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate transition-all"
+					class="absolute top-full left-0 mt-2 hidden group-hover:block p-2 z-50 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-300 shadow-xl"
 				>
 					Guides
 				</div>
 			</div>
+
 			<nav
-				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
+				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900/60 border border-zinc-800/80 rounded-xl"
 			>
 				<button
 					onclick={() => (mode = 1)}
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
-                {mode === 1
-						? 'bg-amber-500/10 text-amber-400 font-semibold border border-amber-500/20'
+					class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2
+                    {mode === 1
+						? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
 						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-					Pending <span
-						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-amber-500"
+					Pending
+					<span
+						class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-amber-500"
 						>{pendingCount}</span
 					>
 				</button>
 
 				<button
 					onclick={() => (mode = 3)}
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
-                {mode === 3
-						? 'bg-rose-500/10 text-rose-400 font-semibold border border-rose-500/20'
+					class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2
+                    {mode === 3
+						? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
 						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-					Rejected <span
-						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-rose-500"
+					Rejected
+					<span
+						class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-rose-500"
 						>{rejectedCount}</span
 					>
 				</button>
 
 				<button
 					onclick={() => (mode = 2)}
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
-                {mode === 2
-						? 'bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20'
+					class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2
+                    {mode === 2
+						? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
 						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-					Approved <span
-						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-emerald-500"
+					Approved
+					<span
+						class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-emerald-500"
 						>{approvedCount}</span
 					>
 				</button>
@@ -316,13 +321,14 @@
 
 				<button
 					onclick={() => (mode = 0)}
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2
-                {mode === 0
-						? 'bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20'
+					class="px-4 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2
+                    {mode === 0
+						? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
 						: 'text-zinc-400 hover:text-zinc-200'}"
 				>
-					Total <span
-						class="px-1.5 py-0.5 text-xs rounded bg-zinc-950 border border-zinc-800 text-indigo-400"
+					Total
+					<span
+						class="px-1.5 py-0.5 text-[10px] font-mono rounded bg-zinc-950 border border-zinc-800 text-indigo-400"
 						>{totalCount}</span
 					>
 				</button>
@@ -330,43 +336,44 @@
 		</div>
 
 		<div
-			class="flex-1 bg-zinc-900/30 border border-zinc-800 rounded-2xl p-6 overflow-y-auto"
+			class="flex-1 bg-zinc-900/20 border border-zinc-800 rounded-2xl flex flex-col min-h-0 overflow-hidden backdrop-blur-sm"
 		>
 			{#if !project.name}
 				<div
-					class="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2"
+					class="flex-1 flex flex-col items-center justify-center text-zinc-600 gap-3"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						width="48"
-						height="48"
+						width="44"
+						height="44"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
 						stroke-width="1.5"
 						stroke-linecap="round"
 						stroke-linejoin="round"
-						class="lucide lucide-folder-open text-zinc-700"
-						><path
-							d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"
-						/></svg
+						class="text-zinc-700"
 					>
-					<p class="text-xl font-medium tracking-tight">
+						<path
+							d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"
+						/>
+					</svg>
+					<p class="text-base font-medium tracking-tight text-zinc-500">
 						Select a project from the left queue to review
 					</p>
 				</div>
 			{:else}
-				<div class="w-full flex flex-col gap-6 animate-fadeIn">
+				<div class="flex-1 flex flex-col min-h-0 w-full animate-fadeIn">
 					<div
-						class="flex items-start justify-between border-b border-zinc-800 pb-5"
+						class="p-6 border-b border-zinc-800 bg-zinc-900/10 flex items-start justify-between gap-4 shrink-0"
 					>
 						<div class="flex flex-col gap-1.5">
 							<div class="flex items-center gap-3 flex-wrap">
-								<h1 class="text-2xl font-bold tracking-tight text-white">
+								<h1 class="text-xl font-bold tracking-tight text-zinc-100">
 									{project.name}
 								</h1>
 								<span
-									class="px-2.5 py-1 text-xs font-semibold bg-zinc-800 border border-zinc-700 rounded-full text-indigo-400"
+									class="px-2.5 py-0.5 text-xs font-semibold bg-indigo-500/10 border border-indigo-500/20 rounded-full text-indigo-400"
 								>
 									{project.hours} Hours Tracked
 								</span>
@@ -374,16 +381,19 @@
 									onclick={() => (detailsOpen = true)}
 									variant="outline"
 									size="sm"
-									class="border-zinc-700 text-zinc-300 hover:text-white"
+									class="h-7 border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:text-white text-xs"
 								>
 									Full Details
 								</Button>
 							</div>
 							<p
-								class="text-xs text-zinc-400 flex gap-x-2 items-center divide-x divide-zinc-800"
+								class="text-xs text-zinc-500 flex gap-x-2 items-center divide-x divide-zinc-800"
 							>
 								<span><strong>Creator:</strong> @{project.submittedBy}</span>
-								<span class="pl-2"><strong>Type:</strong> {project.type}</span>
+								<span class="pl-2"
+									><strong>Type:</strong>
+									<span class="capitalize">{project.type}</span></span
+								>
 								<span class="pl-2"
 									><strong>Category:</strong> {project.category}</span
 								>
@@ -394,37 +404,41 @@
 							<a
 								href={project.demo}
 								target="_blank"
-								class="px-3 py-1.5 text-xs font-medium bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-white rounded-lg transition"
+								class="px-3 py-1.5 text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition"
 								>Demo</a
 							>
 							<a
 								href={project.code}
 								target="_blank"
-								class="px-3 py-1.5 text-xs font-medium bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-white rounded-lg transition"
+								class="px-3 py-1.5 text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition"
 								>Repository</a
 							>
 							<a
 								href={project.readme}
 								target="_blank"
-								class="px-3 py-1.5 text-xs font-medium bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-white rounded-lg transition"
+								class="px-3 py-1.5 text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-lg transition"
 								>Readme</a
 							>
 						</div>
 					</div>
 
-					<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-						<div class="flex flex-col gap-5">
+					<div
+						class="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0 overflow-hidden"
+					>
+						<div
+							class="h-full overflow-y-auto p-6 space-y-5 border-r border-zinc-800 custom-scrollbar"
+						>
 							<div class="flex flex-col gap-2">
 								<label
 									for="userFeedback"
-									class="text-sm font-medium text-zinc-300"
+									class="text-xs font-bold uppercase tracking-wider text-zinc-400"
 									>User Feedback Message</label
 								>
 								<div
-									class="px-3 py-2 rounded-lg border text-xs flex items-center gap-2 transition duration-200
+									class="px-3 py-2 rounded-xl border text-xs flex items-center gap-2 transition duration-200
                                     {userExternalCount >= 20
-										? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-										: 'bg-amber-500/10 border-amber-500/20 text-amber-400'}"
+										? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400'
+										: 'bg-amber-500/5 border-amber-500/20 text-amber-400'}"
 								>
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -436,10 +450,11 @@
 										stroke-width="2"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-										><circle cx="12" cy="12" r="10" /><path
-											d="M12 16v-4"
-										/><path d="M12 8h.01" /></svg
 									>
+										<circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path
+											d="M12 8h.01"
+										/>
+									</svg>
 									<span>
 										{userExternalCount >= 20
 											? "Feedback criteria accepted for execution."
@@ -448,196 +463,169 @@
 								</div>
 								<Textarea
 									id="userFeedback"
-									class="min-h-[90px] bg-zinc-950 border-zinc-800 text-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+									class="min-h-[100px] bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-transparent resize-none text-sm leading-relaxed"
 									placeholder="Type the user feedback here...."
 									bind:value={userExternal}
 								/>
 							</div>
 
-							<div class="flex flex-col gap-2">
-								<label
-									for="internalNote"
-									class="text-sm font-medium text-zinc-300"
-									>Internal Review Notes <span class="text-zinc-500 font-normal"
-										>(Optional)</span
-									></label
-								>
-								<Textarea
-									id="internalNote"
-									class="min-h-[80px] bg-zinc-950 border-zinc-800 text-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20"
-									placeholder="Internal reviewers' notes."
-									bind:value={internalNote}
-								/>
-							</div>
-
 							<div
-								class="flex flex-col gap-2 bg-zinc-900/40 border border-zinc-800/80 p-4 rounded-xl"
+								class="flex flex-col gap-3 bg-zinc-900/40 border border-zinc-800/60 p-4 rounded-xl"
 							>
 								<div class="flex items-center justify-between gap-4">
 									<div class="flex flex-col">
+										<!-- svelte-ignore a11y_label_has_associated_control -->
 										<label
-											for="override"
-											class="text-sm font-medium text-zinc-200"
+											id="override"
+											class="text-xs font-bold uppercase tracking-wider text-zinc-400"
 											>Override Hours</label
 										>
-										<p class="text-xs text-zinc-500">
-											Deduc hours from project
+										<p class="text-[11px] text-zinc-500">
+											Deduct hours from project metrics
 										</p>
 									</div>
 									<Input
 										id="override"
-										class="w-24 bg-zinc-950 border-zinc-800 text-center text-zinc-100"
+										class="w-24 h-9 bg-zinc-950 border-zinc-800 text-center text-zinc-100 focus:ring-1 focus:ring-indigo-500"
 										type="number"
 										bind:value={overrideHours}
 										min="0"
 									/>
 								</div>
-								<div class="mt-3">
+								<div class="mt-1">
 									<label
 										for="justification"
-										class="text-xs font-medium text-zinc-400 block mb-1"
+										class="text-[11px] font-semibold text-zinc-500 block mb-1"
 										>Generated Submission Justification</label
 									>
 									<Textarea
 										id="justification"
-										class="min-h-[120px] font-mono text-xs bg-zinc-950 border-zinc-800 text-zinc-400"
+										class="min-h-[100px] font-mono text-xs bg-zinc-950 border-zinc-800 text-zinc-400 resize-none leading-relaxed"
+										readonly
 										bind:value={autogenChangelog}
 									/>
 								</div>
 							</div>
-
-							<div class="grid grid-cols-2 gap-3 mt-2">
-								<button
-									class="py-2.5 px-4 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-lg shadow-emerald-950/20 transition duration-150 disabled:opacity-50"
-									disabled={userExternalCount < 20 || acceptLoader}
-									onclick={() =>
-										acceptProject(
-											project,
-											userExternal,
-											internalNote,
-											overrideHours
-										)}
-								>
-									{#if acceptLoader}
-										<div
-											class="border-2 border-zinc-400 border-t-white rounded-full animate-spin h-4 w-4"
-										></div>
-									{/if}
-									Approve Project
-								</button>
-								<button
-									class="py-2.5 px-4 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-lg shadow-rose-950/20 transition duration-150 disabled:opacity-50"
-									disabled={userExternalCount < 20 || rejectLoader}
-									onclick={() =>
-										rejectProject(
-											project,
-											userExternal,
-											internalNote,
-											overrideHours
-										)}
-								>
-									{#if rejectLoader}
-										<div
-											class="border-2 border-zinc-400 border-t-white rounded-full animate-spin h-4 w-4"
-										></div>
-									{/if}
-									Reject Project
-								</button>
-							</div>
 						</div>
 
-						<div class="flex flex-col gap-5">
+						<div
+							class="h-full overflow-y-auto p-6 space-y-5 bg-zinc-900/5 custom-scrollbar"
+						>
 							<div class="flex flex-col gap-2">
-								<h3 class="text-sm font-medium text-zinc-300">
-									Internal Notes
-								</h3>
-								<div
-									class="p-3 bg-zinc-950 border border-zinc-800 rounded-xl min-h-[80px] text-xs text-zinc-400 italic"
+								<label
+									for="internalNote"
+									class="text-xs font-bold uppercase tracking-wider text-zinc-400"
+									>Internal Review Notes <span
+										class="text-zinc-600 font-normal lowercase">(optional)</span
+									></label
 								>
-									{project.description ||
-										"No project description provided by the author."}
-								</div>
+								<Textarea
+									id="internalNote"
+									class="min-h-[90px] bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-1 focus:ring-indigo-500 focus:border-transparent resize-none text-sm leading-relaxed"
+									placeholder="Internal reviewers' notes."
+									bind:value={internalNote}
+								/>
 							</div>
-
-							<div class="flex flex-col gap-2 flex-1 min-h-[300px]">
-								<h3 class="text-sm font-medium text-zinc-300">
-									Certification History
+							<div class="flex flex-col gap-2">
+								<h3
+									class="text-xs font-bold uppercase tracking-wider text-zinc-400"
+								>
+									Certification Logs & History
 								</h3>
 								<div
-									class="flex-1 border border-zinc-800 bg-zinc-950/50 rounded-xl p-3 overflow-y-auto space-y-3 max-h-[460px]"
+									class="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 overflow-y-auto wrap-break-word space-y-3 custom-scrollbar"
 								>
-									{#each [...project.log].reverse() as LogEntry}
-										{#each [...LogEntry.message].reverse() as msg, i}
-											<div
-												class="p-3 bg-zinc-900/60 border border-zinc-800 rounded-lg flex flex-col gap-2 text-xs"
-											>
+									{#if project.log && project.log.length > 0}
+										{#each [...project.log].reverse() as entry}
+											{#each entry.message as msg}
 												<div
-													class="flex items-center justify-between gap-2 border-b border-zinc-800 pb-1.5"
+													class="border border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
 												>
-													<div class="flex items-center gap-2">
-														<div
-															class="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-mono font-bold text-[10px] text-zinc-400"
+													<div
+														class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
+													>
+														<span class="font-bold text-zinc-400"
+															>Reviewer: <span class="text-indigo-400 font-mono"
+																>@{msg.reviewerName || "staff"}</span
+															></span
 														>
-															{msg.reviewerName?.charAt(0).toUpperCase() || "A"}
-														</div>
-														<span class="font-bold text-zinc-200"
-															>{msg.reviewerName === "user"
-																? "Project Author"
-																: msg.reviewerName}</span
+														<span
+															>{new Date(msg.timestamp).toLocaleString()}</span
 														>
 													</div>
-													<span
-														class="px-2 py-0.5 rounded text-[10px] font-semibold
-                                                        {msg.reviewerName ===
-														'user'
-															? 'bg-amber-500/10 text-amber-400'
-															: i === 0 && LogEntry.status === 1
-																? 'bg-emerald-500/10 text-emerald-400'
-																: 'bg-rose-500/10 text-rose-400'}"
-													>
-														{msg.reviewerName === "user"
-															? "Ship Submission"
-															: i === 0 && LogEntry.status === 1
-																? "Approved"
-																: "Rejected"}
-													</span>
+													{#if msg.userExternal}
+														<p class="text-zinc-300 leading-relaxed">
+															<strong
+																class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
+																>Feedback Note:</strong
+															>
+															{msg.userExternal}
+														</p>
+													{/if}
+													{#if msg.internalNote}
+														<p
+															class="text-zinc-500 italic bg-zinc-900/30 p-2 rounded border border-zinc-900/20"
+														>
+															<strong
+																class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
+																>Internal Note:</strong
+															>
+															{msg.internalNote}
+														</p>
+													{/if}
 												</div>
-
-												{#if msg.reviewerName === "user"}
-													<p
-														class="text-zinc-400 leading-relaxed font-mono text-[11px] bg-zinc-950/40 p-1.5 rounded border border-zinc-900"
-													>
-														Logged: {new Date(msg.timestamp).toLocaleString()}
-													</p>
-												{/if}
-
-												{#if msg.userExternal}
-													<p class="text-zinc-300 leading-relaxed">
-														<strong
-															class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
-															>Feedback Note:</strong
-														>
-														{msg.userExternal}
-													</p>
-												{/if}
-
-												{#if msg.internalNote}
-													<p
-														class="text-zinc-500 italic bg-zinc-900/30 p-1.5 rounded border border-transparent"
-													>
-														<strong
-															class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
-															>Internal Staff Note:</strong
-														>
-														{msg.internalNote}
-													</p>
-												{/if}
-											</div>
+											{/each}
 										{/each}
-									{/each}
+									{:else}
+										<p class="text-xs italic text-zinc-600 text-center py-4">
+											No cert history
+										</p>
+									{/if}
 								</div>
 							</div>
 						</div>
+					</div>
+
+					<div
+						class="shrink-0 flex items-center justify-end gap-3 p-4 border-t border-zinc-800 bg-zinc-950/60 backdrop-blur-sm"
+					>
+						<button
+							class="h-10 py-2 px-5 font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-lg shadow-rose-950/20 transition duration-150 disabled:opacity-40"
+							disabled={userExternalCount < 20 || rejectLoader}
+							onclick={() =>
+								rejectProject(
+									project,
+									userExternal,
+									internalNote,
+									overrideHours
+								)}
+						>
+							{#if rejectLoader}
+								<div
+									class="border-2 border-zinc-400 border-t-white rounded-full animate-spin h-3.5 w-3.5"
+								></div>
+							{/if}
+							Reject Submission
+						</button>
+
+						<button
+							class="h-10 py-2 px-5 font-bold uppercase tracking-wider text-xs rounded-xl flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-lg shadow-emerald-950/20 transition duration-150 disabled:opacity-40"
+							disabled={userExternalCount < 20 || acceptLoader}
+							onclick={() =>
+								acceptProject(
+									project,
+									userExternal,
+									internalNote,
+									overrideHours
+								)}
+						>
+							{#if acceptLoader}
+								<div
+									class="border-2 border-zinc-400 border-t-white rounded-full animate-spin h-3.5 w-3.5"
+								></div>
+							{/if}
+							Approve Submission
+						</button>
 					</div>
 				</div>
 			{/if}
@@ -648,18 +636,18 @@
 <ProjectDetailsDialog bind:open={detailsOpen} {project} />
 
 <style>
-	/* Clean fluid animations for loaded panel view switching */
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-			transform: translateY(4px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 4px;
+		height: 4px;
 	}
-	:global(.animate-fadeIn) {
-		animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: #27272a;
+		border-radius: 2px;
+	}
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: #3f3f46;
 	}
 </style>
