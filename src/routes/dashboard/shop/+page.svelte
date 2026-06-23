@@ -5,6 +5,7 @@
 	import looseJson from "loose-json"
 	import { ShoppingBag } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
+	import { cn } from "$lib/lib/utils"
 	let { data } = $props()
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
@@ -159,7 +160,7 @@
 			class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 flex-1 h-0 overflow-y-auto overflow-x-hidden pr-2"
 		>
 			{#each shopItems as item}
-				<div class="relative group h-[180px]">
+				<div class="relative group">
 					<div
 						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-sm transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
 					></div>
@@ -198,11 +199,17 @@
 
 							<div class="pt-2 border-t border-zinc-900 w-full">
 								<Button
-									class="w-full py-3 h-8 border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
-									disabled={item.grayedOut}
+									class={cn(
+										"w-full p-1 h-8 border border-primary bg-background text-primary hover:bg-primary hover:text-primary-foreground text-xs font-bold font-sans tracking-wider uppercase rounded transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ",
+										item.grayedOut &&
+											"pointer-events-none cursor-not-allowed font-bold"
+									)}
 									onclick={() => handleBuyClick(item)}
 								>
-									Buy • {renderCurrency(item.price)}
+									{#if item.grayedOut}{:else}
+										Buy •
+									{/if}
+									{renderCurrency(item.price)}
 								</Button>
 							</div>
 						</div>
