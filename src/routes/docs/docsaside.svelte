@@ -5,18 +5,25 @@
 	import { cn } from "$lib/lib/utils"
 
 	import docsIndex from "./docs-index.json"
+	import { ArrowLeft } from "@lucide/svelte"
 
 	const { toggleGroup, openGroups } = $props()
 </script>
 
 <aside
-	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] bg-black border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
+	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] bg-black border-primary py-5 px-2 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
 	style=""
 >
 	<div
 		class="sidebar-group flex items-center scrollbar-none px-2 w-full pb-5 border-b-primary border-b"
 	>
-		<div class="">
+		<div class="flex items-center gap-x-2">
+			<a
+				href="/dashboard"
+				class="p-1 border-primary border rounded hover:bg-primary/30 transition"
+			>
+				<ArrowLeft size={15} />
+			</a>
 			<span
 				class="font-alchemize text-primary font-extrabold sm:text-3xl text-3xl tracking-tight"
 				>ALCHEMIZE</span
@@ -65,16 +72,17 @@
 		</div>
 	{/each}
 </aside>
+
 <style>
 	@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-}
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		.no-scrollbar::-webkit-scrollbar {
+			display: none;
+		}
+		/* Hide scrollbar for IE, Edge and Firefox */
+		.no-scrollbar {
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+		}
+	}
 </style>
