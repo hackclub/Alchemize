@@ -7,6 +7,7 @@
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
 	import { countCharacters } from "$lib/utils"
+	import { cn } from "$lib/lib/utils"
 	interface AdminProjectAccess extends AirtableProject {
 		fields: AirtableProject["fields"] & {
 			unifiedId: string
@@ -143,9 +144,16 @@ Signed by ${data.name}, T2 Reviewer
 	const areAllPushedToHQ = (log: Log[]): boolean => {
 		return log.every(entry => entry.submmitedToHQ || entry.status !== 1)
 	}
-	let pending = $state(false)
+	let pending = $state(true)
+	let filteredProjects = $derived(
+		airtableProjects?.filter(
+			project =>
+				wasEverApproved(project) &&
+				areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) ===
+					pending
+		) ?? []
+	)
 </script>
-
 
 <svelte:head>
 	<title>Alchemize | T2 Review</title>
@@ -170,11 +178,11 @@ Signed by ${data.name}, T2 Reviewer
 					T2 Review queue
 				</h3>
 			</div>
-			{#each airtableProjects as project}
-				{#if wasEverApproved(project) && areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) === pending}
+			{#if filteredProjects.length > 0}
+				{#each filteredProjects as project}
 					<button
 						onclick={() => setCurrentProject(project)}
-						class="project w-full border-b h-20 p-2 hover:bg-background rounded-t-2xl"
+						class="project w-full border-b h-20 p-2 hover:bg-background"
 					>
 						<h1 class="text-xl font-bold w-full flex items-center h-10 px-2">
 							{project.fields.Name}
@@ -186,22 +194,39 @@ Signed by ${data.name}, T2 Reviewer
 							<div class="theme text-xs">{project.fields.Theme}</div>
 						</div>
 					</button>
-				{/if}
-			{/each}
+				{/each}
+			{:else}
+				<div class="flex-1 flex items-center justify-center p-4">
+					<h2 class="text-sm text-gray-500 text-center">
+						{pending ? "No pending projects 🥳" : "No sent projects 😕"}
+					</h2>
+				</div>
+			{/if}
 		</aside>
 		<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
 			<nav
 				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
 			>
 				<button
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2"
+					class={cn(
+						"px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
+						pending
+							? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+							: "text-zinc-400 hover:text-zinc-200"
+					)}
+					onclick={() => (pending = true)}
 				>
 					Pending
 				</button>
 
 				<button
-					class="px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2"
-					onclick={() => (pending = true)}
+					class={cn(
+						"px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
+						!pending
+							? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+							: "text-zinc-400 hover:text-zinc-200"
+					)}
+					onclick={() => (pending = false)}
 				>
 					Sent
 				</button>
@@ -403,7 +428,7 @@ Signed by ${data.name}, T2 Reviewer
 							>
 								{#each currentProject.log as log}
 									<div
-										class="p-2.5 bg-zinc-900/15 border border-zinc-800/60 rounded-lg space-y-2 text-xs"
+										class="p-2.5 bg-zinc-900/15 border border-zinc-800/60 rounded-lg space-y-2 text-xs wrap-break-word"
 									>
 										<div class="flex items-center justify-between gap-2">
 											<span class="font-medium text-zinc-300">Review</span>
@@ -418,10 +443,11 @@ Signed by ${data.name}, T2 Reviewer
 											class="text-[11px] text-zinc-500 bg-zinc-950/30 p-2 rounded border border-zinc-900 space-y-1 font-mono"
 										>
 											<div class="text-zinc-300">
-												User Feedback: {log.message.at(-1)?.userExternal || "No user feedback"}
+												User Feedback: {log.message.at(-1)?.userExternal ||
+													"No user feedback"}
 											</div>
 
-												{log.message.at(-1)?.justification || "No notes yet."}
+											{log.message.at(-1)?.justification || "No notes yet."}
 											<div class="text-zinc-500 text-xs">
 												By {log.message.at(-1)?.reviewerName || "Unknown User"}
 											</div>
