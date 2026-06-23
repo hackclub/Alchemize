@@ -20,9 +20,9 @@ Season 1 currencies:
 
 Examples:
 
-* 15 hours on an Indie Gamedev project → 15 Redstone
+* 15 hours on an Indie Gamedev project → 15 Aqua Regia
 * 20 hours on a No Internet project → 20 Glowstone
-* 8 hours on an Endless project → 8 Aqua Regia
+* 8 hours on an Endless project → 8 Redstone
 
 The more you build, the more currency you earn.
 
@@ -32,7 +32,7 @@ The more you build, the more currency you earn.
 
 Each theme has rewards that can only be purchased using that theme's currency.
 
-### Redstone
+### Aqua Regia
 
 Earned from the **Indie Gamedev** theme.
 
@@ -44,7 +44,7 @@ Earned from the **No Internet** theme.
 
 Can be used to purchase No Internet-exclusive rewards.
 
-### Aqua Regia
+### Redstone
 
 Earned from the **Endless** theme.
 

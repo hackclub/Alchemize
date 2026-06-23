@@ -132,7 +132,7 @@
 			toast(
 				response.ok
 					? "Project shipped successfully!"
-					: `${await response.text()}. Code: ${response.status}`
+					: `Error shipping project. Code: ${response.status} — contact @TheUtkarsh8939 on Slack`
 			)
 
 			const responseData = await response.json()
