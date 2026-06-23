@@ -193,11 +193,11 @@
 	</header>
 
 	<div
-		class="relative z-10 flex-1 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 align-start content-start"
+		class="relative z-10 flex-1 overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 align-start content-start justify-items-center"
 	>
 		{#each shopItems as item}
 			{@const theme = currencyTheme[item.primaryCurrency]}
-			<div class="relative group h-full flex flex-col">
+			<div class="relative group h-full w-full max-w-xs flex flex-col">
 				<div
 					class={cn(
 						"absolute z-0 inset-0 translate-x-1 translate-y-1 rounded transition-transform group-hover:translate-x-0 group-hover:translate-y-0 opacity-60",
@@ -207,12 +207,12 @@
 
 				<div
 					class={cn(
-						"relative z-10 w-full flex flex-col bg-zinc-950/90 border-2 rounded p-4 h-full gap-4 transition-all backdrop-blur-sm",
+						"relative z-10 w-full flex flex-col bg-zinc-950/90 border-2 rounded p-3 h-full gap-3 backdrop-blur-sm transition-all",
 						theme.border
 					)}
 				>
 					<div
-						class="w-full aspect-square bg-zinc-900/60 border border-zinc-800 rounded overflow-hidden relative shrink-0 flex items-center justify-center p-4"
+						class="w-full aspect-square bg-zinc-900/60 border border-zinc-800 rounded overflow-hidden relative shrink-0 flex items-center justify-center p-3"
 					>
 						<img
 							src={item.image}
@@ -224,17 +224,17 @@
 						></div>
 					</div>
 
-					<div class="flex flex-col flex-1 justify-between gap-3">
-						<div class="flex flex-col gap-1.5">
+					<div class="flex flex-col flex-1 justify-between gap-2">
+						<div class="flex flex-col gap-1">
 							<div class="flex items-start justify-between gap-2">
 								<h2
-									class="text-base font-black uppercase text-white tracking-tight font-alchemize line-clamp-1"
+									class="text-sm font-black uppercase text-white tracking-tight font-alchemize line-clamp-1"
 								>
 									{item.name}
 								</h2>
 							</div>
 							<p
-								class="text-zinc-400 text-xs leading-relaxed font-mono line-clamp-3"
+								class="text-zinc-400 text-[11px] leading-snug font-mono line-clamp-3"
 							>
 								{item.description}
 							</p>
@@ -243,7 +243,7 @@
 						<div class="pt-2 border-t border-zinc-900/60 w-full mt-auto">
 							<Button
 								class={cn(
-									"w-full h-9 bg-zinc-900/50 hover:bg-zinc-900 text-xs font-bold font-sans tracking-widest uppercase rounded transition-all duration-100 border active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+									"w-full h-8 bg-zinc-900/50 hover:bg-zinc-900 text-[11px] font-bold font-sans tracking-wider uppercase rounded transition-all duration-100 border active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
 									theme.btn,
 									item.grayedOut &&
 										"pointer-events-none cursor-not-allowed border-zinc-700 bg-zinc-900 text-zinc-500 shadow-none"
