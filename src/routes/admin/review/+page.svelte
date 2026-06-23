@@ -457,7 +457,7 @@
 									</svg>
 									<span>
 										{userExternalCount >= 20
-											? "Feedback criteria accepted for execution."
+											? "Feedback accepted."
 											: `Requires at least 20 characters (${userExternalCount}/20)`}
 									</span>
 								</div>
