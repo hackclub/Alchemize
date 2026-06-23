@@ -169,9 +169,8 @@
 						3 Themes | 3 Seasons <br />
 						<strong
 							class="text-white font-black text-lg md:text-2xl block mt-1 tracking-tight"
+							>And a whole lot of mixing</strong
 						>
-							And a whole lot of mixing
-						</strong>
 					</p>
 					<div
 						class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-none"
@@ -182,13 +181,12 @@
 				<div
 					class="flex flex-col gap-1 max-w-full bg-black/50 border border-zinc-800 p-4 rounded-none font-mono"
 				>
+					<div
+						class="text-[10px] text-zinc-500 tracking-wider font-bold uppercase mb-1"
+					>
+						// TIME_REMAINING_UNTIL_LAUNCH
+					</div>
 					{#if timeLeft > 0}
-						<div
-							class="text-[10px] text-zinc-500 tracking-wider font-bold uppercase mb-1"
-						>
-							// TIME_REMAINING_UNTIL_LAUNCH
-						</div>
-
 						<div
 							class="flex items-center gap-2 sm:gap-4 text-zinc-300 overflow-x-auto"
 						>
@@ -251,10 +249,9 @@
 						</div>
 					{:else}
 						<div
-							class="text-2xl font-black text-primary uppercase tracking-wider flex flex-col items-center justify-center text-center gap-y-2"
+							class="text-sm font-black text-primary uppercase tracking-wider animate-pulse"
 						>
 							ALCHEMIZE HAS STARTED!
-							<img src="/Alchemize.png" alt="" class="h-20" />
 						</div>
 					{/if}
 				</div>
@@ -270,7 +267,7 @@
 						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-none transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
 					></div>
 					<div
-						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary text-xl font-black uppercase tracking-widest text-center px-4 md:px-6 py-3 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
+						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary font-black uppercase tracking-widest text-center px-4 md:px-6 py-4 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
 					>
 						<span>GET STARTED</span>
 						{#if showRotator}
@@ -291,14 +288,14 @@
 					<div class="group relative flex items-stretch">
 						<a
 							href="/docs"
-							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-xs md:text-sm"
 						>
 							<Newspaper class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
 							<span>Docs</span>
 						</a>
 
 						<div
-							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 						>
 							Read the docs here!
 						</div>
@@ -306,7 +303,7 @@
 					<div class="group relative flex items-stretch">
 						<a
 							href="/refer"
-							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-4 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-xs md:text-sm"
 						>
 							<User class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
 							<span>Refer</span>

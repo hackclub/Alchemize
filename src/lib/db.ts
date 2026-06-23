@@ -401,15 +401,30 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
 }
 export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
 
-    const allowedUpdates: Record<string, any> = {
-        Name: projectData.Name,
+    if (!projectData.screenshot){
+        var allowedUpdates: Record<string, any> = {
+        Name: projectData.Name ,
         description: projectData.description,
-        type: projectData.type,
-        demo: projectData.demo,
-        code: projectData.code,
-        hackatime: projectData.hackatime,
-        update: projectData.update,
+        type: projectData.type ?? "",
+        demo: projectData.demo ?? "",
+        code: projectData.code ?? "",
+        hackatime: projectData.hackatime ?? "",
+        update: projectData.update ?? "",
+        Theme: projectData.Theme ?? "",
     };
+    }else{
+        var allowedUpdates: Record<string, any> = {
+        Name: projectData.Name,
+        description: projectData.description ?? "",
+        type: projectData.type ?? "",
+        demo: projectData.demo ?? "",
+        code: projectData.code ?? "",
+        hackatime: projectData.hackatime ?? "",
+        update: projectData.update ?? "",
+        screenshot: projectData.screenshot ?? "",
+        Theme: projectData.Theme ?? "",
+    };
+    }
 
 
     const updatePayload = Object.fromEntries(

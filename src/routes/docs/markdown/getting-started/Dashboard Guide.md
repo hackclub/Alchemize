@@ -4,9 +4,9 @@ The dashboard is your home base throughout Alchemize. From here, you can manage 
 
 ---
 
-## Information
+## Navbar
 
-The bar at the top of the page displays your account information including:
+The navigation bar displays your account information, including:
 
 * Username
 * Email address
