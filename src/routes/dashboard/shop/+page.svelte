@@ -51,7 +51,7 @@
 	const currencyTheme = {
 		redstone: {
 			border: "border-red-950 group-hover:border-red-500/80",
-			shadow: "bg-red-400",
+			shadow: "bg-red-500",
 			text: "text-red-400",
 			btn: "border-red-800 text-red-400 hover:bg-red-600 hover:text-white",
 		},
