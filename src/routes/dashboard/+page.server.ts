@@ -70,6 +70,8 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
             }
         });
     let hacks = await hackatimes.json()
+    let userFields = userData?.records?.[0]?.fields
+    let {hackatime, ...userFieldsWithoutHackatime} = userFields || {}
     return {
         projects: projectsData?.records || [],
         hacks: hacks,
@@ -77,7 +79,7 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
         eligiblity: decodedToken.ysws_eligible,
         name: slackprofile?.display_name || decodedToken.first_name,
         hackatimeVerified: hackatimeVerified === "true",
-        user: userData?.records?.[0]?.fields ?? {},
+        user: userFieldsWithoutHackatime ?? {},
         admin: admin,
         pfp: slackprofile?.image_512 || ""
     }
