@@ -9,7 +9,7 @@ import {
 	getUserByEmail,
 } from "$lib/db"
 import { USER_JWT_SECRET } from "$env/static/private"
-import type { UserAuthToken } from "$lib/types"
+import type { AirtableProject, AirtableProjectWithPII, UserAuthToken } from "$lib/types"
 import { redirect } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
 export const actions = {
@@ -321,9 +321,32 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		hacks = await hackatimes.json()
 
 		const projectsData = await projectsResponse.json()
-
+		let projectsRecords: AirtableProjectWithPII[] = projectsData.records || []
+		let noPii: AirtableProject[] = []
+		for (let record of projectsRecords) {
+			noPii.push({
+				id: record.id,
+				fields: {
+					Name: record.fields.Name,
+					description: record.fields.description,
+					type: record.fields.type,
+					demo: record.fields.demo,
+					code: record.fields.code,
+					update: record.fields.update,
+					hackatime: record.fields.hackatime,
+					languages: record.fields.languages,
+					log: record.fields.log,
+					owner: record.fields.owner,
+					status: record.fields.status,
+					slackId: record.fields.slackId,
+					Theme: record.fields.Theme,
+					screenshot: record.fields.screenshot,
+					journals: record.fields.journals,
+				}
+			})
+		}
 		return {
-			projects: projectsData.records,
+			projects: noPii,
 			hacks: hacks,
 		}
 	}

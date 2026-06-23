@@ -32,7 +32,6 @@ export interface Project {
 }
 export interface AirtableProject {
 	id: string
-	createdTime: string
 	fields: {
 		Name: string
 		description: string
@@ -49,6 +48,15 @@ export interface AirtableProject {
 		slackId: string
 		Theme: string
 		screenshot: string
+	}
+}
+export interface AirtableProjectWithPII extends AirtableProject {
+	fields: AirtableProject["fields"] & {
+		firstName: string
+		lastName: string
+		address: string
+		birthdate: string
+		unifiedId: string
 	}
 }
 export interface AdminProjectView extends AirtableProject {
