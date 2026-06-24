@@ -133,7 +133,6 @@
 	)
 	let shipButtonDisabled = $derived(
 		!(
-			allFieldsFilled &&
 			changelogCharCount >= 20 &&
 			originalProject?.fields.Theme &&
 			originalProject?.fields.type &&
@@ -141,10 +140,21 @@
 			originalProject?.fields.demo &&
 			originalProject?.fields.screenshot &&
 			originalProject.fields.hackatime
-		) ||
-			showSecondRotator ||
-			shipLoading
+		)
 	)
+	$effect(() => {
+			shipButtonDisabled =
+		!(
+			changelogCharCount >= 20 &&
+			originalProject?.fields.Theme &&
+			originalProject?.fields.type &&
+			originalProject?.fields.code &&
+			originalProject?.fields.demo &&
+			originalProject?.fields.screenshot &&
+			originalProject.fields.hackatime
+		)
+	
+	})
 </script>
 
 <Dialog.Root bind:open>
@@ -297,7 +307,7 @@
 								variant="default"
 								class="w-full hover:bg-primary/70 hover:-translate-y-px h-10 font-bold uppercase tracking-wider text-xs"
 								onclick={ship}
-								bind:disabled={shipButtonDisabled}
+						
 							>
 								{#if showRotator}
 									<div
