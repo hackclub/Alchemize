@@ -304,7 +304,7 @@
 										class="size-4 border-2 border-gray-500 border-t-white rounded-full animate-spin mr-2"
 									></div>
 								{/if}
-								<i class="fa-solid fa-plus mr-1"></i> Ship Event
+								<i class="fa-solid fa-plus mr-1"></i> Ship
 							</Button>
 						</div>
 					</div>

@@ -1,12 +1,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-import { DATABASE_URL } from "$env/static/private"
-// const DATABASE_URL = process.env.DATABASE_URL;
+// import { DATABASE_URL } from "$env/static/private"
+const DATABASE_URL = process.env.DATABASE_URL;
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -94,6 +94,16 @@ export const shopItemsTable = pgTable("shop_items", {
     cdnImage: varchar({ length: 1000 }).notNull(),
     priority: integer().notNull().default(0),
 })
+export const ledgerTable = pgTable("ledger", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    email: varchar({ length: 455 }).notNull(),
+    slackId: varchar({ length: 255 }).notNull(),
+    sign: boolean().notNull(), // true for credit, false for debit
+    amount: real().notNull(),
+    currencyType: varchar({ length: 255 }).notNull(),
+    reason: varchar({ length: 455 }).notNull(),
+    remarks: varchar({ length: 1000 }).notNull(),
+})
 // Response Interface
 export interface DBResponse {
     ok: boolean;
@@ -140,10 +150,11 @@ export const atomicTradeCurrency = async (
     deductRedstone: number,
     deductGlowstone: number,
     deductAquaRegia: number,
-    addPotionMix: number
+    addPotionMix: number,
+    slackId: string
 ): Promise<DBResponse> => {
     try {
-        return await withTransaction(async (client) => {
+        const [tradeRes, ledgerDeductionRes, ledgerAdditionRes] = await Promise.all([withTransaction(async (client) => {
             // Lock the user row for update to prevent race conditions
             const lockResult = await client.query(
                 'SELECT currency FROM users WHERE email = $1 FOR UPDATE',
@@ -185,7 +196,29 @@ export const atomicTradeCurrency = async (
                 json: async () => ({ message: "Trade successful", newCurrency }),
                 text: async () => JSON.stringify({ message: "Trade successful", newCurrency }),
             };
-        });
+        }), addLedgerEntry(
+            {
+                email,
+                slackId: slackId,
+                sign: false,
+                amount: deductRedstone + deductGlowstone + deductAquaRegia,
+                currencyType: "mixed",
+                reason: `trade deduction`,
+                remarks: `Deducted ${deductRedstone} redstone, ${deductGlowstone} glowstone, ${deductAquaRegia} aqua_regia for trade`
+
+            }
+        ), addLedgerEntry(
+            {
+                email,
+                slackId: slackId,
+                sign: true,
+                amount: addPotionMix,
+                currencyType: "potion_mix",
+                reason: `trade addition`,
+                remarks: `Added ${addPotionMix} potion mix for trade`
+            }
+        )])
+        return tradeRes;
     } catch (error) {
         console.error("Atomic trade failed:", error);
         return {
@@ -205,10 +238,11 @@ export const atomicPurchaseItem = async (
     quantity: number,
     itemName: string,
     itemID: string,
-    ordererUid: string
+    ordererUid: string,
+    slackId: string
 ): Promise<DBResponse> => {
     try {
-        return await withTransaction(async (client) => {
+        const [purchase, ledger] = await Promise.all([withTransaction(async (client) => {
             // Lock the user row for update to prevent race conditions
             const lockResult = await client.query(
                 'SELECT currency FROM users WHERE email = $1 FOR UPDATE',
@@ -252,7 +286,16 @@ export const atomicPurchaseItem = async (
                 json: async () => ({ message: "Purchase successful", newCurrency, orderId: String(orderResult.rows[0].id) }),
                 text: async () => JSON.stringify({ message: "Purchase successful", newCurrency, orderId: String(orderResult.rows[0].id) }),
             };
-        });
+        }), addLedgerEntry({
+            email,
+            slackId: slackId,
+            sign: false,
+            amount: totalPrice,
+            currencyType,
+            reason: `shop purchase`,
+            remarks: `Deducted ${totalPrice} ${currencyType} for purchase of ${quantity} x ${itemName}`
+        })]);
+        return purchase;
     } catch (error) {
         console.error("Atomic purchase failed:", error);
         return {
@@ -652,6 +695,25 @@ export const deleteShopItem = async (itemId: string): Promise<DBResponse> => {
         status: 200,
         json: async () => ({ id: updatedItem[0].itemID + "", fields: updatedItem[0] } as airtableReplication),
         text: async () => JSON.stringify({ id: updatedItem[0].itemID + "", fields: updatedItem[0] } as airtableReplication),
+    } as DBResponse;
+}
+//Ledger Functions
+export const addLedgerEntry = async (ledgerData: {
+    email: string,
+    slackId: string,
+    sign: boolean,
+    amount: number,
+    currencyType: string,
+    reason: string,
+    remarks: string
+}): Promise<DBResponse> => {
+    const { email, slackId, sign, amount, currencyType, reason, remarks } = ledgerData
+    const newLedgerEntry = await db.insert(ledgerTable).values({ email, slackId, sign, amount, currencyType, reason, remarks }).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({ id: newLedgerEntry[0].id + "", fields: newLedgerEntry[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newLedgerEntry[0].id + "", fields: newLedgerEntry[0] } as airtableReplication),
     } as DBResponse;
 }
 //Admin Functions

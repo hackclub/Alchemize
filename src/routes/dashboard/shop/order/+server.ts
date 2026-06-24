@@ -70,7 +70,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         body.quantity,
         item.name,
         item.itemID,
-        uid
+        uid,
+        data?.slack_id ?? "",
     );
 
     if (!purchaseResult.ok) {

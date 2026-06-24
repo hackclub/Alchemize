@@ -31,6 +31,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     const email = data.email;
+    const slackId = data.slack_id;
     if (!email) {
         return new Response(JSON.stringify({
             error: "Unauthorized"
@@ -45,7 +46,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     // Atomic trade: validates balance and updates currency in a single transaction
-    const tradeResult = await atomicTradeCurrency(email, redstone, glowstone, aqua_regia, newPotionMix);
+    const tradeResult = await atomicTradeCurrency(email, redstone, glowstone, aqua_regia, newPotionMix, slackId);
 
     if (!tradeResult.ok) {
         const errorData = await tradeResult.json();

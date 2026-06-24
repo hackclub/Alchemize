@@ -4,7 +4,7 @@ import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
-import { getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
+import { addLedgerEntry, getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
 
 function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): [Log[], number] {
 
@@ -39,7 +39,15 @@ async function updateUserCurrency(amount: number, userEmailId: string, currencyT
     const userRecord = data.records[0]
     const currentCurrency = JSON.parse(userRecord.fields.currency) || {} as UserCurrency
     currentCurrency[currencyType] = (currentCurrency[currencyType] || 0) + amount
-    const updateResponse = await patchUserCurrency(userRecord.fields.email, currentCurrency)
+    const [updateResponse, ledgerResp] = await Promise.all([patchUserCurrency(userRecord.fields.email, currentCurrency), addLedgerEntry({
+        email: userRecord.fields.email,
+        slackId: userRecord.fields.slackId,
+        sign: true,
+        amount: amount,
+        currencyType: currencyType,
+        reason: "review-accept",
+        remarks: `Added ${amount} ${currencyType} for project approval`
+    })])
     if (!updateResponse.ok) {
         const errorData = await updateResponse.json()
         console.error("Failed to update user currency:", {
