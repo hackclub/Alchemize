@@ -201,7 +201,45 @@
 						<div
 							class="flex-1 overflow-y-auto pr-1 text-zinc-400 text-sm no-scrollbar"
 						>
-							No news or updates currently....
+							<div
+								class="flex flex-col gap-3 max-h-[190px] overflow-y-auto pr-1"
+							>
+								<div
+									class="border-l-2 border-primary/40 bg-zinc-950/50 p-3 rounded-r-md"
+								>
+									<span
+										class="text-[9px] font-bold text-primary tracking-widest uppercase"
+										>June 2026</span
+									>
+									<h3 class="text-xs font-bold text-zinc-200 mt-0.5">
+										Shop Suggestions!
+									</h3>
+									<p
+										class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
+									>
+										Go suggest new items to be added to the shop every week from
+										the shop page!
+									</p>
+								</div>
+
+								<!-- <div
+									class="border-l-2 border-zinc-700 bg-zinc-950/50 p-3 rounded-r-md"
+								>
+									<span
+										class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
+										>June 2026</span
+									>
+									<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
+										test news
+									</h3>
+									<p
+										class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
+									>
+										efhijo;cdkbjiljekopdcl;vkbl
+									</p>
+								</div> -->
+							</div>
+							<!-- No news or updates currently.... -->
 						</div>
 					</div>
 				</div>
