@@ -165,6 +165,7 @@
 </script>
 
 <svelte:head>
+	<script src="https://server.fillout.com/embed/v1/"></script>
 	<title>Alchemize | Shop</title>
 	<meta name="description" content="Alchemize Shop" />
 	<meta property="og:title" content="Alchemize | Shop" />
@@ -217,37 +218,50 @@
 	</header>
 
 	<div
-		class="relative z-10 w-full flex flex-wrap gap-4 items-center bg-zinc-950/60 p-3 border border-zinc-800 rounded text-xs shrink-0"
+		class="relative z-10 w-full flex flex-wrap gap-4 items-center justify-between bg-zinc-950/60 p-3 border border-zinc-800 rounded text-xs shrink-0"
 	>
-		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 font-bold uppercase">Filter:</span>
-			<select
-				bind:value={activeFilter}
-				class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
-			>
-				<option value="all">All Items</option>
-				<option value="affordable">Affordable</option>
-				<option value="redstone">Redstone Items</option>
-				<option value="glowstone">Glowstone Items</option>
-				<option value="aqua_regia">Aqua Regia Items</option>
-				<option value="potion_mix">Potion Mix Items</option>
-			</select>
+		<div class="flex items-center gap-x-3">
+			<div class="flex items-center gap-2">
+				<span class="text-zinc-500 font-bold uppercase">Filter:</span>
+				<select
+					bind:value={activeFilter}
+					class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
+				>
+					<option value="all">All Items</option>
+					<option value="affordable">Affordable</option>
+					<option value="redstone">Redstone Items</option>
+					<option value="glowstone">Glowstone Items</option>
+					<option value="aqua_regia">Aqua Regia Items</option>
+					<option value="potion_mix">Potion Mix Items</option>
+				</select>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<span class="text-zinc-500 font-bold uppercase">Sort By:</span>
+				<select
+					bind:value={activeSort}
+					class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
+				>
+					<option value="none">Default</option>
+					<option value="affordable">Affordable First</option>
+					<option value="redstone">Highest Redstone Cost</option>
+					<option value="glowstone">Highest Glowstone Cost</option>
+					<option value="aqua_regia">Highest Aqua Regia Cost</option>
+					<option value="potion_mix">Highest Potion Mix Cost</option>
+				</select>
+			</div>
 		</div>
 
-		<div class="flex items-center gap-2">
-			<span class="text-zinc-500 font-bold uppercase">Sort By:</span>
-			<select
-				bind:value={activeSort}
-				class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
-			>
-				<option value="none">Default</option>
-				<option value="affordable">Affordable First</option>
-				<option value="redstone">Highest Redstone Cost</option>
-				<option value="glowstone">Highest Glowstone Cost</option>
-				<option value="aqua_regia">Highest Aqua Regia Cost</option>
-				<option value="potion_mix">Highest Potion Mix Cost</option>
-			</select>
-		</div>
+		<div
+			data-fillout-id="f31FLmPvAXus"
+			data-fillout-embed-type="popup"
+			data-fillout-button-text="Suggest Items now!"
+			data-fillout-dynamic-resize
+			data-fillout-button-color="transparent"
+			data-fillout-inherit-parameters
+			data-fillout-popup-size="medium"
+			class="fillout-embed-popup-button"
+		></div>
 	</div>
 
 	<div
@@ -329,3 +343,45 @@
 	currency={currencies}
 	onConfirm={handleConfirmPurchase}
 />
+
+<style>
+	:global(div[data-fillout-id] button),
+	:global(div[data-fillout-id] .fillout-embed-popup-button) {
+		all: unset !important;
+		box-sizing: border-box !important;
+
+		display: inline-flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		cursor: pointer !important;
+
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+			"Liberation Mono", "Courier New", monospace !important;
+		font-size: 11px !important;
+		font-weight: 700 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.05em !important;
+
+		padding: 0.375rem 0.75rem !important;
+		border-radius: 4px !important;
+		background-color: #7e0026 !important;
+		border: 2px solid rgba(239, 68, 68, 0.4) !important;
+		color: #f4f4f5 !important;
+
+		box-shadow: 2px 2px 0px 0px rgba(239, 68, 68, 0.2) !important;
+		transition: all 0.1s ease-in-out !important;
+	}
+
+	:global(div[data-fillout-id] button:hover),
+	:global(div[data-fillout-id] .fillout-embed-popup-button:hover) {
+		background-color: #990033 !important;
+		border-color: rgba(239, 68, 68, 0.8) !important;
+		color: #ffffff !important;
+	}
+
+	:global(div[data-fillout-id] button:active),
+	:global(div[data-fillout-id] .fillout-embed-popup-button:active) {
+		transform: translate(1px, 1px) !important;
+		box-shadow: none !important;
+	}
+</style>
