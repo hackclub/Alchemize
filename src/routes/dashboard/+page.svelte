@@ -86,14 +86,14 @@
 	<meta property="og:title" content="Alchemize | Dashboard" />
 </svelte:head>
 
-<main
-	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:py-10 px-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden relative pb-10"
+<div
+	class="h-screen w-full bg-gradbg text-foreground font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative flex flex-col overflow-hidden p-4 md:p-6 lg:p-8 gap-4 md:gap-6"
 >
-	<div class="fixed inset-0 bg-black/40 z-10 pointer-events-none"></div>
-
-	<div class="relative z-20 mx-auto flex flex-col gap-8">
+	<main
+		class="flex-1 min-h-0 relative z-20 w-full mx-auto max-w-7xl flex flex-col gap-6"
+	>
 		<div
-			class="flex justify-between items-end border-b-2 pb-[clamp(5px,1vh,16px)] border-primary/30 h-[clamp(60px,10vh,100px)]"
+			class="flex justify-between items-end border-b-2 pb-3 border-primary/30 shrink-0"
 		>
 			<div class="flex items-center gap-4">
 				<img
@@ -119,9 +119,11 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full">
-			<div class="flex flex-col gap-6 w-full h-full">
-				<div class="gap-6 grid grid-cols-1 sm:grid-cols-2 w-full">
+		<div
+			class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full flex-1 min-h-0"
+		>
+			<div class="flex flex-col gap-6 w-full min-h-0">
+				<div class="gap-6 grid grid-cols-1 sm:grid-cols-2 w-full shrink-0">
 					<div class="relative group">
 						<div
 							class="absolute inset-0 bg-primary/20 translate-x-[4px] translate-y-[4px] rounded-md"
@@ -181,14 +183,14 @@
 					</div>
 				</div>
 
-				<div class="relative w-full h-full">
+				<div class="relative w-full flex-1 min-h-0">
 					<div
 						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md h-full"
+						class="relative flex flex-col bg-black/90 border-2 border-primary p-5 rounded-md h-full min-h-0"
 					>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 pb-3 shrink-0">
 							<Newspaper class="w-5 h-5 text-primary" />
 							<h2
 								class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
@@ -196,63 +198,35 @@
 								News & Updates
 							</h2>
 						</div>
-
-						<div class="flex flex-col gap-3 max-h-[340px] overflow-y-auto pr-1">
-							<!-- <div
-								class="border-l-2 border-primary/40 bg-zinc-950/50 p-3 rounded-r-md"
-							>
-								<span
-									class="text-[9px] font-bold text-primary tracking-widest uppercase"
-									>June 2026</span
-								>
-								<h3 class="text-xs font-bold text-zinc-200 mt-0.5">xfdxddfs</h3>
-								<p
-									class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
-								>
-									zdfszgerfdfbhgrtgdfv b
-								</p>
-							</div>
-
-							<div
-								class="border-l-2 border-zinc-700 bg-zinc-950/50 p-3 rounded-r-md"
-							>
-								<span
-									class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
-									>June 2026</span
-								>
-								<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
-									fgv cxffdcv
-								</h3>
-								<p
-									class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
-								>
-									gfgxdcdsxgfbxfsd
-								</p>
-							</div> -->
+						<div
+							class="flex-1 overflow-y-auto pr-1 text-zinc-400 text-sm no-scrollbar"
+						>
 							No news or updates currently....
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-6 w-full h-full">
-				<div class="relative w-full h-full">
+			<div class="flex flex-col gap-6 w-full min-h-0">
+				<div class="relative w-full flex-1 min-h-0">
 					<div
 						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md h-full"
+						class="relative flex flex-col bg-black/90 border-2 border-primary p-5 rounded-md h-full min-h-0"
 					>
 						<h2
-							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
+							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider pb-3 shrink-0"
 						>
 							Recent Mixes
 						</h2>
 
-						<div class="flex flex-col flex-1 gap-3 overflow-y-auto pr-1">
+						<div
+							class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 no-scrollbar"
+						>
 							{#each projects as project}
 								<div
-									class="bg-background/40 p-4 rounded-md border border-primary hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item"
+									class="bg-background/40 p-4 rounded-md border border-primary hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item shrink-0"
 								>
 									<div class="flex justify-between items-start gap-4">
 										<p
@@ -282,117 +256,113 @@
 
 						<a
 							href="/dashboard/projects"
-							class="self-end text-primary font-bold text-xs uppercase tracking-widest hover:underline mt-2 flex items-center gap-1"
+							class="self-end text-primary font-bold text-xs uppercase tracking-widest hover:underline pt-2 flex items-center gap-1 shrink-0"
 						>
 							View all mixes →
 						</a>
 					</div>
 				</div>
 
-				<div class="relative w-full">
+				<div class="relative w-full shrink-0">
 					<div
-						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
+						class="absolute inset-0 bg-primary/40 translate-x-[4px] translate-y-[4px] rounded-md"
 					></div>
 					<div
-						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md"
+						class="relative flex flex-col gap-3 bg-black/90 border-2 border-primary p-4 rounded-md"
 					>
 						<h2
-							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
+							class="font-alchemize font-black text-primary text-sm uppercase tracking-wider"
 						>
 							Inventory Currencies
 						</h2>
-
-						<div class="gap-4 grid grid-cols-2">
+						<div class="gap-3 grid grid-cols-2">
 							<div
-								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-2 bg-black/90 border border-primary/20 p-2 rounded-md"
 							>
-								<div class="bg-black/90 p-1.5 shrink-0 rounded">
+								<div class="bg-black/90 p-1 shrink-0 rounded">
 									<img
 										src="/alch-redstone.png"
 										alt="Redstone"
-										class="w-6 h-6 object-contain"
+										class="w-5 h-5 object-contain"
 									/>
 								</div>
 								<div class="min-w-0">
 									<p
-										class="text-zinc-400 text-[10px] uppercase font-bold tracking-wider truncate"
+										class="text-zinc-400 text-[9px] uppercase font-bold tracking-wider truncate"
 									>
 										Redstone
 									</p>
 									<p
-										class="font-alchemize font-black text-white text-lg leading-tight mt-0.5"
+										class="font-alchemize font-black text-white text-base leading-none mt-0.5"
 									>
 										{userCurrencies.redstone ?? 0}
 									</p>
 								</div>
 							</div>
-
 							<div
-								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-2 bg-black/90 border border-primary/20 p-2 rounded-md"
 							>
-								<div class="bg-black/90 p-1.5 shrink-0 rounded">
+								<div class="bg-black/90 p-1 shrink-0 rounded">
 									<img
 										src="/alch-glowstone.png"
 										alt="Glowstone"
-										class="w-6 h-6 object-contain"
+										class="w-5 h-5 object-contain"
 									/>
 								</div>
 								<div class="min-w-0">
 									<p
-										class="text-zinc-400 text-[10px] uppercase font-bold tracking-wider truncate"
+										class="text-zinc-400 text-[9px] uppercase font-bold tracking-wider truncate"
 									>
 										Glowstone
 									</p>
 									<p
-										class="font-alchemize font-black text-white text-lg leading-tight mt-0.5"
+										class="font-alchemize font-black text-white text-base leading-none mt-0.5"
 									>
 										{userCurrencies.glowstone ?? 0}
 									</p>
 								</div>
 							</div>
-
 							<div
-								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-2 bg-black/90 border border-primary/20 p-2 rounded-md"
 							>
-								<div class="bg-black/90 p-1.5 shrink-0 rounded">
+								<div class="bg-black/90 p-1 shrink-0 rounded">
 									<img
 										src="/alch-aquaregia.png"
 										alt="Aqua Regia"
-										class="w-6 h-6 object-contain"
+										class="w-5 h-5 object-contain"
 									/>
 								</div>
 								<div class="min-w-0">
 									<p
-										class="text-zinc-400 text-[10px] uppercase font-bold tracking-wider truncate"
+										class="text-zinc-400 text-[9px] uppercase font-bold tracking-wider truncate"
 									>
 										Aqua Regia
 									</p>
 									<p
-										class="font-alchemize font-black text-white text-lg leading-tight mt-0.5"
+										class="font-alchemize font-black text-white text-base leading-none mt-0.5"
 									>
 										{userCurrencies.aqua_regia ?? 0}
 									</p>
 								</div>
 							</div>
-
 							<div
-								class="flex items-center gap-3 bg-black/90 border border-primary/20 p-3 rounded-md"
+								class="flex items-center gap-2 bg-black/90 border border-primary/20 p-2 rounded-md"
 							>
-								<div class="bg-black/90 p-1.5 shrink-0 rounded">
+								<div class="bg-black/90 p-1 shrink-0 rounded">
 									<img
 										src="/Alchemize.png"
 										alt="Potion Mix"
-										class="w-6 h-6 object-contain"
+										class="w-5 h-5 object-contain"
 									/>
 								</div>
 								<div class="min-w-0">
 									<p
-										class="text-zinc-400 text-[10px] uppercase font-bold tracking-wider truncate"
+										class="text-zinc-400 text-[9px] uppercase font-bold tracking-wider truncate"
 									>
 										Potion Mix
 									</p>
 									<p
-										class="font-alchemize font-black text-white text-lg leading-tight mt-0.5"
+										class="font-alchemize font-black text-white text-base leading-none mt-0.5"
 									>
 										{userCurrencies.potion_mix ?? 0}
 									</p>
@@ -403,46 +373,48 @@
 				</div>
 			</div>
 		</div>
-	</div>
-</main>
+	</main>
 
-<div
-	class="w-[90%] md:w-[80%] max-w-5xl fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl"
->
-	<div class="mx-auto flex items-center justify-between gap-2 sm:gap-4">
+	<div class="w-full relative z-30 flex justify-center shrink-0">
 		<div
-			class="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar w-full"
+			class="w-full md:w-[80%] max-w-5xl bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl"
 		>
-			{#each navItems as item}
-				<a
-					href={item.href}
-					class="flex items-center gap-2 bg-black border-2 border-primary/30 px-3 py-2 rounded text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+			<div class="mx-auto flex items-center justify-between gap-2 sm:gap-4">
+				<div
+					class="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar w-full"
 				>
-					<svelte:component this={item.icon} class="w-4 h-4 stroke-2" />
-					<span
-						class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
-						>{item.label}</span
-					>
-				</a>
-			{/each}
+					{#each navItems as item}
+						<a
+							href={item.href}
+							class="flex items-center gap-2 bg-black border-2 border-primary/30 px-3 py-2 rounded text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+						>
+							<svelte:component this={item.icon} class="w-4 h-4 stroke-2" />
+							<span
+								class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
+								>{item.label}</span
+							>
+						</a>
+					{/each}
 
-			{#if !!data.admin}
-				<a
-					href="/admin"
-					class="flex items-center gap-2 bg-black border-2 border-red-500/30 px-3 py-2 rounded text-zinc-300 hover:text-red-400 hover:border-red-500 hover:bg-red-500/5 transition-all shadow-[2px_2px_0px_0px_rgba(239,68,68,0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+					{#if !!data.admin}
+						<a
+							href="/admin"
+							class="flex items-center gap-2 bg-black border-2 border-red-500/30 px-3 py-2 rounded text-zinc-300 hover:text-red-400 hover:border-red-500 hover:bg-red-500/5 transition-all shadow-[2px_2px_0px_0px_rgba(239,68,68,0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+						>
+							<ShieldUser class="w-4 h-4 stroke-2 text-red-500" />
+							<span
+								class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
+								>Admin</span
+							>
+						</a>
+					{/if}
+				</div>
+				<div
+					class="font-alchemize font-black uppercase text-xs tracking-widest text-primary/60 hidden md:block select-none shrink-0 pl-4"
 				>
-					<ShieldUser class="w-4 h-4 stroke-2 text-red-500" />
-					<span
-						class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
-						>Admin</span
-					>
-				</a>
-			{/if}
-		</div>
-		<div
-			class="font-alchemize font-black uppercase text-xs tracking-widest text-primary/60 hidden md:block select-none shrink-0 pl-4"
-		>
-			Quick Actions
+					Quick Actions
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
