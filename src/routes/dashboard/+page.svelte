@@ -87,7 +87,7 @@
 </svelte:head>
 
 <main
-	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:py-4 px-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden relative pb-32"
+	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:py-10 px-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden relative pb-10"
 >
 	<div class="fixed inset-0 bg-black/40 z-10 pointer-events-none"></div>
 
@@ -407,7 +407,7 @@
 </main>
 
 <div
-	class="w-[90%] md:w-[80%] max-w-5xl fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl shadow-[4px_4px_0px_0px_rgba(var(--primary),0.2)]"
+	class="w-[90%] md:w-[80%] max-w-5xl fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl"
 >
 	<div class="mx-auto flex items-center justify-between gap-2 sm:gap-4">
 		<div
