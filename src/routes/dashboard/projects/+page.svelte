@@ -70,9 +70,9 @@
 		const status = project.fields.status?.toLowerCase() ?? ""
 		if (status.startsWith("pending")) {
 			return {
-				dot: "bg-amber-500",
-				text: "text-amber-400",
-				title: "in review",
+				dot: "bg-white",
+				text: "text-white",
+				title: "pending review",
 			}
 		}
 		if (status.startsWith("rejected")) {
@@ -88,11 +88,11 @@
 				text: "text-emerald-400",
 				title: "approved",
 			}
-		}else if (status.startsWith("accepted")) {
+		} else if (status.startsWith("accepted")) {
 			return {
-				dot: "bg-amber-500",
-				text: "text-amber-400",
-				title: "in T2 Review",
+				dot: "bg-yellow-500",
+				text: "text-yellow-400",
+				title: "under review",
 			}
 		}
 		return {
