@@ -209,7 +209,7 @@
 								>
 									<span
 										class="text-[9px] font-bold text-primary tracking-widest uppercase"
-										>June 2026</span
+										>June 24th 2026</span
 									>
 									<h3 class="text-xs font-bold text-zinc-200 mt-0.5">
 										Shop Suggestions!
