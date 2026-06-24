@@ -73,8 +73,11 @@
 			if (entry.status === 1 && !entry.submmitedToHQ) {
 				let approvedBy = "T1 Reviewer: " + entry.message.at(-1)?.reviewerName
 				let userLogs = ``
-				for (const message of entry.message) {
-					userLogs += `User written logs: ${message.userExternal} \n`
+				for (const message of entry.message ) {
+					if (message.reviewerName === "user") {
+											userLogs += `User written logs: ${message.userExternal} \n`
+
+					}
 				}
 				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours`
 				let finalEnry = `${userLogs}${deltaTime} \nApproved by: ${approvedBy} \n\n`
@@ -149,10 +152,24 @@ Signed by ${data.name}, T2 Reviewer
 		airtableProjects?.filter(
 			project =>
 				wasEverApproved(project) &&
-				areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) ===
+				areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) !==
 					pending
 		) ?? []
 	)
+	
+		airtableProjects?.forEach(project => {
+		console.log(
+			"Filtered project: ",
+			project.fields.Name,
+			" | Was ever approved: ",
+			wasEverApproved(project),
+			" | All pushed to HQ: ",
+			areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]),
+			" | Pending: ",
+			pending
+		)
+	})
+	
 </script>
 
 <svelte:head>

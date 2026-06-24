@@ -72,7 +72,7 @@
 			return {
 				dot: "bg-amber-500",
 				text: "text-amber-400",
-				title: "pending",
+				title: "in review",
 			}
 		}
 		if (status.startsWith("rejected")) {
@@ -82,11 +82,17 @@
 				title: "changes needed",
 			}
 		}
-		if (status.startsWith("accepted")) {
+		if (status.startsWith("accepted_t2")) {
 			return {
 				dot: "bg-emerald-500",
 				text: "text-emerald-400",
 				title: "approved",
+			}
+		}else if (status.startsWith("accepted")) {
+			return {
+				dot: "bg-amber-500",
+				text: "text-amber-400",
+				title: "in T2 Review",
 			}
 		}
 		return {
