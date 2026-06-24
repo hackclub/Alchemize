@@ -39,6 +39,7 @@
 		ShoppingBasket,
 		Users,
 		Clock,
+		Newspaper,
 	} from "lucide-svelte"
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
@@ -70,6 +71,13 @@
 				return null
 		}
 	}
+
+	const navItems = [
+		{ href: "/dashboard/projects", label: "Projects", icon: Blocks },
+		{ href: "/dashboard/shop", label: "Shop", icon: ShoppingBasket },
+		{ href: "/dashboard/trade", label: "Trade", icon: ArrowRightLeft },
+		{ href: "/refer", label: "Refer!", icon: Users },
+	]
 </script>
 
 <svelte:head>
@@ -79,15 +87,15 @@
 </svelte:head>
 
 <main
-	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden"
+	class="min-h-screen w-full bg-gradbg text-foreground p-4 md:py-4 px-10 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground overflow-x-hidden relative pb-32"
 >
-	<div class="fixed inset-0 bg-black/90/40 z-10"></div>
-	<div class="relative z-50 mx-auto flex flex-col gap-8">
+	<div class="fixed inset-0 bg-black/40 z-10 pointer-events-none"></div>
+
+	<div class="relative z-20 mx-auto flex flex-col gap-8">
 		<div
 			class="flex justify-between items-end border-b-2 pb-[clamp(5px,1vh,16px)] border-primary/30 h-[clamp(60px,10vh,100px)]"
 		>
 			<div class="flex items-center gap-4">
-				<!-- svelte-ignore a11y_img_redundant_alt -->
 				<img
 					alt="Profile Picture"
 					src={data.pfp}
@@ -180,6 +188,61 @@
 					<div
 						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md h-full"
 					>
+						<div class="flex items-center gap-2">
+							<Newspaper class="w-5 h-5 text-primary" />
+							<h2
+								class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
+							>
+								News & Updates
+							</h2>
+						</div>
+
+						<div class="flex flex-col gap-3 max-h-[340px] overflow-y-auto pr-1">
+							<!-- <div
+								class="border-l-2 border-primary/40 bg-zinc-950/50 p-3 rounded-r-md"
+							>
+								<span
+									class="text-[9px] font-bold text-primary tracking-widest uppercase"
+									>June 2026</span
+								>
+								<h3 class="text-xs font-bold text-zinc-200 mt-0.5">xfdxddfs</h3>
+								<p
+									class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
+								>
+									zdfszgerfdfbhgrtgdfv b
+								</p>
+							</div>
+
+							<div
+								class="border-l-2 border-zinc-700 bg-zinc-950/50 p-3 rounded-r-md"
+							>
+								<span
+									class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
+									>June 2026</span
+								>
+								<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
+									fgv cxffdcv
+								</h3>
+								<p
+									class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
+								>
+									gfgxdcdsxgfbxfsd
+								</p>
+							</div> -->
+							No news or updates currently....
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="flex flex-col gap-6 w-full h-full">
+				<div class="relative w-full h-full">
+					<div
+						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
+					></div>
+					<div
+						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md h-full"
+					>
 						<h2
 							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
 						>
@@ -189,7 +252,7 @@
 						<div class="flex flex-col flex-1 gap-3 overflow-y-auto pr-1">
 							{#each projects as project}
 								<div
-									class="bg-black/90 p-4 rounded-md hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item"
+									class="bg-background/40 p-4 rounded-md border border-primary hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item"
 								>
 									<div class="flex justify-between items-start gap-4">
 										<p
@@ -223,82 +286,6 @@
 						>
 							View all mixes →
 						</a>
-					</div>
-				</div>
-			</div>
-
-			<div class="flex flex-col gap-6 w-full h-full">
-				<div class="relative w-full">
-					<div
-						class="absolute inset-0 bg-primary/40 translate-x-[6px] translate-y-[6px] rounded-md"
-					></div>
-					<div
-						class="relative flex flex-col gap-4 bg-black/90 border-2 border-primary p-5 rounded-md"
-					>
-						<h2
-							class="font-alchemize font-black text-primary text-lg uppercase tracking-wider"
-						>
-							Quick Actions
-						</h2>
-						<div class="flex gap-x-4 w-full h-full">
-							<div class="gap-4 grid grid-cols-2 w-full">
-								<a
-									href="/dashboard/projects"
-									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
-								>
-									<Blocks class="w-6 h-6 stroke-2" />
-									<span
-										class="font-alchemize font-bold text-xs uppercase tracking-wider"
-										>Projects</span
-									>
-								</a>
-
-								<a
-									href="/dashboard/shop"
-									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
-								>
-									<ShoppingBasket class="w-6 h-6 stroke-2" />
-									<span
-										class="font-alchemize font-bold text-xs uppercase tracking-wider"
-										>Shop</span
-									>
-								</a>
-
-								<a
-									href="/dashboard/trade"
-									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
-								>
-									<ArrowRightLeft class="w-6 h-6 stroke-2" />
-									<span
-										class="font-alchemize font-bold text-xs uppercase tracking-wider"
-										>Trade</span
-									>
-								</a>
-
-								<a
-									href="/refer"
-									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5"
-								>
-									<Users class="w-6 h-6 stroke-2" />
-									<span
-										class="font-alchemize font-bold text-xs uppercase tracking-wider"
-										>Refer!</span
-									>
-								</a>
-							</div>
-							{#if !!data.admin}
-								<a
-									href="/admin"
-									class="flex flex-col justify-center items-center gap-2 bg-black/90 border-2 border-primary/40 p-4 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.15)] active:translate-x-0.5 active:translate-y-0.5 grid-cols-1"
-								>
-									<ShieldUser class="w-6 h-6 stroke-2" />
-									<span
-										class="font-alchemize font-bold text-xs uppercase tracking-wider"
-										>Admin</span
-									>
-								</a>
-							{/if}
-						</div>
 					</div>
 				</div>
 
@@ -419,6 +406,47 @@
 	</div>
 </main>
 
+<div
+	class="w-[90%] md:w-[80%] max-w-5xl fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl shadow-[4px_4px_0px_0px_rgba(var(--primary),0.2)]"
+>
+	<div class="mx-auto flex items-center justify-between gap-2 sm:gap-4">
+		<div
+			class="flex items-center gap-1 sm:gap-3 overflow-x-auto no-scrollbar w-full"
+		>
+			{#each navItems as item}
+				<a
+					href={item.href}
+					class="flex items-center gap-2 bg-black border-2 border-primary/30 px-3 py-2 rounded text-zinc-300 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+				>
+					<svelte:component this={item.icon} class="w-4 h-4 stroke-2" />
+					<span
+						class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
+						>{item.label}</span
+					>
+				</a>
+			{/each}
+
+			{#if !!data.admin}
+				<a
+					href="/admin"
+					class="flex items-center gap-2 bg-black border-2 border-red-500/30 px-3 py-2 rounded text-zinc-300 hover:text-red-400 hover:border-red-500 hover:bg-red-500/5 transition-all shadow-[2px_2px_0px_0px_rgba(239,68,68,0.1)] active:translate-x-0.5 active:translate-y-0.5 shrink-0"
+				>
+					<ShieldUser class="w-4 h-4 stroke-2 text-red-500" />
+					<span
+						class="font-alchemize font-bold text-[11px] uppercase tracking-wider hidden sm:inline"
+						>Admin</span
+					>
+				</a>
+			{/if}
+		</div>
+		<div
+			class="font-alchemize font-black uppercase text-xs tracking-widest text-primary/60 hidden md:block select-none shrink-0 pl-4"
+		>
+			Quick Actions
+		</div>
+	</div>
+</div>
+
 <style>
 	.bg-gradbg {
 		background: linear-gradient(
@@ -427,5 +455,13 @@
 			#1a090c,
 			#2e030f
 		);
+	}
+
+	:global(.no-scrollbar::-webkit-scrollbar) {
+		display: none;
+	}
+	:global(.no-scrollbar) {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
 	}
 </style>
