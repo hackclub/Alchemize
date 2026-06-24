@@ -5,8 +5,8 @@ import { integer, pgTable, varchar, uuid, jsonb, boolean, real } from "drizzle-o
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-// import { DATABASE_URL } from "$env/static/private"
-const DATABASE_URL = process.env.DATABASE_URL;
+import { DATABASE_URL } from "$env/static/private"
+// const DATABASE_URL = process.env.DATABASE_URL;
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -444,29 +444,29 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
 }
 export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
 
-    if (!projectData.screenshot){
+    if (!projectData.screenshot) {
         var allowedUpdates: Record<string, any> = {
-        Name: projectData.Name ,
-        description: projectData.description,
-        type: projectData.type ?? "",
-        demo: projectData.demo ?? "",
-        code: projectData.code ?? "",
-        hackatime: projectData.hackatime ?? "",
-        update: projectData.update ?? "",
-        Theme: projectData.Theme ?? "",
-    };
-    }else{
+            Name: projectData.Name,
+            description: projectData.description,
+            type: projectData.type ?? "",
+            demo: projectData.demo ?? "",
+            code: projectData.code ?? "",
+            hackatime: projectData.hackatime ?? "",
+            update: projectData.update ?? "",
+            Theme: projectData.Theme ?? "",
+        };
+    } else {
         var allowedUpdates: Record<string, any> = {
-        Name: projectData.Name,
-        description: projectData.description ?? "",
-        type: projectData.type ?? "",
-        demo: projectData.demo ?? "",
-        code: projectData.code ?? "",
-        hackatime: projectData.hackatime ?? "",
-        update: projectData.update ?? "",
-        screenshot: projectData.screenshot ?? "",
-        Theme: projectData.Theme ?? "",
-    };
+            Name: projectData.Name,
+            description: projectData.description ?? "",
+            type: projectData.type ?? "",
+            demo: projectData.demo ?? "",
+            code: projectData.code ?? "",
+            hackatime: projectData.hackatime ?? "",
+            update: projectData.update ?? "",
+            screenshot: projectData.screenshot ?? "",
+            Theme: projectData.Theme ?? "",
+        };
     }
 
 
