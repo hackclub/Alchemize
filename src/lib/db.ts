@@ -477,6 +477,37 @@ export const getAllProjects = async (): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
+    // Explicitly select only non-sensitive fields
+    const projects = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        type: projectTable.type,
+        description: projectTable.description,
+        owner: projectTable.owner,
+        log: projectTable.log,
+        languages: projectTable.languages,
+        journals: projectTable.journals,
+        hackatime: projectTable.hackatime,
+        update: projectTable.update,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        Theme: projectTable.Theme,
+        slackId: projectTable.slackId,
+        status: projectTable.status,
+        screenshot: projectTable.screenshot,
+        unifiedId: projectTable.unifiedId
+    }).from(projectTable);
+
+    const records = projects.map(project => ({ id: project.id + "", fields: project }));
+
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
 export const createProject = async (projectData: any): Promise<DBResponse> => {
     const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot } = projectData
     const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot }).returning();
