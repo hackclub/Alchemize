@@ -466,7 +466,6 @@ export const getAllProjects = async (): Promise<DBResponse> => {
         slackId: projectTable.slackId,
         status: projectTable.status,
         screenshot: projectTable.screenshot,
-        unifiedId: projectTable.unifiedId
     }).from(projectTable);
 
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
