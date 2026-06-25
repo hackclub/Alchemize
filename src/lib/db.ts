@@ -69,6 +69,7 @@ export const adminTable = pgTable("admins", {
 })
 export const justifications = pgTable("justifications", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar({ length: 255 }).notNull().default(""),
     projectId: varchar({ length: 255 }).notNull(),
     email: varchar({ length: 455 }).notNull(),
     demo: varchar({ length: 1000 }).notNull(),
@@ -814,6 +815,7 @@ export const getAllUsers = async (): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const addToJustifications = async (justificationData: {
+    name: string,
     projectId: string,
     email: string,
     demo: string,
@@ -831,8 +833,8 @@ export const addToJustifications = async (justificationData: {
     firstName: string,
     lastName: string
 }): Promise<DBResponse> => {
-    const { projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName } = justificationData
-    const newJustification = await db.insert(justifications).values({ projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName }).returning();
+    const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName } = justificationData
+    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName }).returning();
     return {
         ok: true,
         status: 201,

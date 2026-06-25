@@ -25,44 +25,9 @@ function updateLog(log: Log[], deltaTime: number, userExternal: string, name: st
 
 
 }
-async function updateUserCurrency(amount: number, userEmailId: string, currencyType: keyof UserCurrency) {
-    const response = await getUserByEmail(userEmailId)
-    if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(`Failed to fetch user: ${errorData.error.message}`)
-    }
-    const data = await response.json()
-    if (data.records.length === 0) {
-        throw new Error("User not found")
-    }
 
-    const userRecord = data.records[0]
-    const currentCurrency = JSON.parse(userRecord.fields.currency) || {} as UserCurrency
-    currentCurrency[currencyType] = (currentCurrency[currencyType] || 0) + amount
-    const [updateResponse, ledgerResp] = await Promise.all([patchUserCurrency(userRecord.fields.email, currentCurrency), addLedgerEntry({
-        email: userRecord.fields.email,
-        slackId: userRecord.fields.slackId,
-        sign: true,
-        amount: amount,
-        currencyType: currencyType,
-        reason: "review-accept",
-        remarks: `Added ${amount} ${currencyType} for project approval`
-    })])
-    if (!updateResponse.ok) {
-        const errorData = await updateResponse.json()
-        console.error("Failed to update user currency:", {
-            status: updateResponse.status,
-            error: errorData,
-            timestamp: new Date().toISOString()
-        })
-        throw new Error(`Failed to update user currency: ${errorData.error.message}`)
-    }
-}
 //@ts-ignore
-const themeToKeys = (theme: string): keyof UserCurrency => {
-    const themeMap = themeCurrencyMaps as Record<string, keyof UserCurrency>
-    return themeMap[theme]
-};
+
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const adminJWTToken = cookies.get("admin_jwt")
     if (!adminJWTToken) {
@@ -85,22 +50,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const oldLog = JSON.parse(log) as Log[]
     const [newLog, newDeltaTime] = updateLog(oldLog, -decreaseTime, userExternal, approver, internalNote, justification)
-    const logJson = JSON.stringify(newLog)
-    const currencyType = themeToKeys(theme)
 
-    const [response, userCurrency, botResponse] = await Promise.all([
+
+    const [response] = await Promise.all([
         patchProjectForShip(recordId, newLog, "accepted"),
-        updateUserCurrency(Math.floor(newDeltaTime / 60), userEmailId, currencyType),
-        fetch("https://aoishik.qzz.io/review-accept", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${BOT_AUTH}`
-            },
-            body: JSON.stringify(
-                { "user_id": slackId, "project_name": projectName, "project_link": projectLink, "reviewer_id": decoded.slackId, "feedback": userExternal, "currencies": `${Math.floor(newDeltaTime / 60)} ${currencyType}` }
-            )
-        })
+
 
 
     ])
@@ -116,18 +70,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 
 
-    if (!botResponse.ok) {
-        console.warn(`Failed to send notification to bot for record ${recordId}:`, {
-            status: botResponse.status,
-            statusText: botResponse.statusText,
-            timestamp: new Date().toISOString(),
-            slackId: slackId,
-            projectName: projectName,
-            projectLink: projectLink
-        })
-        return new Response(JSON.stringify({ message: "Bot Failed to send notification", newLog: newLog }), { status: 207 })
 
-    }
     return new Response(JSON.stringify({ message: "Project accepted and user currency updated successfully", newLog: newLog }), { status: 200 })
 
 }

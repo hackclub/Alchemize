@@ -1,10 +1,10 @@
 import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
-import { ADMIN_JWT_SECRET } from "$env/static/private"
+import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
 import type { RequestHandler } from "./$types";
-import type { Log,  AdminJWT, AdminProjectView, Address } from "$lib/types";
-import { getProjectById, patchProjectForShip, addToJustifications } from "$lib/db";
-
+import type { Log,  AdminJWT, AdminProjectView, Address, UserCurrency } from "$lib/types";
+import { getProjectById, patchProjectForShip, addToJustifications, getUserByEmail, patchUserCurrency, addLedgerEntry} from "$lib/db";
+import {themeCurrencyMaps} from "$lib/themeCurrencyMaps"
 const checkSubmittedToHQ = (log: Log[], justification: string, reviewerName: string): Log[] => {
     let newLog = log.map(entry => {
         if (entry.status === 1 && !entry.submmitedToHQ) {
@@ -32,6 +32,39 @@ const parseAddress = (address: string) => {
     
     return JSON.parse(address)[0] as Address
 }
+async function updateUserCurrency(amount: number, userEmailId: string, currencyType: keyof UserCurrency) {
+    const response = await getUserByEmail(userEmailId)
+    if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`Failed to fetch user: ${errorData.error.message}`)
+    }
+    const data = await response.json()
+    if (data.records.length === 0) {
+        throw new Error("User not found")
+    }
+
+    const userRecord = data.records[0]
+    const currentCurrency = JSON.parse(userRecord.fields.currency) || {} as UserCurrency
+    currentCurrency[currencyType] = (currentCurrency[currencyType] || 0) + amount
+    const [updateResponse, ledgerResp] = await Promise.all([patchUserCurrency(userRecord.fields.email, currentCurrency), addLedgerEntry({
+        email: userRecord.fields.email,
+        slackId: userRecord.fields.slackId,
+        sign: true,
+        amount: amount,
+        currencyType: currencyType,
+        reason: "review-accept",
+        remarks: `Added ${amount} ${currencyType} for project approval`
+    })])
+    if (!updateResponse.ok) {
+        const errorData = await updateResponse.json()
+        console.error("Failed to update user currency:", {
+            status: updateResponse.status,
+            error: errorData,
+            timestamp: new Date().toISOString()
+        })
+        throw new Error(`Failed to update user currency: ${errorData.error.message}`)
+    }
+}
 const calculateNewHours = (log: Log[]) => {
     let minsSpent = 0 
     log.forEach(entry => {
@@ -41,6 +74,10 @@ const calculateNewHours = (log: Log[]) => {
     })
     return Math.floor(minsSpent / 60)
 }
+const themeToKeys = (theme: string): keyof UserCurrency => {
+    const themeMap = themeCurrencyMaps as Record<string, keyof UserCurrency>
+    return themeMap[theme]
+};
 export const POST: RequestHandler = async ({ request, cookies }) => {
         const adminJWTToken = cookies.get("admin_jwt")
         if (!adminJWTToken) {
@@ -64,27 +101,40 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         const log = JSON.parse(project.fields.log) as Log[]
         const newLog = checkSubmittedToHQ(log, justification, decoded.name)
         const address = parseAddress(project.fields.address || "")
-        
-        const [patchResponse, sendToJustificationResponse] = await Promise.all([
+            
+    const currencyType = themeToKeys(project.fields.Theme)
+        const [patchResponse, sendToJustificationResponse, updateUserCurrencyResponse, botResponse] = await Promise.all([
             patchProjectForShip(projectId, newLog, "accepted_t2"),
             addToJustifications({
-            projectId,
-            email: project.fields.owner,
-            demo: project.fields.demo || "",
-            code: project.fields.code || "",
-            description: project.fields.description,
-            screenshot: project.fields.screenshot,
-            address: address.line_1 ?? "",
-            city: address.city ?? "",
-            state: address.state ?? "",
-            country: address.country ?? "",
+                name: project.fields.Name,
+                projectId,
+                email: project.fields.owner,
+                demo: project.fields.demo || "",
+                code: project.fields.code || "",
+                description: project.fields.description,
+                screenshot: project.fields.screenshot,
+                address: address.line_1 ?? "",
+                city: address.city ?? "",
+                state: address.state ?? "",
+                country: address.country ?? "",
             zip: address.postal_code ?? "",
             birthdate: project.fields.birthdate || "",
             overrideHoursSpent: (calculateNewHours(log) - subtraction) + "",
             justification: justification,
             firstName: project.fields.firstName,
             lastName: project.fields.lastName
-        })
+        }),
+                updateUserCurrency((calculateNewHours(log) - subtraction), project.fields.owner, currencyType),
+                fetch("https://aoishik.qzz.io/review-accept", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${BOT_AUTH}`
+                    },
+                    body: JSON.stringify(
+                        { "user_id": project.fields.slackId, "project_name": project.fields.Name, "project_link": project.fields.code, "reviewer_id": "U0B18V07GQ3", "feedback": log.at(-1)?.message.at(-1)?.userExternal || "", "currencies": `${calculateNewHours(log) - subtraction} ${currencyType}` }
+                    )
+                })
         ])
        
         if (!patchResponse.ok) {
@@ -93,6 +143,18 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         if (!sendToJustificationResponse.ok) {
             return error(500, "Failed to send justification")
         }
+            if (!botResponse.ok) {
+        console.warn(`Failed to send notification to bot for record ${project.id}:`, {
+            status: botResponse.status,
+            statusText: botResponse.statusText,
+            timestamp: new Date().toISOString(),
+            slackId: project.fields.slackId,
+            projectName: project.fields.Name,
+            projectLink: project.fields.code
+        })
+        return new Response(JSON.stringify({ message: "Bot Failed to send notification", newLog: newLog }), { status: 207 })
+
+    }
         return new Response(JSON.stringify({message: "Project sent to HQ successfully"}), {status: 200})
         
 }
