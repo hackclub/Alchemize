@@ -5,8 +5,8 @@ import { integer, pgTable, varchar, uuid, jsonb, boolean, real } from "drizzle-o
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-import { DATABASE_URL } from "$env/static/private"
-// const DATABASE_URL = process.env.DATABASE_URL;
+// import { DATABASE_URL } from "$env/static/private"
+const DATABASE_URL = process.env.DATABASE_URL;
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -402,7 +402,11 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
 
 //Refer Functions
 export const getAllRefers = async (): Promise<DBResponse> => {
-    const refers = await db.select().from(refersTable);
+    const refers = await db.select({
+        id: refersTable.id,
+        referer: refersTable.referer,
+        referedName: refersTable.referedName
+    }).from(refersTable);
     const records = refers.map(refer => ({ id: refer.id + "", fields: refer }));
     return {
         ok: true,
