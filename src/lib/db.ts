@@ -423,8 +423,29 @@ export const createReferRecord = async (referedEmail: string, referer: string, y
 
 //Project Functions
 export const getAllProjects = async (): Promise<DBResponse> => {
-    const projects = await db.select().from(projectTable);
+    // Explicitly select only non-sensitive fields
+    const projects = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        type: projectTable.type,
+        description: projectTable.description,
+        owner: projectTable.owner,
+        log: projectTable.log,
+        languages: projectTable.languages,
+        journals: projectTable.journals,
+        hackatime: projectTable.hackatime,
+        update: projectTable.update,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        Theme: projectTable.Theme,
+        slackId: projectTable.slackId,
+        status: projectTable.status,
+        screenshot: projectTable.screenshot,
+        unifiedId: projectTable.unifiedId
+    }).from(projectTable);
+
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
+
     return {
         ok: true,
         status: 200,
