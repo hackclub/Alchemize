@@ -435,8 +435,7 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
         Theme: projectTable.Theme,
         slackId: projectTable.slackId,
         status: projectTable.status,
-        screenshot: projectTable.screenshot,
-        unifiedId: projectTable.unifiedId
+        screenshot: projectTable.screenshot
     }
     ).from(projectTable).where(eq(projectTable.owner, owner));
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
