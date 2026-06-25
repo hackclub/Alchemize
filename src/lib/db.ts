@@ -389,16 +389,6 @@ export const patchUserCurrency = async (email: string, currency: UserCurrency): 
         text: async () => JSON.stringify({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
     } as DBResponse;
 }
-export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => {
-    const projects = await db.select().from(projectTable).where(eq(projectTable.owner, owner));
-    const records = projects.map(project => ({ id: project.id + "", fields: project }));
-    return {
-        ok: true,
-        status: 200,
-        json: async () => ({ records }),
-        text: async () => JSON.stringify({ records }),
-    } as DBResponse;
-}
 
 //Refer Functions
 export const getAllRefers = async (): Promise<DBResponse> => {
@@ -426,6 +416,37 @@ export const createReferRecord = async (referedEmail: string, referer: string, y
 }
 
 //Project Functions
+export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => {
+    const projects = await db.select(
+        {
+        id: projectTable.id,
+        Name: projectTable.Name,
+        type: projectTable.type,
+        description: projectTable.description,
+        owner: projectTable.owner,
+        log: projectTable.log,
+        languages: projectTable.languages,
+        journals: projectTable.journals,
+        hackatime: projectTable.hackatime,
+        update: projectTable.update,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        Theme: projectTable.Theme,
+        slackId: projectTable.slackId,
+        status: projectTable.status,
+        screenshot: projectTable.screenshot,
+        unifiedId: projectTable.unifiedId
+    }
+    ).from(projectTable).where(eq(projectTable.owner, owner));
+    const records = projects.map(project => ({ id: project.id + "", fields: project }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
+
 export const getAllProjects = async (): Promise<DBResponse> => {
     // Explicitly select only non-sensitive fields
     const projects = await db.select({
