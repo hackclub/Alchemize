@@ -133,9 +133,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
 	const deltaTime = hackatimeTime - recordedTime
 	//DISABLED to prevent users from getting blocked by simple updates
-	// if (deltaTime <= 0) {
-	// 	return new Response("No new time recorded since last ship", { status: 400 })
-	// }
+	// // if (deltaTime <= 0) {
+	// // 	return new Response("No new time recorded since last ship", { status: 400 })
+	// // }
 
 	const userData = decoded ? (decoded as any) : null;
 	if (projectData.fields.owner) {

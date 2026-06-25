@@ -32,11 +32,19 @@ export const load: PageServerLoad = async ({ cookies }) => {
         cdnImage: record.fields.cdnImage,
     }));
     
-
+    
     const userData = await userResponse.json();
     const userRecord = userData.records[0];
+    const formatedUserRecord = {
+        id: userRecord.id,
+        fields: {
+            email: userRecord.fields.email,
+            slackId: userRecord.fields.slackId,
+            currency: userRecord.fields.currency ,
+        }
+    }
     return {
         items,
-        userRecord
+        userRecord: formatedUserRecord
     }
 }
