@@ -218,7 +218,12 @@
 										class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
 									>
 										Go suggest new items to be added to the shop every week from
-										the <a href="/dashboard/shop" class="font-bold text-primary italic"> shop </a> page!
+										the <a
+											href="/dashboard/shop"
+											class="font-bold text-primary italic"
+										>
+											shop
+										</a> page!
 									</p>
 								</div>
 
@@ -262,34 +267,39 @@
 						<div
 							class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 no-scrollbar"
 						>
-							{#each projects as project}
-								<div
-									class="bg-background/40 p-4 rounded-md border border-primary hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item shrink-0"
-								>
-									<div class="flex justify-between items-start gap-4">
-										<p
-											class="font-alchemize font-bold text-white text-sm tracking-wide group-hover/item:text-primary transition-colors"
-										>
-											{project.fields.Name || "Untitled Project"}
-										</p>
-										<span
-											class="text-[11px] font-bold text-zinc-400 flex items-center gap-1 shrink-0"
-										>
-											<Clock class="size-3.5 text-primary" />
-											{formatHours(
-												hackSecondsByName.get(project.fields.hackatime ?? "") ??
-													0
-											)}h
-										</span>
-									</div>
-									<p
-										class="text-zinc-500 text-[11px] font-sans tracking-normal line-clamp-1 flex gap-2"
+							{#if projects}
+								{#each projects as project}
+									<div
+										class="bg-background/40 p-4 rounded-md border border-primary hover:border-primary/70 transition-colors cursor-pointer flex flex-col justify-between gap-2 group/item shrink-0"
 									>
-										{@html renderBadge(project.fields.Theme) ??
-											project.fields.type}
-									</p>
-								</div>
-							{/each}
+										<div class="flex justify-between items-start gap-4">
+											<p
+												class="font-alchemize font-bold text-white text-sm tracking-wide group-hover/item:text-primary transition-colors"
+											>
+												{project.fields.Name || "Untitled Project"}
+											</p>
+											<span
+												class="text-[11px] font-bold text-zinc-400 flex items-center gap-1 shrink-0"
+											>
+												<Clock class="size-3.5 text-primary" />
+												{formatHours(
+													hackSecondsByName.get(
+														project.fields.hackatime ?? ""
+													) ?? 0
+												)}h
+											</span>
+										</div>
+										<p
+											class="text-zinc-500 text-[11px] font-sans tracking-normal line-clamp-1 flex gap-2"
+										>
+											{@html renderBadge(project.fields.Theme) ??
+												project.fields.type}
+										</p>
+									</div>
+								{/each}
+							{:else}
+								<div>No projects yet.....</div>
+							{/if}
 						</div>
 
 						<a
