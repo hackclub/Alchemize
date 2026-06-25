@@ -23,7 +23,9 @@
 	let justificationOpen = $state(false)
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
+		console.log("Checking if project was ever approved:", project.fields.Name)
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
+		console.log("Checking if project was ever approved:", project.fields.Name)
 		return logs.some(log => log.status === 1)
 	}
 	let currentProject = $state({} as AdminProject)
@@ -152,7 +154,7 @@ Signed by ${data.name}, T2 Reviewer
 		airtableProjects?.filter(
 			project =>
 				wasEverApproved(project) &&
-				areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]) !==
+				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) !==
 					pending
 		) ?? []
 	)
@@ -164,7 +166,7 @@ Signed by ${data.name}, T2 Reviewer
 			" | Was ever approved: ",
 			wasEverApproved(project),
 			" | All pushed to HQ: ",
-			areAllPushedToHQ(JSON.parse(project.fields.log ?? "[]") as Log[]),
+			areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]),
 			" | Pending: ",
 			pending
 		)
