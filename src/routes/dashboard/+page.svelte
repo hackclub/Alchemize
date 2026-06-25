@@ -218,7 +218,7 @@
 										class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
 									>
 										Go suggest new items to be added to the shop every week from
-										the shop page!
+										the <a href="/dashboard/shop" class="font-bold text-primary italic"> shop </a> page!
 									</p>
 								</div>
 
