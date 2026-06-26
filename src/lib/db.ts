@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real} from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -38,7 +38,7 @@ export const projectTable = pgTable("projects", {
     lastName: varchar({ length: 255 }).notNull(),
     screenshot: varchar({ length: 1000 }).notNull(),
     unifiedId: uuid().notNull().unique().defaultRandom(),
-
+    encryptionIv: varchar({ length: 255 }).notNull().default(""),
 })
 export const refersTable = pgTable("refers", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -509,8 +509,8 @@ export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const createProject = async (projectData: any): Promise<DBResponse> => {
-    const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot } = projectData
-    const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot }).returning();
+    const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, iv } = projectData
+    const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, encryptionIv: iv }).returning();
     return {
         ok: true,
         status: 201,

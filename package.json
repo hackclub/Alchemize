@@ -46,7 +46,6 @@
 		"drizzle-orm": "^0.45.2",
 		"js-cookie": "^3.0.7",
 		"jsonwebtoken": "^9.0.3",
-		"jwt-decode": "^4.0.0",
 		"lucide-svelte": "^1.0.1",
 		"marked": "^18.0.5",
 		"p-limit": "^7.3.0",

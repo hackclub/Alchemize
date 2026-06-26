@@ -1,12 +1,14 @@
 import type { Actions, PageServerLoad } from "./$types"
-import { jwtDecode } from "jwt-decode"
+import crypto from "crypto"
 import { env } from "$env/dynamic/private"
-import { getDataFromAccessToken, hackatimeAuthUrl } from "$lib/utils"
+import { getDataFromAccessToken, hackatimeAuthUrl} from "$lib/utils"
+import {encryptAES} from "$lib/utils.server"
 import {
 	getProjectsByOwner,
 	createProject,
 	updateProject,
 	getUserByEmail,
+	
 } from "$lib/db"
 import { USER_JWT_SECRET } from "$env/static/private"
 import type {
@@ -55,6 +57,7 @@ export const actions = {
 		const tempFormData = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		let url = ""
+		let iv = crypto.randomBytes(16).toString("hex")
 		if (screenshot && screenshot.size > 0) {
 			tempFormData.append("file", screenshot)
 			var [cdnResponse, userData] = await Promise.all([
@@ -85,7 +88,10 @@ export const actions = {
 		} else {
 			var userData = await getDataFromAccessToken(accessToken)
 		}
-
+		const addressEncrypted = encryptAES(JSON.stringify(userData.address || []), Buffer.from(iv, "hex"))
+		const bdayEncrypted = encryptAES(userData.birthday || "", Buffer.from(iv, "hex"))
+		const firstNameEncrypted = encryptAES(userData.first_name || "", Buffer.from(iv, "hex"))
+		const lastNameEncrypted = encryptAES(userData.last_name || "", Buffer.from(iv, "hex"))
 		const response = await createProject({
 			Name: projectName,
 			description: projectDescription ?? "",
@@ -100,12 +106,13 @@ export const actions = {
 			journals: "",
 			owner: email,
 			Theme: theme ?? "",
-			address: JSON.stringify(userData.address || []),
-			birthdate: userData.birthday || "",
+			address: addressEncrypted.finalString,
+			birthdate: bdayEncrypted.finalString,
 			slackId: slackId,
-			firstName: data.first_name,
-			lastName: data.last_name,
+			firstName: firstNameEncrypted.finalString,
+			lastName: lastNameEncrypted.finalString,
 			screenshot: url,
+			iv: iv,
 		})
 
 		// Error handling
