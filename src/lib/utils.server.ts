@@ -1,4 +1,8 @@
-import { PII_ENCRYPTION_KEY } from "$env/static/private"
+// import { PII_ENCRYPTION_KEY } from "$env/static/private"
+import dotenv from "dotenv"
+dotenv.config()
+const  PII_ENCRYPTION_KEY  = process.env.PII_ENCRYPTION_KEY || "default_key_32_bytes_long_1234567890"; // Ensure this is 32 bytes for AES-256
+// console.log("PII_ENCRYPTION_KEY:", PII_ENCRYPTION_KEY); // Debugging line to check the key
 import crypto from "crypto"
 export const encryptAES = (text: string, iv: Buffer) => {
 	const algorithm = 'aes-256-gcm';
