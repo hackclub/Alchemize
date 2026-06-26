@@ -4,9 +4,9 @@ import { hackatimeAuthUrl } from "$lib/utils"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
-import { jwtDecode } from "jwt-decode"
 import type { AirtableUser } from "$lib/types"
 import jwt from "jsonwebtoken"
+import crypto from "crypto"
 import { createNewUser, getUserByEmail, createReferRecord } from "$lib/db"
 const XORdecrypt = (textInp: string) => {
 	const tb = Buffer.from(textInp, "base64")
@@ -35,7 +35,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// user_token: JWT containing user information, used for authentication and authorization in the app
 	// access_token_new: The access token from Hack Club OAuth, used for making authenticated requests to Hack Club API
 	// NON HTTPONLY -> hackatime_verified: A flag to indicate if the user has a verified Hackatime account, used for conditional rendering and features
-	// hackatime_token: The user's Hackatime token, used for integrating Hackatime features in the app
 	// slack_id: The user's Slack ID from Hack Club, used for Slack integration features in the app
 	// Hackatime Token stored for 1 year
 	// User Token stored for 4 months
@@ -57,7 +56,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		throw error(500, "Missing OAuth environment variables")
 	}
 
-	const tokenResponse = await fetch("https://auth.hackclub.com/oauth/token", {
+	const [tokenResponse, keysResponse] = await Promise.all([fetch("https://auth.hackclub.com/oauth/token", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -69,10 +68,15 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			code,
 			grant_type: "authorization_code",
 		}),
+	}),
+	fetch("https://auth.hackclub.com/oauth/discovery/keys")])
+
+	const [tokenBody, keysBody] = await Promise.all([tokenResponse.json(), keysResponse.json()])
+	const jwk = keysBody.keys[0]
+	const publicKey = crypto.createPublicKey({
+		key: jwk,
+		format:"jwk",
 	})
-
-	const tokenBody = await tokenResponse.json()
-
 	if (!tokenResponse.ok) {
 		console.error("Token exchange failed:", tokenBody)
 		throw error(
@@ -80,7 +84,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			tokenBody?.message ?? "Token exchange failed"
 		)
 	}
-	const decodedToken: any = jwtDecode(tokenBody.id_token)
+	const decodedToken: any = jwt.verify(tokenBody.id_token, publicKey, { algorithms: ["RS256"] })
 	const email = decodedToken.email
 	const name = decodedToken.name
 	const slackId = decodedToken.slack_id

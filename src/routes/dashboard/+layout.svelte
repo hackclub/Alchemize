@@ -84,7 +84,7 @@
 			>
 		</div>
 	{/if}
-	{#if isAllowed}
+	{#if isAllowed && !unVerified}
 		{@render children()}
 	{/if}
 </div>
