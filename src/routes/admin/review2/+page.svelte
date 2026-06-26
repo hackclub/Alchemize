@@ -79,10 +79,14 @@
 					if (message.reviewerName === "user") {
 											userLogs += `User written logs: ${message.userExternal} \n`
 
+					}else {
+						userLogs += `Reviewer notes: ${message.userExternal} \n`
 					}
+					
 				}
-				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours`
-				let finalEnry = `${userLogs}${deltaTime} \nApproved by: ${approvedBy} \n\n`
+				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours \n`
+				let finalFeedback = `Approval Feedback: ${entry.message.at(-1)?.userExternal || "No feedback provided"} \n`
+				let finalEnry = `${userLogs}${deltaTime}\n${finalFeedback} \nApproved by: ${approvedBy} \n\n`
 				logs += finalEnry
 			}
 		}
@@ -99,10 +103,9 @@ ${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changel
 There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor(gitCommits / currentProject.hours) : 0} commits/hr
 ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
 
+Full review logs can be found at: https://alchemize.hackclub.com/admin/review2/${currentProject.unifiedId}
 User written logs:
 ${generateUserLogs(currentProject.log)}
-
-Full review log available at link:https://alchemize.hackclub.com/admin/review2/${currentProject.unifiedId}
 
 Signed by ${data.name}, T2 Reviewer
  `

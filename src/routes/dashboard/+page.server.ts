@@ -70,11 +70,21 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
             }
         });
     let hacks = await hackatimes.json()
+    let filteredHacks: any[] = []
+    hacks.projects.forEach((project: any) => {
+        filteredHacks.push({
+            name: project.name,
+            total_seconds: project.total_seconds,
+        })
+    })
+    let filteredHacksS = {
+        projects: filteredHacks
+    }
     let userFields = userData?.records?.[0]?.fields
     let {hackatime, ...userFieldsWithoutHackatime} = userFields || {}
     return {
         projects: projectsData?.records || [],
-        hacks: hacks,
+        hacks: filteredHacksS || [],
         email: decodedToken.email,
         eligiblity: decodedToken.ysws_eligible,
         name: slackprofile?.display_name || decodedToken.first_name,

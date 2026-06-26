@@ -104,7 +104,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             slackId: data?.slack_id,
             itemName: item.name
         })
-        return new Response("Project shipped but failed to send notification", { status: 207 })
+        return new Response("Order placed but failed to send notification", { status: 207 })
     }
     return new Response("ok")
 }

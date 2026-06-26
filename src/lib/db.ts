@@ -594,6 +594,7 @@ export const updateProject = async (projectId: string, projectData: any, email: 
         };
     }
 };
+// POWERFUL FUNCTION: Returns PII too, use with Caution. For use in APIs only, data never to be sent to client
 export const getProjectById = async (projectId: string): Promise<DBResponse> => {
     const project = await db.select().from(projectTable).where(eq(projectTable.id, parseInt(projectId)));
     if (project.length === 0) {
@@ -804,7 +805,13 @@ export const doesAdminExist = async (slackId: string): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const getAllUsers = async (): Promise<DBResponse> => {
-    const users = await db.select().from(userTable);
+    const users = await db.select({
+        email: userTable.email,
+        id: userTable.id,
+        userid: userTable.userid,
+        slackId: userTable.slackId,
+        currency: userTable.currency
+    }).from(userTable);
     const records = users.map(user => ({ id: user.id + "", fields: user }));
     return {
         ok: true,
@@ -881,7 +888,22 @@ export const upsertAdmin = async (slackId: string, email: string, roles: string,
     }
 }
 export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DBResponse> => {
-    const project = await db.select().from(projectTable).where(eq(projectTable.unifiedId, unifiedId));
+    const project = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        type: projectTable.type,
+        description: projectTable.description,
+        log: projectTable.log,
+        languages: projectTable.languages,
+        journals: projectTable.journals,
+        hackatime: projectTable.hackatime,
+        update: projectTable.update,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        Theme: projectTable.Theme,
+        status: projectTable.status,
+        screenshot: projectTable.screenshot
+    }).from(projectTable).where(eq(projectTable.unifiedId, unifiedId));
     if (project.length === 0) {
         return {
             ok: false,

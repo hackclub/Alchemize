@@ -8,11 +8,11 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
     if (PUBLIC_TURNED_OFF !== "false") {
         throw redirect(302, "/turned-off")
     }
-    const airtableUserRecordId = cookies.get('airtable_user_record_id');
+
     
   
 
-    if (!accessToken || !airtableUserRecordId || accessToken === "" || airtableUserRecordId === "") {
+    if (!accessToken  || accessToken === "" ) {
         return{
             relogin:true,
         }

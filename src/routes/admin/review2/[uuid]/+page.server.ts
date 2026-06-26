@@ -13,6 +13,6 @@ export const load = async ({ params }) => {
     }
     const data = await projectResponse.json()
     return {
-        project: []
+        project: data.records[0]
     }
 }

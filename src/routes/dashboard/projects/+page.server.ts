@@ -9,7 +9,11 @@ import {
 	getUserByEmail,
 } from "$lib/db"
 import { USER_JWT_SECRET } from "$env/static/private"
-import type { AirtableProject, AirtableProjectWithPII, UserAuthToken } from "$lib/types"
+import type {
+	AirtableProject,
+	AirtableProjectWithPII,
+	UserAuthToken,
+} from "$lib/types"
 import { redirect } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
 export const actions = {
@@ -304,7 +308,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	if (!hackatimeAccessToken || hackatimeAccessToken === "") {
 		throw redirect(303, hackatimeAuthUrl)
 	}
-	let hacks = ""
+	let hacks: any
 	if (hackatimeAccessToken) {
 		let [hackatimes, projectsResponse] = await Promise.all([
 			fetch(
@@ -342,12 +346,22 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					Theme: record.fields.Theme,
 					screenshot: record.fields.screenshot,
 					journals: record.fields.journals,
-				}
+				},
 			})
+		}
+		let filteredHacks: any[] = []
+		hacks.projects.forEach((project: any) => {
+			filteredHacks.push({
+				name: project.name,
+				total_seconds: project.total_seconds,
+			})
+		})
+		let filteredHacksS = {
+			projects: filteredHacks,
 		}
 		return {
 			projects: noPii,
-			hacks: hacks,
+			hacks: filteredHacksS || [],
 		}
 	}
 

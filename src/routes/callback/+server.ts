@@ -149,7 +149,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		maxAge: 60 * 60 * 24 * 120, // 120 days
 		path: "/",
 	})
-	cookies.set("airtable_user_record_id", userRecordId, {
+	cookies.set("airtable_user_record_id", "21212", {
 		httpOnly: true,
 		secure: true,
 		sameSite: "lax",

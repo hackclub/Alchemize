@@ -20,6 +20,8 @@ export const load: PageServerLoad = async ({cookies}) => {
     }
     let projectRes = await getAllProjects()
     let projects = await projectRes.json()
+    const projectRecords = projects.records || []
+
     return {
         isAdmin: true,
         name: decoded.name || null,
