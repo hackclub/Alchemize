@@ -15,7 +15,8 @@ I'll lead with the confirmed exploitable issues, ranked by severity.
 ---
 🔴 CRITICAL
 
-C-1. /admin/review2/[uuid] has NO authentication or authorization
+C-1.~ /admin/review2/[uuid] has NO authentication or authorization~
+**FIXED AS OF COMMIT:61c439bbb7c9f4ee1d4f122b6b84488490899aa6 **
 
 File: src/routes/admin/review2/[uuid]/+page.server.ts
 
@@ -33,7 +34,8 @@ There is no admin/+layout.server.ts — every admin route must guard itself, and
 Fix: Add the same jwt.verify(admin_jwt, ADMIN_JWT_SECRET) + isT2Reviewer guard the sibling review2/+page.server.ts uses. Better: add an admin/+layout.server.ts that verifies the admin JWT once for the whole subtree (defense in depth — see C-2).
 
 ---
-C-2. No shared admin guard → every admin route is one mistake away from C-1
+C-2. ~No shared admin guard → every admin route is one mistake away from C-1~
+**FIXED, INTENDED BEHAVIOUR**
 
 Files: all of src/routes/admin/**
 
@@ -42,8 +44,8 @@ There is no admin/+layout.server.ts. Each route re-implements the JWT check by h
 Fix: Add admin/+layout.server.ts performing the base admin-JWT verification and redirect. Keep per-endpoint role checks for the API +server.ts files (layouts don't cover those).
 
 ---
-C-3. Reviewer endpoints allow acting on any project (IDOR) — by design, but unbounded
-
+C-3. ~Reviewer endpoints allow acting on any project (IDOR) — by design, but unbounded~
+**INTENDED BEHAVIOUR AS OF NOW, SUBJECT TO CHANGE AS WE GET MORE REVIEWERS**
 Files: admin/review/accept/+server.ts, admin/review/reject/+server.ts, admin/review2/sendToAirtable/+server.ts
                     
 These correctly verify admin_jwt + role (isReviewer / isT2Reviewer), but recordId/projectId come straight from the request body with no further scoping:
@@ -59,7 +61,9 @@ Fix: Mark a project as "already submitted to HQ" atomically and reject re-submis
 ---
 🟠 HIGH
 
-H-1. Hardcoded fallback PII encryption key
+H-1. ~Hardcoded fallback PII encryption key~
+**FIXED AS OF COMMIT:61c439bbb7c9f4ee1d4f122b6b84488490899aa6 **
+
 
 File: src/lib/utils.server.ts:4
 
@@ -69,7 +73,8 @@ If the env var is ever missing/empty, all PII (addresses, birthdates, names) is 
 
 Fix: Remove the fallback; fail closed at startup if PII_ENCRYPTION_KEY is absent or not 64 hex chars.
 
-H-2. Admin OAuth id_token is decoded, not verified
+H-2. ~Admin OAuth id_token is decoded, not verified~
+**FIXED: INTENDED BEHAVIOUR BECAUSE OF SERVER-SERVER COMMM**
 
 File: src/routes/admin/callback/+server.ts:57
 
@@ -80,7 +85,8 @@ The user callback verifies its id_token signature against the HC JWKS (callback/
 
 Fix: Verify id_token against auth.hackclub.com/oauth/discovery/keys with algorithms:["RS256"], exactly like the user callback.
 
-H-3. refer/+layout.server.ts "auth" check is presence-only
+H-3. ~refer/+layout.server.ts "auth" check is presence-only~
+**FIXED, JUST VERIFIES THE PERSON IS LOGGED IN, CHECKS IN +page.server.svelte ENSURES TOKEN INTEGRITY**
 
 File: src/routes/refer/+layout.server.ts:15
 
@@ -95,6 +101,7 @@ Fix: Verify user_token in the layout and handle the null case.
 🟡 MEDIUM
 
 M-1. Hackatime access tokens stored in plaintext
+**TO BE FIXED, HIGH PRIORITY**
 
 File: src/routes/hackatime_callback/+server.ts:74 → patchUserHackatime → userTable.hackatime
 
@@ -104,6 +111,8 @@ Fix: Encrypt at rest with the same AES-GCM scheme used for project PII, or store
 
 M-2. Currency/trade input lacks type & upper-bound validation
 
+**TO BE FIXED, MEDIUM PRIORITY**
+
 Files: dashboard/trade/trade/+server.ts:9-10, dashboard/shop/order/+server.ts:24
 
 Both reject negativewith no Number.isInteger / Number.isFinite / max-bound checks. Non-integer floats or absurdly large values flow into currenciesToPotionMix and the atomic DB ops. Combined with C-3's replay gap, worth hardening.
@@ -112,6 +121,7 @@ Fix: Validate Number.isFinite, integer where expected, and a sane max; reject ot
 
 M-3. console.log(DATABASE_URL) on DB error
 
+**FIXED ON LATEST COMMIT**
 File: src/lib/db.ts:326
 
 getUserByEmail's catch logs the full DATABASE_URL (credentials) to stdout. Anyone with log access gets DB creds.
@@ -119,7 +129,7 @@ getUserByEmail's catch logs the full DATABASE_URL (credentials) to stdout. Anyon
 Fix: Remove. Audit logs for other secret prints (the refer flow also console.logs decoded refer codes / Slack IDs in +page.server.ts:17).
 
 M-4. Weak XOR cipher for referral codes
-
+**INTENDED BEHAVIOUR, SUB AND SLACK IDs ARE SUPPOSED TO BE PUBLIC IN HC, REFER SYSTEM WILL BE REWORKED SOON**
 Files: refer/+page.server.ts:11, callback/+server.ts:11, +page.server.ts:3
 
 Referral codes wrap <userId> <slackId> in repeating-key XOR (key spec'd as only 8 chars, per .env.example:19). XOR with a short repeating key over known-format plaintext (slack IDs start with U) is trivially breakable, and the code travels in the URL. Slack IDs are LOW sensitivity per your policy, so impact is limited — but the format validation on decode (callback/+server.ts:119) is the only thing preventing forged referral records.

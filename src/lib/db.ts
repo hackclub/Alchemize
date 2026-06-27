@@ -324,7 +324,7 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
             text: async () => JSON.stringify({ records }),
         }
     } catch (error) {
-        console.log(DATABASE_URL)
+   
 
         console.error("Database read failed:", error);
         return {
