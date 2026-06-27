@@ -103,7 +103,7 @@ ${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changel
 There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor(gitCommits / currentProject.hours) : 0} commits/hr
 ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
 
-Full review logs can be found at: https://alchemize.hackclub.com/admin/review2/${currentProject.unifiedId}
+
 User written logs:
 ${generateUserLogs(currentProject.log)}
 

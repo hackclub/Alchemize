@@ -192,7 +192,7 @@
 			toast(
 				response.ok
 					? "Project deleted successfully!"
-					: `Error deleting project. Code: ${response.status} — contact @TheUtkarsh8939 on Slack`
+					: `${await response.text()}. Code: ${response.status} `
 			)
 
 			if (response.ok) {

@@ -99,13 +99,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         if (!projectResponse.ok) {
             return error(500, "Failed to fetch project")
         }
+        if(subtraction < 0){
+            return error(400, "Subtraction cannot be negative")
+        }
         const project = await projectResponse.json() as AdminProjectView
         const log = JSON.parse(project.fields.log) as Log[]
         const newLog = checkSubmittedToHQ(log, justification, decoded.name)
         const decrytedAddress = decryptAES(project.fields.address, project.fields.encryptionIv)
-        console.log("Decrypted Address:", decrytedAddress) // Debugging line to check the decrypted address
+     
         const address = parseAddress(decrytedAddress || "")
         const iv = crypto.randomBytes(16)   
+        
     const currencyType = themeToKeys(project.fields.Theme)
         const [patchResponse, sendToJustificationResponse, updateUserCurrencyResponse, botResponse] = await Promise.all([
             patchProjectForShip(projectId, newLog, "accepted_t2"),

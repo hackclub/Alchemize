@@ -12,7 +12,10 @@ export const load = async ({ params }) => {
         }
     }
     const data = await projectResponse.json()
+    throw error(403, "Access to this page is currently restricted")
     return {
-        project: data.records[0]
+        // project: data.records[0]
+        project:[]
+        //TODO: Add a proper authentication for Seb's team
     }
 }
