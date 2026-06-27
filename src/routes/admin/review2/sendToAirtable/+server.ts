@@ -5,6 +5,8 @@ import type { RequestHandler } from "./$types";
 import type { Log,  AdminJWT, AdminProjectView, Address, UserCurrency } from "$lib/types";
 import { getProjectById, patchProjectForShip, addToJustifications, getUserByEmail, patchUserCurrency, addLedgerEntry} from "$lib/db";
 import {themeCurrencyMaps} from "$lib/themeCurrencyMaps"
+import {decryptAES, encryptAES} from "$lib/utils.server"
+import crypto from "crypto"
 const checkSubmittedToHQ = (log: Log[], justification: string, reviewerName: string): Log[] => {
     let newLog = log.map(entry => {
         if (entry.status === 1 && !entry.submmitedToHQ) {
@@ -100,8 +102,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         const project = await projectResponse.json() as AdminProjectView
         const log = JSON.parse(project.fields.log) as Log[]
         const newLog = checkSubmittedToHQ(log, justification, decoded.name)
-        const address = parseAddress(project.fields.address || "")
-            
+        const decrytedAddress = decryptAES(project.fields.address, project.fields.encryptionIv)
+        console.log("Decrypted Address:", decrytedAddress) // Debugging line to check the decrypted address
+        const address = parseAddress(decrytedAddress || "")
+        const iv = crypto.randomBytes(16)   
     const currencyType = themeToKeys(project.fields.Theme)
         const [patchResponse, sendToJustificationResponse, updateUserCurrencyResponse, botResponse] = await Promise.all([
             patchProjectForShip(projectId, newLog, "accepted_t2"),
@@ -113,16 +117,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
                 code: project.fields.code || "",
                 description: project.fields.description,
                 screenshot: project.fields.screenshot,
-                address: address.line_1 ?? "",
-                city: address.city ?? "",
-                state: address.state ?? "",
-                country: address.country ?? "",
-            zip: address.postal_code ?? "",
-            birthdate: project.fields.birthdate || "",
-            overrideHoursSpent: (calculateNewHours(log) - subtraction) + "",
+                address: encryptAES(address.line_1 ?? "", iv).finalString,
+                city: encryptAES(address.city ?? "", iv).finalString,
+                state: encryptAES(address.state ?? "", iv).finalString,
+                country: encryptAES(address.country ?? "", iv).finalString,
+                zip: encryptAES(address.postal_code ?? "", iv).finalString,
+                birthdate: encryptAES(decryptAES(project.fields.birthdate, project.fields.encryptionIv), iv).finalString,
+                overrideHoursSpent: (calculateNewHours(log) - subtraction) + "",
             justification: justification,
-            firstName: project.fields.firstName,
-            lastName: project.fields.lastName
+            firstName: encryptAES(decryptAES(project.fields.firstName, project.fields.encryptionIv), iv).finalString,
+            lastName: encryptAES(decryptAES(project.fields.lastName, project.fields.encryptionIv), iv).finalString,
+            iv: iv.toString('hex')
         }),
                 updateUserCurrency((calculateNewHours(log) - subtraction), project.fields.owner, currencyType),
                 fetch("https://aoishik.qzz.io/review-accept", {

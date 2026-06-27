@@ -86,6 +86,7 @@ export const justifications = pgTable("justifications", {
     justification: varchar({ length: 5000 }).notNull(),
     firstName: varchar({ length: 255 }).notNull(),
     lastName: varchar({ length: 255 }).notNull(),
+    iv: varchar({ length: 255 }).notNull().default(""),
 })
 export const shopItemsTable = pgTable("shop_items", {
     itemID: uuid().primaryKey().defaultRandom(),
@@ -837,10 +838,11 @@ export const addToJustifications = async (justificationData: {
     overrideHoursSpent: string,
     justification: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    iv: string
 }): Promise<DBResponse> => {
-    const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName } = justificationData
-    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName }).returning();
+    const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, iv } = justificationData
+    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, iv }).returning();
     return {
         ok: true,
         status: 201,
