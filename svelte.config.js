@@ -10,7 +10,8 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		// Dynamically swap the adapter here
-		adapter: isVercelTarget ? adapterVercel() : adapterNode()
+		adapter: isVercelTarget ? adapterVercel() : adapterNode(),
+		bodySizeLimit: '5M'
 	}
 	
 };
