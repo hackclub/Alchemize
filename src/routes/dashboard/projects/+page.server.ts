@@ -58,7 +58,7 @@ export const actions = {
 		const screenshot = formData.get("screenshot") as File
 		let url = ""
 		let iv = crypto.randomBytes(16).toString("hex")
-		if(!URL.canParse(projectUrl) || !URL.canParse(projectCode)) {
+				if((projectUrl && !URL.canParse(projectUrl) || ((projectCode && !URL.canParse(projectCode) {
 			throw new Error("Invalid project URL or code repository URL")
 		}
 		if (screenshot && screenshot.size > 0) {
@@ -191,7 +191,7 @@ export const actions = {
 		const tempFormData = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		let url = ""
-				if(!URL.canParse(projectUrl) || !URL.canParse(projectCode)) {
+				if((projectUrl && !URL.canParse(projectUrl) || ((projectCode && !URL.canParse(projectCode) {
 			throw new Error("Invalid project URL or code repository URL")
 		}
 		if (screenshot && screenshot.size > 0) {
