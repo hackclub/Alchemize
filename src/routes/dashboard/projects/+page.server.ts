@@ -191,7 +191,7 @@ export const actions = {
 		const tempFormData = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		let url = ""
-if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) { {
+if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) { 
 			throw new Error("Invalid project URL or code repository URL")
 		}
 		if (screenshot && screenshot.size > 0) {
