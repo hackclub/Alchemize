@@ -389,12 +389,14 @@
 							<p
 								class="text-xs text-zinc-500 flex gap-x-2 items-center divide-x divide-zinc-800"
 							>
-								<span><strong>Creator:</strong> @{project.submittedBy}</span>
-								<span class="pl-2"
-									><strong>Type:</strong>
-									<span class="capitalize">{project.type}</span></span
+								<span class="pr-2"
+									><strong>Creator:</strong> @{project.submittedBy}</span
 								>
-								<span class="pl-2"
+								<span class="pr-2">
+									<strong>Type:</strong>
+									<span class="capitalize">{project.type}</span>
+								</span>
+								<span class="pr-2"
 									><strong>Category:</strong> {project.category}</span
 								>
 							</p>
