@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { navigating } from "$app/stores"
+	import { ArrowLeft } from "lucide-svelte"
 
 	const { data } = $props()
 	let linkText = data.url
@@ -61,10 +62,13 @@
 	class="w-full h-screen max-h-screen bg-gradbg text-foreground p-4 md:p-6 flex flex-col justify-between select-none mx-auto relative z-10 overflow-hidden"
 >
 	<div
-		class="w-full flex flex-col md:flex-row items-stretch gap-4 bg-zinc-950/60 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-xl relative z-20 flex-shrink-0"
+		class="w-full flex flex-col md:flex-row items-center gap-4 bg-zinc-950/60 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-xl relative z-20 flex-shrink-0"
 	>
+		<a href="/dashboard" class="hover:text-primary hover:font-bold">
+			<ArrowLeft class="size-7" />
+		</a>
 		<div
-			class="flex items-center px-4 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-mono tracking-wider text-zinc-400 uppercase"
+			class="flex h-full items-center px-4 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-mono text-zinc-400 uppercase"
 		>
 			Your Invite Link
 		</div>
@@ -79,7 +83,7 @@
 			</p>
 		</div>
 		<button
-			class="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-bold uppercase tracking-widest text-xs transition-all duration-150 font-mono active:scale-[0.98] flex items-center justify-center min-w-[140px] shadow-lg shadow-primary/10 relative z-30"
+			class="px-8 h-full bg-primary text-primary-foreground rounded-lg font-bold uppercase tracking-widest text-xs transition-all duration-150 font-mono active:scale-[0.98] flex items-center justify-center min-w-[140px] shadow-lg shadow-primary/10 relative z-30"
 			class:bg-emerald-600={copied}
 			class:text-white={copied}
 			onclick={onCopy}
