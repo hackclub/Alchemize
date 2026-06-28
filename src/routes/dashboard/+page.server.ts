@@ -60,6 +60,9 @@ export const load: PageServerLoad = async ({ cookies }) => {
     const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;
     const admin = !!cookies.get("admin_access_token")
     let hackatimeAccessToken = userData?.records?.[0]?.fields?.hackatime;
+    if (userData?.records?.length === 0) {
+        throw redirect(303, "/")
+    }
 if (!hackatimeAccessToken || hackatimeAccessToken === "") {
     throw redirect(303, hackatimeAuthUrl)
 }

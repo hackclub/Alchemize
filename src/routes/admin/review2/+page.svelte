@@ -97,16 +97,13 @@
 	const generateFullJustification = () => {
 		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
 ${currentProject.update || currentProject.log.length > 1 ? `This project is an update to an existing project` : `This is the first submission of this project`}
-Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours
+Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours \n
 ${projectDescription}
 ${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changelogs}` : ``}
-There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor(gitCommits / currentProject.hours) : 0} commits/hr
+There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor((gitCommits / currentProject.hours)*10)/10 : 0} commits/hr
 ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
-
-
 User written logs:
 ${generateUserLogs(currentProject.log)}
-
 Signed by ${data.name}, T2 Reviewer
  `
 	}
@@ -145,7 +142,7 @@ Signed by ${data.name}, T2 Reviewer
 			invalidateAll()
 			currentProject = {} as AdminProject
 		} else {
-			toast.error("Failed to push project to Airtable. Please referesh")
+			toast.error(await response.text() || "Failed to push project to Airtable")
 			loader = false
 		}
 	}
