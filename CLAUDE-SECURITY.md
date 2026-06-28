@@ -46,7 +46,7 @@ Fix: Add admin/+layout.server.ts performing the base admin-JWT verification and 
 
 C-3. ~~Reviewer endpoints allow acting on any project (IDOR) — by design, but unbounded~~
 
- **INTENDED BEHAVIOUR AS OF NOW, SUBJECT TO CHANGE AS WE GET MORE REVIEWERS** 
+ **FIXED AS OF 65231525ac2390e444c502bb839d352954ce3bf6** 
  Files: admin/review/accept/+server.ts, admin/review/reject/+server.ts, admin/review2/sendToAirtable/+server.ts
 
 These correctly verify admin_jwt + role (isReviewer / isT2Reviewer), but recordId/projectId come straight from the request body with no further scoping:
