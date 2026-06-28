@@ -55,6 +55,11 @@
 		return "none"
 	}
 
+	function getItemPriceValue(item: ShopItem): number {
+		if (item.primaryCurrency === "none") return 0
+		return item.price[item.primaryCurrency] ?? 0
+	}
+
 	const currencyTheme = {
 		redstone: {
 			border: "border-red-950 group-hover:border-red-500/80",
@@ -116,9 +121,11 @@
 			filtered = filtered.filter(item => item.primaryCurrency === activeFilter)
 		}
 
-		if (activeSort === "affordable") {
+		if (activeSort === "none") {
+			filtered.sort((a, b) => getItemPriceValue(a) - getItemPriceValue(b))
+		} else if (activeSort === "affordable") {
 			filtered.sort((a, b) => (a.grayedOut ? 1 : 0) - (b.grayedOut ? 1 : 0))
-		} else if (activeSort !== "none") {
+		} else {
 			const currencyKey = activeSort as keyof UserCurrency
 			filtered.sort((a, b) => b.price[currencyKey] - a.price[currencyKey])
 		}
@@ -174,7 +181,7 @@
 <main
 	class="h-screen w-full bg-gradbg text-foreground p-4 md:p-6 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-hidden flex flex-col"
 >
-	<div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
+	<div class="fixed inset-0 bg-black/20 z-0 pointer-events-none"></div>
 
 	<header
 		class="relative z-10 w-full flex flex-col md:flex-row gap-4 items-center justify-between border-b-2 border-zinc-800 pb-4 shrink-0"
@@ -225,7 +232,7 @@
 				<span class="text-zinc-500 font-bold uppercase">Filter:</span>
 				<select
 					bind:value={activeFilter}
-					class="bg-zinc-900 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
+					class="bg-zinc-900/20 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
 				>
 					<option value="all">All Items</option>
 					<option value="affordable">Affordable</option>
@@ -272,7 +279,7 @@
 			<div class="relative group h-full w-full max-w-xs flex flex-col">
 				<div
 					class={cn(
-						"absolute z-0 inset-0 translate-x-1 translate-y-1 rounded transition-transform group-hover:translate-x-0 group-hover:translate-y-0 opacity-60",
+						"absolute z-0 inset-0 translate-x-0.5 translate-y-0.5 rounded transition-transform group-hover:translate-x-0 group-hover:translate-y-0 opacity-60",
 						theme.shadow
 					)}
 				></div>
