@@ -172,7 +172,7 @@
 </svelte:head>
 
 <main
-	class="h-screen w-full bg-gradbg text-foreground p-4 md:p-6 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-hidden flex flex-col gap-6"
+	class="h-screen w-full bg-gradbg text-foreground p-4 md:p-6 font-mono tracking-wide selection:bg-primary selection:text-primary-foreground relative overflow-hidden flex flex-col"
 >
 	<div class="fixed inset-0 bg-black/40 z-0 pointer-events-none"></div>
 
@@ -218,7 +218,7 @@
 	</header>
 
 	<div
-		class="relative z-10 w-full flex flex-wrap gap-4 items-center justify-between bg-zinc-950/60 p-3 border border-zinc-800 rounded text-xs shrink-0"
+		class="relative z-10 w-full flex flex-wrap gap-4 items-center justify-between bg-zinc-950/60 p-2 border-2 border-zinc-800 border-t-0 rounded rounded-t-none text-xs shrink-0"
 	>
 		<div class="flex items-center gap-x-3">
 			<div class="flex items-center gap-2">
@@ -265,7 +265,7 @@
 	</div>
 
 	<div
-		class="relative z-10 flex-1 overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 align-start content-start justify-items-center"
+		class="relative z-10 flex-1 overflow-y-auto pr-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 align-start content-start justify-items-center mt-5"
 	>
 		{#each shopItems as item}
 			{@const theme = currencyTheme[item.primaryCurrency]}
