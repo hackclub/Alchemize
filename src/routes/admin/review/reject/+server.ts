@@ -1,9 +1,9 @@
-import type { Log, Project, AdminJWT } from "$lib/types"
+import type { Log, Project, AdminJWT, AirtableProject } from "$lib/types"
 import jwt from "jsonwebtoken"
 import {ADMIN_JWT_SECRET, BOT_AUTH} from "$env/static/private"
 import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
-import { patchProjectForShip } from "$lib/db"
+import { patchProjectForShip, getProjectById } from "$lib/db"
 import { updated } from "$app/state"
 function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): Log[] {
 
@@ -38,10 +38,19 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
     } catch (err) {
         return error(401, "Unauthorized")
     }
-    const {recordId, log, userExternal, internalNote, justification, decreaseTime, slackId, projectName, projectLink} = await request.json()
-    if (!recordId || !log || !userExternal  || !justification || !slackId || !projectName || !projectLink) {
+    const {recordId, userExternal, internalNote, justification, decreaseTime, slackId, projectName, projectLink} = await request.json()
+    if (!recordId || !userExternal  || !justification || !slackId || !projectName || !projectLink) {
         return error(400, "Missing required fields")
     }
+    const readProject = await getProjectById(recordId)
+    const projectData: AirtableProject = await readProject.json()
+    if (!readProject.ok || !projectData) {
+        return error(404, "Project not found")
+    }
+    if (projectData.fields.status === "accepted_t2" ) {
+        return error(400, "Cannot overturn a project that has been accepted by a T2 reviewer")
+    }
+    const log = projectData.fields.log
     const name = decoded.name
     const updatedLog = updateLog(JSON.parse(log), -decreaseTime, userExternal, name, internalNote, justification)
     const [response, botResponse] = await Promise.all([

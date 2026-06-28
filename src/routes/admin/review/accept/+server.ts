@@ -1,10 +1,10 @@
-import type { Log, UserCurrency, AdminJWT } from "$lib/types";
+import type { Log, UserCurrency, AdminJWT, AirtableProject } from "$lib/types";
 import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
 import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
-import { addLedgerEntry, getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
+import { addLedgerEntry, getProjectById, getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
 
 function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): [Log[], number] {
 
@@ -44,10 +44,19 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const approver = decoded.name
 
-    const { recordId, log, userExternal, internalNote, justification, decreaseTime, userEmailId, theme, slackId, projectName, projectLink } = await request.json()
-    if (!recordId || !log || !userExternal || !justification || !userEmailId || !theme || !slackId || !projectName || !projectLink) {
+    const { recordId, userExternal, internalNote, justification, decreaseTime, userEmailId, theme, slackId, projectName, projectLink } = await request.json()
+    if (!recordId || !userExternal || !justification || !userEmailId || !theme || !slackId || !projectName || !projectLink) {
         return new Response("Missing required fields", { status: 400 })
     }
+        const readProject = await getProjectById(recordId)
+        const projectData: AirtableProject = await readProject.json()
+        if (!readProject.ok || !projectData) {
+            return error(404, "Project not found")
+        }
+        if (projectData.fields.status === "accepted_t2" ) {
+            return error(400, "Cannot overturn a project that has been accepted by a T2 reviewer")
+        }
+        const log = projectData.fields.log
     const oldLog = JSON.parse(log) as Log[]
     const [newLog, newDeltaTime] = updateLog(oldLog, -decreaseTime, userExternal, approver, internalNote, justification)
 
