@@ -77,6 +77,7 @@
 		{ href: "/dashboard/shop", label: "Shop", icon: ShoppingBasket },
 		{ href: "/dashboard/trade", label: "Trade", icon: ArrowRightLeft },
 		{ href: "/refer", label: "Refer!", icon: Users },
+		{ href: "/docs", label: "Docs", icon: Newspaper },
 	]
 </script>
 

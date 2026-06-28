@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
-	import { cn } from "$lib/lib/utils"
 	import { page } from "$app/state"
 	import {
 		CompassIcon,
@@ -9,162 +8,150 @@
 		ShoppingBag,
 		ArrowLeftRight,
 		Users,
+		Newspaper,
 		ShieldUser,
 	} from "lucide-svelte"
 
 	const isAdmin = $derived(!page.data?.admin)
 
 	const navItems = [
+		{ href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
+		{ href: "/refer", label: "Refer", icon: Users, side: "left" },
+		{
+			href: "/dashboard/trade",
+			label: "Trade",
+			icon: ArrowLeftRight,
+			side: "left",
+		},
 		{
 			href: "/dashboard/projects",
 			label: "Projects",
 			icon: Blocks,
-			description: "Manage your projects",
+			side: "right",
 		},
 		{
 			href: "/dashboard/shop",
 			label: "Shop",
 			icon: ShoppingBag,
-			description: "Browse the shop",
-		},
-	]
-	const topNavItems = [
-		{
-			href: "/dashboard/",
-			label: "Dashboard",
-			icon: Home,
-			description: "Your dashboard",
-		},
-		{
-			href: "/refer",
-			label: "Refer",
-			icon: Users,
-			description: "Refer people for rewards",
-		},
-		{
-			href: "/dashboard/trade",
-			label: "Trade",
-			icon: ArrowLeftRight,
-			description: "Trade and exchange",
+			side: "right",
 		},
 	]
 </script>
 
-<div class="relative">
+<div class="relative font-mono tracking-wide">
 	<Dialog.Root>
 		<Dialog.Trigger
 			type="button"
-			class="fixed top-5 right-5 z-[9999] bg-chart-5/20 hover:bg-chart-5/40 p-2 border border-chart-5/50 rounded-full transition-colors"
+			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-primary/80 hover:border-primary hover:bg-primary/5 p-2 rounded-md transition-all duration-200 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)] active:translate-x-0.5 active:translate-y-0.5 group"
 		>
-			<CompassIcon class="w-6 h-6 text-chart-5" />
+			<CompassIcon
+				class="w-5 h-5 text-zinc-400 group-hover:text-primary transition-colors"
+			/>
 		</Dialog.Trigger>
 
 		<Dialog.Content
-			class="bg-background p-0 border-red-500/40 border-dashed min-w-[60vw] overflow-hidden"
+			class="bg-black/60 backdrop-blur-2xl border-2 border-primary rounded-md max-w-3xl min-w-[60vw] p-6 sm:p-8  overflow-hidden z-9999"
 		>
-			<Dialog.Header
-				class="flex flex-row justify-center items-center gap-3 px-6 py-4 border-red-500/20 border-b"
-			>
-				<img
-					src="/Alchemize.png"
-					alt=""
-					class="w-10 h-10 object-contain shrink-0"
-				/>
-				<div>
-					<Dialog.Title class="font-bold text-chart-5 text-2xl">
-						Alchemize
-					</Dialog.Title>
-					<p class="text-muted-foreground text-xs">
-						Where do you want to go today...
-					</p>
-				</div>
-			</Dialog.Header>
-			<div class="gap-x-3 grid grid-cols-3 px-6">
-				{#each topNavItems as item}
-					<Dialog.Close>
-						<div class="relative group">
-							<div
-								class="absolute inset-0 bg-primary/80 translate-x-[3px] translate-y-[3px] rounded-lg transition-transform -z-10"
-							></div>
-							<a href={item.href} class="group">
-								<div
-									class="relative flex gap-1 bg-zinc-950 p-4 border border-primary rounded-lg transition-all items-center w-full z-10 group-hover:translate-x-[2px] group-hover:translate-y-[2px]"
-								>
-									<div class="p-2">
-										<item.icon class="w-6 h-6 text-chart-5" />
-									</div>
-									<div class="flex flex-col items-start w-full">
-										<p class="font-semibold text-foreground text-lg">
-											{item.label}
-										</p>
-										<p
-											class={cn(
-												"text-muted-foreground text-xs text-left",
-												item.label === "Refer" && "text-[11px]"
-											)}
-										>
-											{item.description}
-										</p>
-									</div>
-								</div>
-							</a>
-						</div>
-					</Dialog.Close>
-				{/each}
-			</div>
 			<div
-				class={cn("gap-3 grid grid-cols-2 px-6 pb-6", isAdmin && "grid-cols-3")}
+				class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center w-full"
 			>
-				{#each navItems as item}
-					<Dialog.Close>
-						<div class="relative group">
-							<div
-								class="absolute inset-0 bg-primary/80 translate-x-[3px] translate-y-[3px] rounded-lg transition-transform -z-10"
-							></div>
-							<a href={item.href} class="group">
+				<div class="flex flex-col gap-4 justify-center">
+					{#each navItems.filter(i => i.side === "left") as item}
+						<Dialog.Close class="w-full text-left">
+							<a
+								href={item.href}
+								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+							>
 								<div
-									class="relative flex gap-1 bg-zinc-950 p-4 border border-primary rounded-lg transition-all items-center w-full z-10 group-hover:translate-x-[2px] group-hover:translate-y-[2px]"
+									class="p-1.5 bg-black/50 border border-primary/20 rounded text-zinc-400 group-hover:text-primary group-hover:border-primary/50 transition-colors"
 								>
-									<div class="p-2">
-										<item.icon class="w-6 h-6 text-chart-5" />
-									</div>
-									<div class="flex flex-col items-start">
-										<p class="font-semibold text-foreground text-lg">
-											{item.label}
-										</p>
-										<p class="text-muted-foreground text-xs">
-											{item.description}
-										</p>
-									</div>
+									<item.icon class="w-4 h-4 stroke-2" />
 								</div>
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									{item.label}
+								</span>
 							</a>
-						</div>
+						</Dialog.Close>
+					{/each}
+				</div>
+
+				<div
+					class="flex flex-col justify-center items-center gap-3 px-2 text-center order-first md:order-none py-4 md:py-0 border-b-2 border-primary/20 md:border-b-0"
+				>
+					<div
+						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
+					>
+						<img
+							src="/Alchemize.png"
+							alt="Alchemize Logo"
+							class="w-16 h-16 object-contain"
+						/>
+					</div>
+					<div>
+						<Dialog.Title
+							class="font-alchemize font-black uppercase tracking-widest text-primary text-2xl sm:text-3xl leading-none"
+						>
+							Alchemize
+						</Dialog.Title>
+						<p
+							class="text-zinc-400 text-xs mt-2 max-w-[200px] mx-auto font-sans tracking-normal leading-relaxed"
+						>
+							Where do you want to go today?
+						</p>
+					</div>
+					<Dialog.Close class="text-left">
+						<a
+							href={"/dashboard"}
+							class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+						>
+							<Home class="w-4 h-4 stroke-2" />
+						</a>
 					</Dialog.Close>
-				{/each}
-				{#if isAdmin}
-					<Dialog.Close>
-						<div class="relative group">
-							<div
-								class="absolute inset-0 bg-admin-primary translate-x-[3px] translate-y-[3px] rounded-lg transition-transform -z-10"
-							></div>
-							<a href={"/admin"} class="group">
+				</div>
+
+				<div class="flex flex-col gap-4 justify-center">
+					{#each navItems.filter(i => i.side === "right") as item}
+						<Dialog.Close class="w-full text-left">
+							<a
+								href={item.href}
+								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+							>
 								<div
-									class="relative flex gap-1 bg-zinc-950 p-4 border border-admin-primary rounded-lg transition-all items-center w-full z-10 group-hover:translate-x-[2px] group-hover:translate-y-[2px]"
+									class="p-1.5 bg-black/50 border border-primary/20 rounded text-zinc-400 group-hover:text-primary group-hover:border-primary/50 transition-colors"
 								>
-									<div class="p-2">
-										<ShieldUser class="w-6 h-6 text-admin-primary" />
-									</div>
-									<div class="flex flex-col items-start">
-										<p class="font-semibold text-foreground text-lg">Admin</p>
-										<p class="text-muted-foreground text-xs">
-											Alchemize backend...
-										</p>
-									</div>
+									<item.icon class="w-4 h-4 stroke-2" />
 								</div>
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									{item.label}
+								</span>
 							</a>
-						</div>
-					</Dialog.Close>
-				{/if}
+						</Dialog.Close>
+					{/each}
+
+					{#if isAdmin}
+						<Dialog.Close class="w-full text-left">
+							<a
+								href="/admin"
+								class="flex items-center gap-3 bg-black/90 border-2 border-red-500/40 hover:border-red-500 px-4 py-3 rounded-md text-red-400 hover:bg-red-500/5 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(239,68,68,0.1)]"
+							>
+								<div
+									class="p-1.5 bg-black/50 border border-red-500/20 rounded text-red-400/70 group-hover:text-red-400 group-hover:border-red-500/50 transition-colors"
+								>
+									<ShieldUser class="w-4 h-4 stroke-2" />
+								</div>
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									Admin Dash
+								</span>
+							</a>
+						</Dialog.Close>
+					{/if}
+				</div>
 			</div>
 		</Dialog.Content>
 	</Dialog.Root>
