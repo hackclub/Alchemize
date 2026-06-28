@@ -558,7 +558,7 @@
 										<Label
 											for="changelog"
 											class="text-xs font-bold uppercase tracking-wider text-red-400"
-											>Shipping Log / Changelog</Label
+											>Changelog</Label
 										>
 										<span
 											class="text-[11px] font-medium px-2 py-0.5 rounded-full {changelogCharCount <
@@ -574,7 +574,7 @@
 									<Textarea
 										id="changelog"
 										name="changelog"
-										placeholder="Detail exactly what patches, UI improvements, or features you rolled out in this sync..."
+										placeholder="Describe what changes you made sice your last ship, or if it is your first ship, describe what you made..."
 										class="h-32 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-red-500 focus-visible:border-transparent resize-none"
 										bind:value={changelog}
 									/>
