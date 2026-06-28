@@ -210,7 +210,7 @@
 				<div
 					class="text-center py-12 border-2 border-dashed border-zinc-800 text-zinc-500 uppercase text-xs tracking-widest"
 				>
-					No alchemical items match your current search query.
+					No items matching your current search.
 				</div>
 			{/each}
 		</div>
