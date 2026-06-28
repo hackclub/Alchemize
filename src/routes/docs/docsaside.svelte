@@ -5,6 +5,7 @@
 	import { cn } from "$lib/lib/utils"
 
 	import docsIndex from "./docs-index.json"
+	import { ArrowLeft } from "@lucide/svelte"
 
 	const { toggleGroup, openGroups } = $props()
 </script>
@@ -14,9 +15,12 @@
 	style=""
 >
 	<div
-		class="sidebar-group flex items-center scrollbar-none px-2 w-full pb-5 border-b-primary border-b"
+		class="sidebar-group flex items-center scrollbar-none w-full pb-5 border-b-primary border-b"
 	>
-		<div class="">
+		<div class="flex items-center gap-x-2">
+			<a href="/dashboard" class="hover:text-primary hover:font-bold">
+				<ArrowLeft />
+			</a>
 			<span
 				class="font-alchemize text-primary font-extrabold sm:text-3xl text-3xl tracking-tight"
 				>ALCHEMIZE</span
@@ -65,16 +69,17 @@
 		</div>
 	{/each}
 </aside>
+
 <style>
 	@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-}
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		.no-scrollbar::-webkit-scrollbar {
+			display: none;
+		}
+		/* Hide scrollbar for IE, Edge and Firefox */
+		.no-scrollbar {
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
+		}
+	}
 </style>
