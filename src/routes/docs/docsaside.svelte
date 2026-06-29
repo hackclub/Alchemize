@@ -11,13 +11,12 @@
 </script>
 
 <aside
-	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] bg-black border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
-	style=""
+	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
 >
 	<div
 		class="sidebar-group flex items-center scrollbar-none w-full pb-5 border-b-primary border-b"
 	>
-		<div class="flex items-center gap-x-2">
+		<div class="flex items-baseline gap-x-2">
 			<a href="/dashboard" class="hover:text-primary hover:font-bold">
 				<ArrowLeft />
 			</a>

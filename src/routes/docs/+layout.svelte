@@ -20,9 +20,9 @@
 </svelte:head>
 
 <main
-	class="body ml-4 flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-black"
+	class="body ml-4 flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-background"
 >
-	<div class="fixed inset-0 bg-black z-0 pointer-events-none"></div>
+	<div class="fixed inset-0 bg-black/50 z-0 pointer-events-none"></div>
 	<div
 		class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_2px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-80"
 	></div>
