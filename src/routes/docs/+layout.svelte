@@ -20,7 +20,7 @@
 </svelte:head>
 
 <main
-	class="body ml-4 flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-background"
+	class="body flex font-alchemize selection:bg-primary selection:text-primary-foreground h-screen max-h-screen overflow-hidden bg-background"
 >
 	<div class="fixed inset-0 bg-black/50 z-0 pointer-events-none"></div>
 	<div

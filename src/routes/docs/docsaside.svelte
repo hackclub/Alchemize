@@ -11,7 +11,7 @@
 </script>
 
 <aside
-	class="relative no-scrollbar z-10 h-full max-h-screen overflow-y-auto sidebar w-[clamp(450px,33vw,900px)] border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
+	class="relative no-scrollbar bg-black/50 z-10 h-full max-h-screen overflow-y-auto sidebar w-1/3 border-primary p-5 border-r-2 shadow-[0_2_4px_red_inset] scrollbar-none"
 >
 	<div
 		class="sidebar-group flex items-center scrollbar-none w-full pb-5 border-b-primary border-b"
