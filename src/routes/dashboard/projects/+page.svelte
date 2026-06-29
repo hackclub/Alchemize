@@ -207,6 +207,12 @@
 			isDeleteDialogOpen = false
 		}
 	}
+
+	document.addEventListener("keydown", event => {
+		if (event.key === "+") {
+			newProjWindowOpened = true
+		}
+	})
 </script>
 
 <svelte:head>
@@ -349,7 +355,7 @@
 
 			<div class="relative group">
 				<div
-					class="absolute inset-0 bg-zinc-800/80 translate-x-[6px] translate-y-[6px] rounded-sm transition-transform group-hover:translate-x-[4px] group-hover:translate-y-[4px]"
+					class="absolute inset-0 bg-zinc-800/80 translate-x-[6px] translate-y-[6px] rounded-sm transition-transform group-hover:bg-primary/20 group-hover:translate-x-[4px] group-hover:translate-y-[4px]"
 				></div>
 
 				<button
@@ -366,12 +372,14 @@
 						</div>
 						<div>
 							<span
-								class="block text-sm font-black uppercase tracking-widest text-zinc-300 group-hover:text-white transition-colors"
+								class="block text-sm font-black uppercase tracking-widest text-zinc-300 group-hover:text-primary transition-colors"
 							>
 								Add Mix
 							</span>
-							<span class="block text-[11px] text-zinc-500 mt-0.5">
-								Initialize a fresh project
+							<span
+								class="block text-[11px] text-zinc-500 mt-0.5 group-hover:text-primary"
+							>
+								Create a fresh project
 							</span>
 						</div>
 					</div>

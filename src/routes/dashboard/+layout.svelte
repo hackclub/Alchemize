@@ -12,6 +12,7 @@
 		PUBLIC_HACKCLUB_REDIRECT,
 	} from "$env/static/public"
 	import type { LayoutData } from "./$types"
+	import Button from "$lib/components/ui/button/button.svelte"
 
 	let {
 		children,
@@ -45,9 +46,9 @@
 	>
 		<div class="flex flex-col items-center gap-4">
 			<div
-				class="w-12 h-12 border-4 border-gray-600 border-t-red-600 rounded-full animate-spin"
+				class="w-12 h-12 border-2 border-primary-foreground border-t-primary rounded-full animate-spin"
 			></div>
-			<p class="text-white text-lg">Loading...</p>
+			<p class="text-primary font-mono text-xl">Loading...</p>
 		</div>
 	</div>
 {/if}
@@ -71,17 +72,15 @@
 	{/if}
 	{#if unVerified}
 		<div
-			class="ovr h-screen w-screen bg-black absolute flex items-center flex-col justify-center top-0 left-0 backdrop-opacity-50 z-10"
+			class="h-screen w-screen bg-black absolute flex items-center flex-col justify-center top-0 left-0 backdrop-opacity-50 z-10"
 		>
-			<span>Oh!! So we actually need you to login via hackatime too</span>
+			<span class="text-primary font-mono text-xl"
+				>Hey! We need you to login with hackatime to access this</span
+			>
 			<br />
-			<a
-				class="button w-60 h-20 flex items-center justify-center border border-dashed border-red-600 rounded-xl z-9999"
-				href={hackatimeAuthUrl}
-				target="_blank"
-			>
-				Login Via Hackatime</a
-			>
+			<a class="z-9999" href={hackatimeAuthUrl} target="_blank">
+				<Button size="lg">Login Via Hackatime</Button>
+			</a>
 		</div>
 	{/if}
 	{#if isAllowed && !unVerified}
