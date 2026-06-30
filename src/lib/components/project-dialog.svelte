@@ -10,10 +10,7 @@
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
-	import type {Log} from "$lib/types"
-
-
-
+	import type { Log } from "$lib/types"
 
 	type HackatimeProject = {
 		name?: string
@@ -131,8 +128,7 @@
 		)
 	)
 	$effect(() => {
-			shipButtonDisabled =
-		!(
+		shipButtonDisabled = !(
 			changelogCharCount >= 20 &&
 			originalProject?.fields.Theme &&
 			originalProject?.fields.type &&
@@ -141,7 +137,6 @@
 			originalProject?.fields.screenshot &&
 			originalProject.fields.hackatime
 		)
-	
 	})
 </script>
 
@@ -295,7 +290,6 @@
 								variant="default"
 								class="w-full hover:bg-primary/70 hover:-translate-y-px h-10 font-bold uppercase tracking-wider text-xs"
 								onclick={ship}
-						
 							>
 								{#if showRotator}
 									<div
