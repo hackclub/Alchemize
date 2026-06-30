@@ -10,10 +10,7 @@
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
-	import type {Log} from "$lib/types"
-
-
-
+	import type { Log } from "$lib/types"
 
 	type HackatimeProject = {
 		name?: string
@@ -131,8 +128,7 @@
 		)
 	)
 	$effect(() => {
-			shipButtonDisabled =
-		!(
+		shipButtonDisabled = !(
 			changelogCharCount >= 20 &&
 			originalProject?.fields.Theme &&
 			originalProject?.fields.type &&
@@ -141,7 +137,6 @@
 			originalProject?.fields.screenshot &&
 			originalProject.fields.hackatime
 		)
-	
 	})
 </script>
 
@@ -235,8 +230,8 @@
 								{#each [...entry.message].reverse() as msg, i}
 									{#if msg.reviewerName != "user"}
 										<div
-											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {(i ===
-											0 && msg.reviewerName !== "APPROVED")
+											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {i ===
+												0 && msg.reviewerName !== 'APPROVED'
 												? entry.status === 1
 													? 'border-l-emerald-500'
 													: 'border-l-rose-500'
@@ -295,7 +290,6 @@
 								variant="default"
 								class="w-full hover:bg-primary/70 hover:-translate-y-px h-10 font-bold uppercase tracking-wider text-xs"
 								onclick={ship}
-						
 							>
 								{#if showRotator}
 									<div

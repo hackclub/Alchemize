@@ -41,6 +41,7 @@
 		Clock,
 		Newspaper,
 	} from "lucide-svelte"
+	import { Compass } from "@lucide/svelte"
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 
@@ -74,6 +75,7 @@
 
 	const navItems = [
 		{ href: "/dashboard/projects", label: "Projects", icon: Blocks },
+		{ href: "/dashboard/explore", label: "Explore", icon: Compass },
 		{ href: "/dashboard/shop", label: "Shop", icon: ShoppingBasket },
 		{ href: "/dashboard/trade", label: "Trade", icon: ArrowRightLeft },
 		{ href: "/refer", label: "Refer!", icon: Users },
@@ -426,7 +428,7 @@
 
 	<div class="w-full relative z-30 flex justify-center shrink-0">
 		<div
-			class="w-full md:w-[80%] max-w-5xl bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl"
+			class="w-full md:w-[95%] max-w-5xl bg-black/90 border-2 border-primary/60 backdrop-blur-md px-4 py-3 md:px-10 rounded-xl"
 		>
 			<div class="mx-auto flex items-center justify-between gap-2 sm:gap-4">
 				<div

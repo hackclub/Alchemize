@@ -11,11 +11,31 @@
 		Newspaper,
 		ShieldUser,
 	} from "lucide-svelte"
+	import { Compass } from "@lucide/svelte"
 
 	const isAdmin = $derived(!page.data?.admin)
 
+	const centerItems = [
+		{
+			href: "/dashboard",
+			icon: Home,
+			label: "Dashboard",
+		},
+		{
+			href: "/docs",
+			icon: Newspaper,
+			label: "Documentation",
+		},
+	]
+
 	const navItems = [
-		{ href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
+		{
+			href: "/dashboard/explore",
+			label: "Explore",
+			icon: Compass,
+			side: "left",
+		},
+		// { href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
 		{ href: "/refer", label: "Refer", icon: Users, side: "left" },
 		{
 			href: "/dashboard/trade",
@@ -81,7 +101,7 @@
 					class="flex flex-col justify-center items-center gap-3 px-2 text-center order-first md:order-none py-4 md:py-0 border-b-2 border-primary/20 md:border-b-0"
 				>
 					<div
-						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2  shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
+						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
 					>
 						<img
 							src="/Alchemist.webp"
@@ -101,14 +121,18 @@
 							Where do you want to go today?
 						</p>
 					</div>
-					<Dialog.Close class="text-left">
-						<a
-							href={"/dashboard"}
-							class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
-						>
-							<Home class="w-4 h-4 stroke-2" />
-						</a>
-					</Dialog.Close>
+					<div class="flex items-center justify-between w-full">
+						{#each centerItems as item}
+							<Dialog.Close class="text-left" title={item.label}>
+								<a
+									href={item.href}
+									class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+								>
+									<item.icon class="w-4 h-4 stroke-2" />
+								</a>
+							</Dialog.Close>
+						{/each}
+					</div>
 				</div>
 
 				<div class="flex flex-col gap-4 justify-center">
