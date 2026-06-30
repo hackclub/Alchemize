@@ -289,7 +289,10 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 	},
 } satisfies Actions
 const filterLogs = (logsJson: string) => {
-	const logs = JSON.parse(logsJson) as Log[]
+	
+	
+	const logs = JSON.parse(logsJson || "[]") as Log[]
+	
 	let filteredLogs: Log[] = []
 	logs.forEach(log => {
 		let message = log.message

@@ -22,7 +22,7 @@ export const projectTable = pgTable("projects", {
     type: varchar({ length: 255 }).notNull(),
     description: varchar({ length: 2000 }).notNull(),
     owner: varchar({ length: 455 }).notNull(),
-    log: varchar({ length: 10000 }).notNull(),
+    log: varchar({ length: 500000 }).notNull(),
     languages: varchar({ length: 1000 }).notNull(),
     journals: varchar({ length: 30000 }).notNull(),
     hackatime: varchar({ length: 1000 }).notNull(),
