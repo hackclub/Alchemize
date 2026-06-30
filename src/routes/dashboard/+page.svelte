@@ -75,7 +75,7 @@
 
 	const navItems = [
 		{ href: "/dashboard/projects", label: "Projects", icon: Blocks },
-		{ href: "/dashboard/explore", label: "Explore", icon: Compass },
+		// { href: "/dashboard/explore", label: "Explore", icon: Compass },
 		{ href: "/dashboard/shop", label: "Shop", icon: ShoppingBasket },
 		{ href: "/dashboard/trade", label: "Trade", icon: ArrowRightLeft },
 		{ href: "/refer", label: "Refer!", icon: Users },
