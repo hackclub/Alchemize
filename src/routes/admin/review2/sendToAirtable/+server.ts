@@ -62,7 +62,7 @@ async function updateUserCurrency(amount: number, userEmailId: string, currencyT
     }
 
     const userRecord = data.records[0]
-    const currentCurrency = loosejson.parse(userRecord.fields.currency) || {} as UserCurrency
+    const currentCurrency = loosejson(userRecord.fields.currency) || {} as UserCurrency
     currentCurrency[currencyType] = (currentCurrency[currencyType] || 0) + amount
     const [updateResponse, ledgerResp] = await Promise.all([patchUserCurrency(userRecord.fields.email, currentCurrency), addLedgerEntry({
         email: userRecord.fields.email,
