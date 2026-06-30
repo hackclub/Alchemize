@@ -81,17 +81,17 @@
 					class="flex flex-col justify-center items-center gap-3 px-2 text-center order-first md:order-none py-4 md:py-0 border-b-2 border-primary/20 md:border-b-0"
 				>
 					<div
-						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2 border-2 border-primary shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
+						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2  shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
 					>
 						<img
-							src="/Alchemize.png"
+							src="/Alchemist.webp"
 							alt="Alchemize Logo"
 							class="w-16 h-16 object-contain"
 						/>
 					</div>
 					<div>
 						<Dialog.Title
-							class="font-alchemize font-black uppercase tracking-widest text-primary text-2xl sm:text-3xl leading-none"
+							class="font-alchemize font-extrabold  uppercase tracking-widest text-primary text-2xl sm:text-3xl leading-none"
 						>
 							Alchemize
 						</Dialog.Title>
