@@ -7,6 +7,7 @@ import { getProjectById, patchProjectForShip, addToJustifications, getUserByEmai
 import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
 import { decryptAES, encryptAES } from "$lib/utils.server"
 import { submitProjectToAirtable } from "$lib/airtable"
+import loosejson from "loose-json"
 import crypto from "crypto"
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
@@ -61,7 +62,7 @@ async function updateUserCurrency(amount: number, userEmailId: string, currencyT
     }
 
     const userRecord = data.records[0]
-    const currentCurrency = JSON.parse(userRecord.fields.currency) || {} as UserCurrency
+    const currentCurrency = loosejson.parse(userRecord.fields.currency) || {} as UserCurrency
     currentCurrency[currencyType] = (currentCurrency[currencyType] || 0) + amount
     const [updateResponse, ledgerResp] = await Promise.all([patchUserCurrency(userRecord.fields.email, currentCurrency), addLedgerEntry({
         email: userRecord.fields.email,
