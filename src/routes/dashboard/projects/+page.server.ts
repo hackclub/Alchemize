@@ -15,6 +15,7 @@ import type {
 	AirtableProject,
 	AirtableProjectWithPII,
 	UserAuthToken,
+	Log
 } from "$lib/types"
 import { redirect } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
@@ -287,6 +288,27 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 		}
 	},
 } satisfies Actions
+const filterLogs = (logsJson: string) => {
+	const logs = JSON.parse(logsJson) as Log[]
+	let filteredLogs: Log[] = []
+	logs.forEach(log => {
+		let message = log.message
+		message.forEach(msg => {
+			msg.internalNote = ""
+			msg.justification = ""
+			if (msg.reviewerName?.startsWith("APPROVED")) {
+				msg.reviewerName = "APPROVED"
+			}else if(msg.reviewerName === "user"){
+				msg.reviewerName = "user"
+			}else{
+				msg.reviewerName = "REVIEWER"
+			}
+		})
+		log.message = message
+		filteredLogs.push(log)
+	})
+	return JSON.stringify(filteredLogs)
+}
 export const load: PageServerLoad = async ({ cookies }) => {
 	const accessToken =
 		cookies.get("access_token_new") ?? cookies.get("access_token")
@@ -352,7 +374,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					update: record.fields.update,
 					hackatime: record.fields.hackatime,
 					languages: record.fields.languages,
-					log: record.fields.log,
+					log: filterLogs(record.fields.log),
 					owner: record.fields.owner,
 					status: record.fields.status,
 					slackId: record.fields.slackId,

@@ -217,7 +217,7 @@ Signed by ${data.name}, T2 Reviewer
 			{:else}
 				<div class="flex-1 flex items-center justify-center p-4">
 					<h2 class="text-sm text-gray-500 text-center">
-						{pending ? "No pending projects 🥳" : "No sent projects 😕"}
+						{pending ? "No pending projects " : "No sent projects "}
 					</h2>
 				</div>
 			{/if}
@@ -443,37 +443,61 @@ Signed by ${data.name}, T2 Reviewer
 							</div>
 
 							<div
-								class="flex-1 overflow-y-auto p-4 space-y-2.5 custom-scrollbar min-h-0"
-							>
-								{#each currentProject.log as log}
-									<div
-										class="p-2.5 bg-zinc-900/15 border border-zinc-800/60 rounded-lg space-y-2 text-xs wrap-break-word"
-									>
-										<div class="flex items-center justify-between gap-2">
-											<span class="font-medium text-zinc-300">Review</span>
-											<span
-												class="text-[9px] font-medium bg-emerald-950/40 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-900/30"
-											>
-												Approved
-											</span>
-										</div>
-
-										<div
-											class="text-[11px] text-zinc-500 bg-zinc-950/30 p-2 rounded border border-zinc-900 space-y-1 font-mono"
-										>
-											<div class="text-zinc-300">
-												User Feedback: {log.message.at(-1)?.userExternal ||
-													"No user feedback"}
-											</div>
-
-											{log.message.at(-1)?.justification || "No notes yet."}
-											<div class="text-zinc-500 text-xs">
-												By {log.message.at(-1)?.reviewerName || "Unknown User"}
-											</div>
-										</div>
-									</div>
-								{/each}
-							</div>
+									class="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 overflow-y-auto wrap-break-word space-y-3 custom-scrollbar"
+								>
+									{#if currentProject.log && currentProject.log.length > 0}
+										{#each [...currentProject.log].reverse() as entry}
+											{#each [...entry.message].reverse() as msg, i}
+												<div
+													class="border {msg.reviewerName === 'user'
+														? 'border-l-amber-500'
+														: i === 0 && msg.reviewerName !== 'APPROVED'
+															? entry.status === 1
+																? 'border-l-emerald-500'
+																: 'border-l-rose-500'
+															: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
+												>
+													<div
+														class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
+													>
+														<span class="font-bold text-zinc-400"
+															>Reviewer: <span class="text-indigo-400 font-mono"
+																>@{msg.reviewerName || "staff"}</span
+															></span
+														>
+														<span
+															>{new Date(msg.timestamp).toLocaleString()}</span
+														>
+													</div>
+													{#if msg.userExternal}
+														<p class="text-zinc-300 leading-relaxed">
+															<strong
+																class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
+																>Feedback Note:</strong
+															>
+															{msg.userExternal}
+														</p>
+													{/if}
+													{#if msg.internalNote}
+														<p
+															class="text-zinc-500 italic bg-zinc-900/30 p-2 rounded border border-zinc-900/20"
+														>
+															<strong
+																class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
+																>Internal Note:</strong
+															>
+															{msg.internalNote}
+														</p>
+													{/if}
+												</div>
+											{/each}
+										{/each}
+									{:else}
+										<p class="text-xs italic text-zinc-600 text-center py-4">
+											No cert history
+										</p>
+									{/if}
+								</div>
 						</aside>
 					</div>
 

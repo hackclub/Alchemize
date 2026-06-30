@@ -10,22 +10,10 @@
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
+	import type {Log} from "$lib/types"
 
-	type Log = {
-		status: 0 | 1 | 2
-		timestamp: string
-		deltaTime: number
-		message: message[]
-		submmitedToHQ: boolean
-	}
 
-	type message = {
-		userExternal: string
-		internalNote: string
-		justifycontent: string
-		timestamp: string
-		reviewerName?: string
-	}
+
 
 	type HackatimeProject = {
 		name?: string
@@ -247,8 +235,8 @@
 								{#each [...entry.message].reverse() as msg, i}
 									{#if msg.reviewerName != "user"}
 										<div
-											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {i ===
-											0
+											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {(i ===
+											0 && msg.reviewerName !== "APPROVED")
 												? entry.status === 1
 													? 'border-l-emerald-500'
 													: 'border-l-rose-500'

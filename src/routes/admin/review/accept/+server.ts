@@ -19,7 +19,7 @@ function updateLog(log: Log[], deltaTime: number, userExternal: string, name: st
         status: 1,
         timestamp: new Date().toISOString(),
         deltaTime: newDeltaTime,
-        message: [...lastLog.message, { userExternal: userExternal, internalNote: internalNote, justification: justification, timestamp: new Date().toISOString(), reviewerName: name }],
+        message: [...lastLog.message, { userExternal: userExternal, internalNote: internalNote, justification: justification, timestamp: new Date().toISOString(), reviewerName: `APPROVED ${name}` }],
         submmitedToHQ: false
     }], newDeltaTime]
 

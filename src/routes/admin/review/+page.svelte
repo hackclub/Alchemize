@@ -539,9 +539,15 @@
 								>
 									{#if project.log && project.log.length > 0}
 										{#each [...project.log].reverse() as entry}
-											{#each entry.message as msg}
+											{#each [...entry.message].reverse() as msg, i}
 												<div
-													class="border border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
+													class="border {msg.reviewerName === 'user'
+														? 'border-l-amber-500'
+														: i === 0 && msg.reviewerName !== 'APPROVED'
+															? entry.status === 1
+																? 'border-l-emerald-500'
+																: 'border-l-rose-500'
+															: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
 												>
 													<div
 														class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
