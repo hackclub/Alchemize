@@ -2,12 +2,26 @@ import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
 import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
 import type { RequestHandler } from "./$types";
-import type { Log, AdminJWT, AdminProjectView, Address, UserCurrency } from "$lib/types";
+import type { Log, AdminJWT, AdminProjectView, Address, UserCurrency, AirtableProject } from "$lib/types";
 import { getProjectById, patchProjectForShip, addToJustifications, getUserByEmail, patchUserCurrency, addLedgerEntry } from "$lib/db";
 import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
 import { decryptAES, encryptAES } from "$lib/utils.server"
 import { submitProjectToAirtable } from "$lib/airtable"
 import crypto from "crypto"
+	const wasEverApproved = (project: AirtableProject) => {
+		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
+		const logs = JSON.parse(project.fields.log || "[]") as Log[]
+		return logs.some(log => log.status === 1)
+	}
+    	const areAllPushedToHQ = (log: Log[]): boolean => {
+		return log.every(entry => entry.submmitedToHQ || entry.status !== 1)
+	}
+    const checkIfAllApprovedLogsArePushed = (log: Log[]): boolean => {
+        if (log.length === 0) {
+            return true
+        }
+        const approvedLogs = log.filter(entry => entry.status === 1)
+        return approvedLogs.every(entry => entry.submmitedToHQ)}
 const checkSubmittedToHQ = (log: Log[], justification: string, reviewerName: string): Log[] => {
     let newLog = log.map(entry => {
         if (entry.status === 1 && !entry.submmitedToHQ) {
@@ -110,6 +124,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const project = await projectResponse.json() as AdminProjectView
     const log = JSON.parse(project.fields.log) as Log[]
+    if (!wasEverApproved(project) || areAllPushedToHQ(log)) {
+        return error(400, "Project has not been approved or all logs are submitted to HQ")
+    }
+    if (checkIfAllApprovedLogsArePushed(log)) {
+        return error(400, "All approved logs are already submitted to HQ")
+    }
     const newLog = checkSubmittedToHQ(log, justification, decoded.name)
     const decrytedAddress = decryptAES(project.fields.address, project.fields.encryptionIv)
 

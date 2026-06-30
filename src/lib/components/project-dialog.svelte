@@ -233,11 +233,11 @@
 						>
 							{#each [...log].reverse() as entry}
 								{#each [...entry.message].reverse() as msg, i}
-									{#if msg.reviewerName != "user"}
+									{#if msg.reviewerName !== "user"}
 										<div
 											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {(i ===
-											0 && msg.reviewerName !== "APPROVED")
-												? entry.status === 1
+											0 || msg.reviewerName?.includes("APPROVED"))
+												? (entry.status === 1 || msg.reviewerName?.includes("APPROVED"))
 													? 'border-l-emerald-500'
 													: 'border-l-rose-500'
 												: 'border-l-rose-500'}"
@@ -249,7 +249,7 @@
 											</p>
 											<div
 												class="flex items-center gap-1.5 text-[11px] text-zinc-500"
-											>
+											>	{msg.reviewerName}
 												<span>•</span>
 												<span
 													>{new Date(msg.timestamp).toLocaleString([], {

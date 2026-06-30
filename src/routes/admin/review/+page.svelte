@@ -543,8 +543,9 @@
 												<div
 													class="border {msg.reviewerName === 'user'
 														? 'border-l-amber-500'
-														: i === 0 && msg.reviewerName !== 'APPROVED'
-															? entry.status === 1
+														: i === 0 || msg.reviewerName?.includes('APPROVED')
+															? entry.status === 1 ||
+																msg.reviewerName?.includes('APPROVED')
 																? 'border-l-emerald-500'
 																: 'border-l-rose-500'
 															: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"

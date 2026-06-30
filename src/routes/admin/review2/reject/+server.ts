@@ -5,23 +5,25 @@ import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
 import { patchProjectForShip, getProjectById } from "$lib/db"
 import { updated } from "$app/state"
-function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): Log[] {
+function updateLog(log: Log[], rejectionReason: string): Log[] {
 
-    if (log.length === 0) {
-        throw new Error("Log is empty")
-    }
-    const lastLog = log[log.length - 1]
-
-        const newDeltaTime = lastLog.deltaTime - deltaTime
-        return [...log.slice(0, -1), {
-            ...lastLog,
-            status: 2,
-            timestamp: new Date().toISOString(),
-            deltaTime: newDeltaTime,
-            message: [...lastLog.message, { userExternal: userExternal, internalNote: internalNote, justification: justification, timestamp: new Date().toISOString(), reviewerName: name }],
-            submmitedToHQ: false
-        }]
-   
+	if (log.length === 0) {
+		return log
+	}
+	const lastLog = log[log.length - 1]
+	if (lastLog.status === 0 || lastLog.status === 1) {
+		
+		return [...log.slice(0, -1), {
+			...lastLog,
+			status: 0,
+			timestamp: new Date().toISOString(),
+			deltaTime: lastLog.deltaTime,
+			message: [...lastLog.message, { userExternal: `Hiya! Your project failed T2 review, REASON: ${rejectionReason}`, internalNote: "Rejected at T2", justification: "Rejected at T2", timestamp: new Date().toISOString(), reviewerName: "T2 Reviewer" }],
+			submmitedToHQ: false
+		}]
+	} else {
+		return log
+	}
 
 }
 export const POST: RequestHandler = async ({ request,cookies }) => {
@@ -32,14 +34,14 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
     let decoded: AdminJWT
     try {
          decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isReviewer ) {
+        if (!decoded.isT2Reviewer ) {
             return error(401, "Unauthorized")
         }
     } catch (err) {
         return error(401, "Unauthorized")
     }
-    const {recordId, userExternal, internalNote, justification, decreaseTime} = await request.json()
-    if (!recordId || !userExternal  || !justification ) {
+    const {recordId, userExternal, justification, slackId} = await request.json()
+    if (!recordId || !userExternal  || !justification || !slackId) {
         return error(400, "Missing required fields")
     }
     const readProject = await getProjectById(recordId)
@@ -50,9 +52,12 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
     if (projectData.fields.status === "accepted_t2" ) {
         return error(400, "Cannot overturn a project that has been accepted by a T2 reviewer")
     }
+    if (projectData.fields.status === "rejected"){
+        return error(400, "Project has already been rejected")
+    }
     const log = projectData.fields.log
     const name = decoded.name
-    const updatedLog = updateLog(JSON.parse(log), -decreaseTime, userExternal, name, internalNote, justification)
+    const updatedLog = updateLog(JSON.parse(log),  userExternal)
     const [response, botResponse] = await Promise.all([
         patchProjectForShip(recordId, updatedLog, "rejected"),
         fetch("https://aoishik.qzz.io/review-reject", {
@@ -62,7 +67,7 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
                 "Authorization": `Bearer ${BOT_AUTH}`
             },
             body: JSON.stringify(
-            { "user_id": projectData.fields.slackId, "project_name": projectData.fields.Name, "project_link": projectData.fields.code ?? "", "reviewer_id": decoded.slackId, "feedback": userExternal }
+            { "user_id": slackId, "project_name": projectData.fields.Name, "project_link": projectData.fields.code ?? "", "reviewer_id": decoded.slackId, "feedback": userExternal }
             )
         })
     ])
@@ -81,7 +86,7 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
                 status: botResponse.status,
                 statusText: botResponse.statusText,
                 timestamp: new Date().toISOString(),
-                slackId: projectData.fields.slackId,
+                slackId: slackId,
                 projectName: projectData.fields.Name,
                 projectLink: projectData.fields.code ?? ""
             })

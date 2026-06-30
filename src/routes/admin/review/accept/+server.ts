@@ -44,8 +44,8 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const approver = decoded.name
 
-    const { recordId, userExternal, internalNote, justification, decreaseTime, userEmailId, theme, slackId, projectName, projectLink } = await request.json()
-    if (!recordId || !userExternal || !justification || !userEmailId || !theme || !slackId || !projectName || !projectLink) {
+    const { recordId, userExternal, internalNote, justification, decreaseTime } = await request.json()
+    if (!recordId || !userExternal || !justification ) {
         return new Response("Missing required fields", { status: 400 })
     }
         const readProject = await getProjectById(recordId)

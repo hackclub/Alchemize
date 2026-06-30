@@ -75,14 +75,12 @@
 			if (entry.status === 1 && !entry.submmitedToHQ) {
 				let approvedBy = "T1 Reviewer: " + entry.message.at(-1)?.reviewerName
 				let userLogs = ``
-				for (const message of entry.message ) {
+				for (const message of entry.message) {
 					if (message.reviewerName === "user") {
-											userLogs += `User written logs: ${message.userExternal} \n`
-
-					}else {
+						userLogs += `User written logs: ${message.userExternal} \n`
+					} else {
 						userLogs += `Reviewer notes: ${message.userExternal} \n`
 					}
-					
 				}
 				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours \n`
 				let finalFeedback = `Approval Feedback: ${entry.message.at(-1)?.userExternal || "No feedback provided"} \n`
@@ -100,7 +98,7 @@ ${currentProject.update || currentProject.log.length > 1 ? `This project is an u
 Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours \n
 ${projectDescription}
 ${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changelogs}` : ``}
-There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor((gitCommits / currentProject.hours)*10)/10 : 0} commits/hr
+There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor((gitCommits / currentProject.hours) * 10) / 10 : 0} commits/hr
 ${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
 User written logs:
 ${generateUserLogs(currentProject.log)}
@@ -117,6 +115,14 @@ Signed by ${data.name}, T2 Reviewer
 	$effect(() => {
 		if (currentProject.name) {
 			generateFullJustification()
+		}
+
+	})
+	$effect(() => {
+				if (pending === true) {
+			currentProject = {} as AdminProject
+		} else {
+			currentProject = {} as AdminProject
 		}
 	})
 	const sendToDatabase = async () => {
@@ -142,7 +148,9 @@ Signed by ${data.name}, T2 Reviewer
 			invalidateAll()
 			currentProject = {} as AdminProject
 		} else {
-			toast.error(await response.text() || "Failed to push project to Airtable")
+			toast.error(
+				(await response.text()) || "Failed to push project to Airtable"
+			)
 			loader = false
 		}
 	}
@@ -158,8 +166,8 @@ Signed by ${data.name}, T2 Reviewer
 					pending
 		) ?? []
 	)
-	
-		airtableProjects?.forEach(project => {
+
+	airtableProjects?.forEach(project => {
 		console.log(
 			"Filtered project: ",
 			project.fields.Name,
@@ -171,7 +179,37 @@ Signed by ${data.name}, T2 Reviewer
 			pending
 		)
 	})
-	
+	const rejectT2 = async () => {
+		const response = await fetch("/admin/review2/reject", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				recordId: currentProject.id,
+				userExternal: projectDescription,
+				justification: template,
+				slackId: currentProject.submittedBy,
+			}),
+		})
+		if (response.ok && response.status !== 207) {
+			toast.success(
+				"Rejected " + currentProject.name + " and sent notification to user!"
+			)
+			loader = false
+			airtableProjects = airtableProjects.filter(
+				p => p.id !== currentProject.id
+			)
+			invalidateAll()
+			currentProject = {} as AdminProject
+		} else if (response.status === 207) {
+			toast.info("Project rejected but notification not sent")
+			loader = false
+		} else {
+			toast.error((await response.text()) || "Failed to reject project")
+			loader = false
+		}
+	}
 </script>
 
 <svelte:head>
@@ -443,85 +481,96 @@ Signed by ${data.name}, T2 Reviewer
 							</div>
 
 							<div
-									class="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 overflow-y-auto wrap-break-word space-y-3 custom-scrollbar"
-								>
-									{#if currentProject.log && currentProject.log.length > 0}
-										{#each [...currentProject.log].reverse() as entry}
-											{#each [...entry.message].reverse() as msg, i}
-												<div
-													class="border {msg.reviewerName === 'user'
+								class="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 overflow-y-auto wrap-break-word space-y-3 custom-scrollbar"
+							>
+								{#if currentProject.log && currentProject.log.length > 0}
+									{#each [...currentProject.log].reverse() as entry}
+										{#each [...entry.message].reverse() as msg, i}
+											<div
+												class="border {msg.reviewerName === 'user'
 														? 'border-l-amber-500'
-														: i === 0 && msg.reviewerName !== 'APPROVED'
-															? entry.status === 1
+														: i === 0 || msg.reviewerName?.includes('APPROVED')
+															? entry.status === 1 ||
+																msg.reviewerName?.includes('APPROVED')
 																? 'border-l-emerald-500'
 																: 'border-l-rose-500'
 															: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
+											>
+												<div
+													class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
 												>
-													<div
-														class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
+													<span class="font-bold text-zinc-400"
+														>Reviewer: <span class="text-indigo-400 font-mono"
+															>@{msg.reviewerName || "staff"}</span
+														></span
 													>
-														<span class="font-bold text-zinc-400"
-															>Reviewer: <span class="text-indigo-400 font-mono"
-																>@{msg.reviewerName || "staff"}</span
-															></span
-														>
-														<span
-															>{new Date(msg.timestamp).toLocaleString()}</span
-														>
-													</div>
-													{#if msg.userExternal}
-														<p class="text-zinc-300 leading-relaxed">
-															<strong
-																class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
-																>Feedback Note:</strong
-															>
-															{msg.userExternal}
-														</p>
-													{/if}
-													{#if msg.internalNote}
-														<p
-															class="text-zinc-500 italic bg-zinc-900/30 p-2 rounded border border-zinc-900/20"
-														>
-															<strong
-																class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
-																>Internal Note:</strong
-															>
-															{msg.internalNote}
-														</p>
-													{/if}
+													<span>{new Date(msg.timestamp).toLocaleString()}</span
+													>
 												</div>
-											{/each}
+												{#if msg.userExternal}
+													<p class="text-zinc-300 leading-relaxed">
+														<strong
+															class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
+															>Feedback Note:</strong
+														>
+														{msg.userExternal}
+													</p>
+												{/if}
+												{#if msg.internalNote}
+													<p
+														class="text-zinc-500 italic bg-zinc-900/30 p-2 rounded border border-zinc-900/20"
+													>
+														<strong
+															class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
+															>Internal Note:</strong
+														>
+														{msg.internalNote}
+													</p>
+												{/if}
+											</div>
 										{/each}
-									{:else}
-										<p class="text-xs italic text-zinc-600 text-center py-4">
-											No cert history
-										</p>
-									{/if}
-								</div>
+									{/each}
+								{:else}
+									<p class="text-xs italic text-zinc-600 text-center py-4">
+										No cert history
+									</p>
+								{/if}
+							</div>
 						</aside>
 					</div>
 
 					<footer
 						class="w-full px-5 py-3.5 border-t border-zinc-800 bg-zinc-950/40 flex flex-col sm:flex-row justify-end items-center gap-2.5 flex-shrink-0"
 					>
-						<Button
-							class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
-							onclick={() => (justificationOpen = true)}
-							oninput={generateFullJustification}
-						>
-							Preview Justification
-						</Button>
-						<Button
-							class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
-							onclick={sendToDatabase}
-						>
-							{#if loader}
-								<div
-									class="border-2 border-emerald-200 border-t-white rounded-full w-3 h-3 animate-spin"
-								></div>
-							{/if}
-							Push to Airtable
-						</Button>
+						{#if pending}
+							<Button
+								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								onclick={rejectT2}
+						
+								disabled={projectDescriptionLength < 20 || loader}
+							>
+								Reject
+							</Button>
+							<Button
+								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								onclick={() => (justificationOpen = true)}
+								oninput={generateFullJustification}
+							>
+								Preview Justification
+							</Button>
+							<Button
+								class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
+								onclick={sendToDatabase}
+								disabled={projectDescriptionLength < 20 || loader}
+							>
+								{#if loader}
+									<div
+										class="border-2 border-emerald-200 border-t-white rounded-full w-3 h-3 animate-spin"
+									></div>
+								{/if}
+								Push to Airtable
+							</Button>
+						{/if}
 					</footer>
 				{:else}
 					<div
