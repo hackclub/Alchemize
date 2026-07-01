@@ -11,6 +11,7 @@
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
 	import type { Log } from "$lib/types"
+	import { cn } from "$lib/lib/utils"
 
 	type HackatimeProject = {
 		name?: string
@@ -230,9 +231,10 @@
 								{#each [...entry.message].reverse() as msg, i}
 									{#if msg.reviewerName !== "user"}
 										<div
-											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {(i ===
-											0 || msg.reviewerName?.includes("APPROVED"))
-												? (entry.status === 1 || msg.reviewerName?.includes("APPROVED"))
+											class="group border border-zinc-800 bg-zinc-900/30 rounded-xl p-4 transition hover:bg-zinc-900/50 border-l-4 {i ===
+												0 || msg.reviewerName?.includes('APPROVED')
+												? entry.status === 1 ||
+													msg.reviewerName?.includes('APPROVED')
 													? 'border-l-emerald-500'
 													: 'border-l-rose-500'
 												: 'border-l-rose-500'}"
@@ -244,7 +246,8 @@
 											</p>
 											<div
 												class="flex items-center gap-1.5 text-[11px] text-zinc-500"
-											>	{msg.reviewerName}
+											>
+												{msg.reviewerName}
 												<span>•</span>
 												<span
 													>{new Date(msg.timestamp).toLocaleString([], {
@@ -402,42 +405,117 @@
 									/>
 								</div>
 							</div>
-
-							<div class="space-y-2">
-								<Label
-									for="screenshot"
-									class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-									>Cover Screenshot</Label
-								>
-								<div class="flex items-center justify-center w-full">
-									<label
+							<div class="flex items-center justify-between gap-x-3">
+								<div class="space-y-2 w-full">
+									<Label
 										for="screenshot"
-										class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
-										style={fileinputPreview
-											? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
-											: "background-color: transparent;"}
+										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+										>Cover image</Label
 									>
-										<div
-											class="flex flex-col items-center justify-center pt-3 pb-3"
+									<div class="flex items-center justify-center w-full">
+										<label
+											for="screenshot"
+											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
+											style={fileinputPreview
+												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
+												: "background-color: transparent;"}
 										>
-											<p class="text-xs text-zinc-400 font-medium">
-												{hasFile
-													? "Screenshot ready to upload"
-													: "Click to upload a screenshot"}
-											</p>
-											<p class="text-[10px] text-zinc-600 mt-1">
-												PNG, JPG, GIF up to 5MB
-											</p>
-										</div>
-										<input
-											id="screenshot"
-											name="screenshot"
-											type="file"
-											accept="image/*"
-											class="hidden"
-											bind:files
-										/>
-									</label>
+											<div
+												class="flex flex-col items-center justify-center pt-3 pb-3"
+											>
+												<p class="text-xs text-zinc-400 font-medium">
+													{hasFile
+														? "Screenshot ready to upload"
+														: "Click to upload an image"}
+												</p>
+												<p class="text-[10px] text-zinc-600 mt-1">
+													PNG, JPG, GIF up to 5MB
+												</p>
+											</div>
+											<input
+												id="screenshot"
+												name="screenshot"
+												type="file"
+												accept="image/*"
+												class="hidden"
+												bind:files
+											/>
+										</label>
+									</div>
+								</div>
+								<div class="space-y-2 w-full">
+									<Label
+										for="screenshot"
+										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+										>Screenshot 1</Label
+									>
+									<div class="flex items-center justify-center w-full">
+										<label
+											for="screenshot"
+											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
+											style={fileinputPreview
+												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
+												: "background-color: transparent;"}
+										>
+											<div
+												class="flex flex-col items-center justify-center pt-3 pb-3"
+											>
+												<p class="text-xs text-zinc-400 font-medium">
+													{hasFile
+														? "Screenshot ready to upload"
+														: "Click to upload a screenshot"}
+												</p>
+												<p class="text-[10px] text-zinc-600 mt-1">
+													PNG, JPG, GIF up to 5MB
+												</p>
+											</div>
+											<input
+												id="screenshot"
+												name="screenshot"
+												type="file"
+												accept="image/*"
+												class="hidden"
+												bind:files
+											/>
+										</label>
+									</div>
+								</div>
+								<div class="space-y-2 w-full">
+									<Label
+										for="screenshot"
+										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+										>Screenshot 2</Label
+									>
+									<div class="flex items-center justify-center w-full">
+										<label
+											for="screenshot"
+											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
+											style={fileinputPreview
+												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
+												: "background-color: transparent;"}
+										>
+											<div
+												class="flex flex-col items-center justify-center pt-3 pb-3"
+											>
+												<p class="text-xs text-zinc-400 font-medium">
+													{hasFile
+														? "Screenshot ready to upload"
+														: "Click to upload a screenshot"}
+												</p>
+												<p class="text-[10px] text-zinc-600 mt-1">
+													PNG, JPG, GIF up to 5MB
+												</p>
+											</div>
+											<input
+												id="screenshot"
+												name="screenshot"
+												type="file"
+												accept="image/*"
+												class="hidden"
+												bind:files
+											/>
+										</label>
+									</div>
 								</div>
 							</div>
 
@@ -590,34 +668,44 @@
 								Cancel
 							</Button>
 
-							<Dialog.Close>
-								<Button
-									disabled={!allFieldsFilled ||
-										showSecondRotator ||
-										shipLoading}
-									type="submit"
-									class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20"
-									onclick={() => {
-										if (!name || !description) {
-											toast.error("Please fill in all required fields.")
-											return
-										}
-										if (mode === "create" && descriptionCharCount < 50) {
-											toast.error(
-												"Please provide a description with at least 50 characters."
-											)
-											return
-										}
-									}}
-								>
-									{#if showSecondRotator}
-										<div
-											class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
-										></div>
-									{/if}
-									{mode === "create" ? "Initialize Project" : "Update Project"}
-								</Button>
-							</Dialog.Close>
+							<div
+								class={cn(
+									"pointer-events-auto",
+									!allFieldsFilled && "pointer-events-none cursor-not-allowed"
+								)}
+							>
+								<Dialog.Close>
+									<Button
+										disabled={!allFieldsFilled ||
+											showSecondRotator ||
+											shipLoading}
+										type="submit"
+										class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20 {!allFieldsFilled &&
+											'pointer-events-none'}"
+										onclick={() => {
+											if (!name || !description) {
+												toast.error("Please fill in all required fields.")
+												return
+											}
+											if (mode === "create" && descriptionCharCount < 50) {
+												toast.error(
+													"Please provide a description with at least 50 characters."
+												)
+												return
+											}
+										}}
+									>
+										{#if showSecondRotator}
+											<div
+												class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
+											></div>
+										{/if}
+										{mode === "create"
+											? "Initialize Project"
+											: "Update Project"}
+									</Button>
+								</Dialog.Close>
+							</div>
 						</div>
 					</form>
 				{/if}
