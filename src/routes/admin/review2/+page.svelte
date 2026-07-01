@@ -129,6 +129,7 @@ Signed by ${data.name}, T2 Reviewer
 	const sendToDatabase = async () => {
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		invalidateAll()
+		const id = currentProject.id
 		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/sendToAirtable", {
 			method: "POST",
@@ -136,7 +137,7 @@ Signed by ${data.name}, T2 Reviewer
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				projectId: currentProject.id,
+				projectId: id,
 				justification: template,
 				subtraction,
 			}),
@@ -187,6 +188,8 @@ Signed by ${data.name}, T2 Reviewer
 	const rejectT2 = async () => {
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		invalidateAll()
+		const id = currentProject.id
+		const slackId = currentProject.submittedBy
 		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/reject", {
 			method: "POST",
@@ -194,10 +197,10 @@ Signed by ${data.name}, T2 Reviewer
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				recordId: currentProject.id,
+				recordId: id,
 				userExternal: projectDescription,
 				justification: template,
-				slackId: currentProject.submittedBy,
+				slackId: slackId,
 			}),
 		})
 
