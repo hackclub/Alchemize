@@ -36,7 +36,8 @@ export const projectTable = pgTable("projects", {
     status: varchar({ length: 255 }).notNull(),
     firstName: varchar({ length: 1000 }).notNull(),
     lastName: varchar({ length: 1000 }).notNull(),
-    screenshot: varchar({ length: 1000 }).notNull(),
+    screenshot: varchar({ length: 1000 }).notNull().default(""),
+    screenshot2: varchar({ length: 1000 }).notNull().default(""),
     unifiedId: uuid().notNull().unique().defaultRandom(),
     encryptionIv: varchar({ length: 255 }).notNull().default(""),
 })
@@ -510,8 +511,8 @@ export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const createProject = async (projectData: any): Promise<DBResponse> => {
-    const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, iv } = projectData
-    const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, encryptionIv: iv }).returning();
+    const { Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, iv, screenshot2 } = projectData
+    const newProject = await db.insert(projectTable).values({ Name, description, type, demo, code, status, log, hackatime, languages, update, journals, owner, Theme, address, birthdate, slackId, firstName, lastName, screenshot, screenshot2, encryptionIv: iv }).returning();
     return {
         ok: true,
         status: 201,
@@ -520,37 +521,12 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
-
-    if (!projectData.screenshot) {
-        var allowedUpdates: Record<string, any> = {
-            Name: projectData.Name,
-            description: projectData.description,
-            type: projectData.type ?? "",
-            demo: projectData.demo ?? "",
-            code: projectData.code ?? "",
-            hackatime: projectData.hackatime ?? "",
-            update: projectData.update ?? "",
-            Theme: projectData.Theme ?? "",
-        };
-    } else {
-        var allowedUpdates: Record<string, any> = {
-            Name: projectData.Name,
-            description: projectData.description ?? "",
-            type: projectData.type ?? "",
-            demo: projectData.demo ?? "",
-            code: projectData.code ?? "",
-            hackatime: projectData.hackatime ?? "",
-            update: projectData.update ?? "",
-            screenshot: projectData.screenshot ?? "",
-            Theme: projectData.Theme ?? "",
-        };
-    }
-
-
+    const allowedFields = ['Name', 'description', 'type', 'demo', 'code', 'hackatime', 'update', 'screenshot', 'Theme', 'screenshot2'];
+    
     const updatePayload = Object.fromEntries(
-        Object.entries(allowedUpdates).filter(([_, value]) => value !== undefined && value !== "")
+        Object.entries(projectData)
+            .filter(([key, value]) => allowedFields.includes(key) && value !== undefined && value !== "")
     );
-
 
     if (Object.keys(updatePayload).length === 0) {
         return {
@@ -562,7 +538,6 @@ export const updateProject = async (projectId: string, projectData: any, email: 
     }
 
     try {
-
         const updatedProject = await db
             .update(projectTable)
             .set(updatePayload)
@@ -578,11 +553,13 @@ export const updateProject = async (projectId: string, projectData: any, email: 
             };
         }
 
+        const responsePayload = { id: updatedProject[0].id + "", fields: updatedProject[0] };
+
         return {
             ok: true,
             status: 200,
-            json: async () => ({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
-            text: async () => JSON.stringify({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
+            json: async () => responsePayload as airtableReplication,
+            text: async () => JSON.stringify(responsePayload),
         } as DBResponse;
 
     } catch (error) {

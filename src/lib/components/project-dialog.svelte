@@ -96,7 +96,9 @@
 	let files: any = $state()
 	let fileinputPreview: any = $state("")
 	let hasFile = $derived(files && files.length > 0)
-
+	let files2: any = $state()
+	let fileinputPreview2: any = $state("")
+	let hasFile2 = $derived(files2 && files2.length > 0)
 	$effect(() => {
 		if (files && files.length > 0) {
 			const file = files[0]
@@ -112,8 +114,22 @@
 		} else {
 			fileinputPreview = ""
 		}
+		
 	})
+	$effect(() => {
+		if (files2 && files2.length > 0) {
+			const file2 = files2[0]
+			const objectUrl2 = URL.createObjectURL(file2)
+			console.log("File input Link created dynamically:", objectUrl2)
+			fileinputPreview2 = objectUrl2
 
+			return () => {
+				URL.revokeObjectURL(objectUrl2)
+			}
+		} else {
+			fileinputPreview2 = ""
+		}
+	})
 	let allFieldsFilled = $derived(
 		name && description && descriptionCharCount >= 50
 	)
@@ -408,50 +424,13 @@
 							<div class="flex items-center justify-between gap-x-3">
 								<div class="space-y-2 w-full">
 									<Label
-										for="screenshot"
-										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-										>Cover image</Label
-									>
-									<div class="flex items-center justify-center w-full">
-										<label
-											for="screenshot"
-											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
-											style={fileinputPreview
-												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
-												: "background-color: transparent;"}
-										>
-											<div
-												class="flex flex-col items-center justify-center pt-3 pb-3"
-											>
-												<p class="text-xs text-zinc-400 font-medium">
-													{hasFile
-														? "Screenshot ready to upload"
-														: "Click to upload an image"}
-												</p>
-												<p class="text-[10px] text-zinc-600 mt-1">
-													PNG, JPG, GIF up to 5MB
-												</p>
-											</div>
-											<input
-												id="screenshot"
-												name="screenshot"
-												type="file"
-												accept="image/*"
-												class="hidden"
-												bind:files
-											/>
-										</label>
-									</div>
-								</div>
-								<div class="space-y-2 w-full">
-									<Label
-										for="screenshot"
+										for="screenshot-1"
 										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
 										>Screenshot 1</Label
 									>
 									<div class="flex items-center justify-center w-full">
 										<label
-											for="screenshot"
+											for="screenshot-1"
 											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
 											style={fileinputPreview
 												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
@@ -470,35 +449,35 @@
 												</p>
 											</div>
 											<input
-												id="screenshot"
+												id="screenshot-1"
 												name="screenshot"
 												type="file"
 												accept="image/*"
 												class="hidden"
-												bind:files
+												bind:files={files}
 											/>
 										</label>
 									</div>
 								</div>
 								<div class="space-y-2 w-full">
 									<Label
-										for="screenshot"
+										for="screenshot-2"
 										class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
 										>Screenshot 2</Label
 									>
 									<div class="flex items-center justify-center w-full">
 										<label
-											for="screenshot"
+											for="screenshot-2"
 											class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer border-zinc-800 hover:border-zinc-700 transition"
-											style={fileinputPreview
-												? `background-image: url('${fileinputPreview}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
+											style={fileinputPreview2
+												? `background-image: url('${fileinputPreview2}'); background-size: contain; background-position: center; filter: backdrop-blur(2px);`
 												: "background-color: transparent;"}
 										>
 											<div
 												class="flex flex-col items-center justify-center pt-3 pb-3"
 											>
 												<p class="text-xs text-zinc-400 font-medium">
-													{hasFile
+													{hasFile2
 														? "Screenshot ready to upload"
 														: "Click to upload a screenshot"}
 												</p>
@@ -507,12 +486,11 @@
 												</p>
 											</div>
 											<input
-												id="screenshot"
-												name="screenshot"
+												id="screenshot-2"
 												type="file"
 												accept="image/*"
 												class="hidden"
-												bind:files
+												bind:files={files2}
 											/>
 										</label>
 									</div>

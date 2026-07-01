@@ -56,8 +56,11 @@ export const actions = {
 		const hackatimeProject = formData.get("hackatime") as string
 		const theme = formData.get("theme") as string
 		const tempFormData = new FormData()
+		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
+		const screenshot2 = formData.get("screenshot-2") as File
 		let url = ""
+		let url2 = ""
 		let iv = crypto.randomBytes(16).toString("hex")
 				if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) {
 			throw new Error("Invalid project URL or code repository URL")
@@ -92,6 +95,33 @@ export const actions = {
 		} else {
 			var userData = await getDataFromAccessToken(accessToken)
 		}
+		if (screenshot2 && screenshot2.size > 0) {
+			tempFormData2.append("file", screenshot2)
+			const [cdnResponse] = await Promise.all([
+				fetch("https://cdn.hackclub.com/api/v4/upload", {
+					method: "POST",
+					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
+					body: tempFormData2,
+				})
+			])
+			if (!cdnResponse.ok) {
+				const errorData = await cdnResponse.json()
+				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
+				const errorText =
+					errorData.error?.message ||
+					"An error occurred while uploading the screenshot"
+				console.error("CDN upload failed:", {
+					status: cdnResponse.status,
+					errorCode,
+					errorText,
+					timestamp: new Date().toISOString(),
+				})
+				throw new Error(
+					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
+				)
+			}
+			url2 = (await cdnResponse.json()).url
+		} 
 		const addressEncrypted = encryptAES(JSON.stringify(userData.address || []), Buffer.from(iv, "hex"))
 		const bdayEncrypted = encryptAES(userData.birthday || "", Buffer.from(iv, "hex"))
 		const firstNameEncrypted = encryptAES(userData.first_name || "", Buffer.from(iv, "hex"))
@@ -116,6 +146,7 @@ export const actions = {
 			firstName: firstNameEncrypted.finalString,
 			lastName: lastNameEncrypted.finalString,
 			screenshot: url,
+			screenshot2: url2,
 			iv: iv,
 		})
 
@@ -190,8 +221,11 @@ export const actions = {
 		const theme = formData.get("theme") as string
 		const recordId = formData.get("recordId") as string
 		const tempFormData = new FormData()
+		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
+		const screenshot2 = formData.get("screenshot-2") as File
 		let url = ""
+		let url2 = ""
 if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) { 
 			throw new Error("Invalid project URL or code repository URL")
 		}
@@ -222,7 +256,34 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 			}
 			url = (await cdnResponse.json()).url
 		}
-		if (url !== "") {
+		if (screenshot2 && screenshot2.size > 0) {
+			tempFormData2.append("file", screenshot2)
+			const [cdnResponse] = await Promise.all([
+				fetch("https://cdn.hackclub.com/api/v4/upload", {
+					method: "POST",
+					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
+					body: tempFormData2,
+				})
+			])
+			if (!cdnResponse.ok) {
+				const errorData = await cdnResponse.json()
+				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
+				const errorText =
+					errorData.error?.message ||
+					"An error occurred while uploading the screenshot"
+				console.error("CDN upload failed:", {
+					status: cdnResponse.status,
+					errorCode,
+					errorText,
+					timestamp: new Date().toISOString(),
+				})
+				throw new Error(
+					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
+				)
+			}
+			url2 = (await cdnResponse.json()).url
+		} 
+		
 			console.log("Theme:", theme)
 			var response = await updateProject(
 				recordId,
@@ -236,28 +297,11 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 					update: oldProject,
 					Theme: theme,
 					screenshot: url,
+					screenshot2: url2,
 				},
 				email
 			)
-		} else {
-			console.log("Theme:", theme)
-
-			var response = await updateProject(
-				recordId,
-				{
-					Name: projectName,
-					description: projectDescription,
-					type: projectType,
-					demo: projectUrl,
-					code: projectCode,
-					hackatime: hackatimeProject,
-					update: oldProject,
-					Theme: theme,
-				},
-				email
-			)
-		}
-
+		
 		// Error handling
 		if (!response.ok) {
 			const errorData = await response.json()
