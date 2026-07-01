@@ -257,6 +257,7 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 			url = (await cdnResponse.json()).url
 		}
 		if (screenshot2 && screenshot2.size > 0) {
+			console.log("Uploading second screenshot...")
 			tempFormData2.append("file", screenshot2)
 			const [cdnResponse] = await Promise.all([
 				fetch("https://cdn.hackclub.com/api/v4/upload", {
@@ -283,7 +284,7 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 			}
 			url2 = (await cdnResponse.json()).url
 		} 
-		
+			console.log(url2, "Screenshot 2 URL")
 			console.log("Theme:", theme)
 			var response = await updateProject(
 				recordId,
@@ -427,6 +428,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					slackId: record.fields.slackId,
 					Theme: record.fields.Theme,
 					screenshot: record.fields.screenshot,
+					screenshot2: record.fields.screenshot2,
 					journals: record.fields.journals,
 				},
 			})

@@ -9,6 +9,8 @@
 		type: string
 		category: string
 		description: string
+		screenshot?: string
+		screenshot2?: string
 	}
 
 	let {
@@ -21,6 +23,8 @@
 			category: "Tribute",
 			description:
 				"This is a demo project description. Soon this will be dynamic.",
+			screenshot: "/path/to/screenshot.jpg",
+			screenshot2: "/path/to/screenshot2.jpg"
 		},
 	}: {
 		open: boolean
@@ -29,7 +33,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="sm:max-w-150">
+	<Dialog.Content class="min-w-[60vw]">
 		<Dialog.Header>
 			<Dialog.Title>{project.name} ({project.hours}hrs)</Dialog.Title>
 
@@ -41,10 +45,14 @@
 		<div class="space-y-4 py-2">
 			<div>
 				<h2 class="font-semibold">Description</h2>
-				<p class="text-muted-foreground">
+				<p class="text-muted-foreground max-w-[54vw] overflow-hidden wrap-break-word">
 					{project.description}
 				</p>
 			</div>
+		</div>
+		<div class="screenshots flex w-[60vw] gap-4 ">
+			<img src={project.screenshot} alt="" class="w-[45%] object-contain h-auto">
+			<img src={project.screenshot2} alt="" class="w-[45%] object-contain h-auto">
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

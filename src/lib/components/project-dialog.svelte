@@ -61,6 +61,7 @@
 		hackatime = project?.fields.hackatime ?? ""
 		projectUpdate = project?.fields.update ?? false
 		theme = project?.fields.Theme ?? ""
+				
 	})
 
 	let descriptionCharCount = $derived(countCharacters(description))
@@ -126,7 +127,9 @@
 			return () => {
 				URL.revokeObjectURL(objectUrl2)
 			}
-		} else {
+		} else if (mode === "update" && project?.fields.screenshot2 && !hasFile2) {
+			fileinputPreview2 = project.fields.screenshot2
+		}else {
 			fileinputPreview2 = ""
 		}
 	})
@@ -141,6 +144,7 @@
 			originalProject?.fields.code &&
 			originalProject?.fields.demo &&
 			originalProject?.fields.screenshot &&
+			originalProject?.fields.screenshot2 &&
 			originalProject.fields.hackatime
 		)
 	)
@@ -152,6 +156,7 @@
 			originalProject?.fields.code &&
 			originalProject?.fields.demo &&
 			originalProject?.fields.screenshot &&
+			originalProject?.fields.screenshot2 &&
 			originalProject.fields.hackatime
 		)
 	})
@@ -331,9 +336,13 @@
 							: 'w-full'}"
 						use:enhance={() => {
 							showSecondRotator = true
+				
 							return async ({ result }) => {
 								showSecondRotator = false
-								invalidater?.()
+								if (result.type === "success") {
+									invalidater?.()
+									open = false
+								}
 							}
 						}}
 					>
@@ -487,6 +496,7 @@
 											</div>
 											<input
 												id="screenshot-2"
+												name="screenshot-2"
 												type="file"
 												accept="image/*"
 												class="hidden"
@@ -652,37 +662,35 @@
 									!allFieldsFilled && "pointer-events-none cursor-not-allowed"
 								)}
 							>
-								<Dialog.Close>
-									<Button
-										disabled={!allFieldsFilled ||
-											showSecondRotator ||
-											shipLoading}
-										type="submit"
-										class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20 {!allFieldsFilled &&
-											'pointer-events-none'}"
-										onclick={() => {
-											if (!name || !description) {
-												toast.error("Please fill in all required fields.")
-												return
-											}
-											if (mode === "create" && descriptionCharCount < 50) {
-												toast.error(
-													"Please provide a description with at least 50 characters."
-												)
-												return
-											}
-										}}
-									>
-										{#if showSecondRotator}
-											<div
-												class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
-											></div>
-										{/if}
-										{mode === "create"
-											? "Initialize Project"
-											: "Update Project"}
-									</Button>
-								</Dialog.Close>
+								<Button
+									disabled={!allFieldsFilled ||
+										showSecondRotator ||
+										shipLoading}
+									type="submit"
+									class="bg-primary hover:bg-primary/80 text-white text-xs font-bold uppercase tracking-wider px-6 h-10 shadow-lg shadow-red-950/20 {!allFieldsFilled &&
+										'pointer-events-none'}"
+									onclick={() => {
+										if (!name || !description) {
+											toast.error("Please fill in all required fields.")
+											return
+										}
+										if (mode === "create" && descriptionCharCount < 50) {
+											toast.error(
+												"Please provide a description with at least 50 characters."
+											)
+											return
+										}
+									}}
+								>
+									{#if showSecondRotator}
+										<div
+											class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
+										></div>
+									{/if}
+									{mode === "create"
+										? "Initialize Project"
+										: "Update Project"}
+								</Button>
 							</div>
 						</div>
 					</form>

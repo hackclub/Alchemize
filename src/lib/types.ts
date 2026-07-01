@@ -29,6 +29,7 @@ export interface Project {
 	hackatime: string
 	update?: boolean
 	screenshot?: string
+	screenshot2?: string
 }
 export interface AirtableProject {
 	id: string
@@ -48,6 +49,7 @@ export interface AirtableProject {
 		slackId: string
 		Theme: string
 		screenshot: string
+		screenshot2: string
 	}
 }
 export interface AirtableProjectWithPII extends AirtableProject {

@@ -56,6 +56,8 @@
 			update: nextProject.fields.update,
 			hackatime: nextProject.fields.hackatime,
 			owner: nextProject.fields.owner,
+			screenshot2: nextProject.fields.screenshot2,
+			screenshot: nextProject.fields.screenshot,
 			unifiedId: nextProject.fields.unifiedId,
 		}
 		console.log("Current project set to log:", currentProject.log)
@@ -116,16 +118,18 @@ Signed by ${data.name}, T2 Reviewer
 		if (currentProject.name) {
 			generateFullJustification()
 		}
-
 	})
 	$effect(() => {
-				if (pending === true) {
+		if (pending === true) {
 			currentProject = {} as AdminProject
 		} else {
 			currentProject = {} as AdminProject
 		}
 	})
 	const sendToDatabase = async () => {
+		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
+		invalidateAll()
+		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/sendToAirtable", {
 			method: "POST",
 			headers: {
@@ -137,6 +141,7 @@ Signed by ${data.name}, T2 Reviewer
 				subtraction,
 			}),
 		})
+
 		if (response.ok) {
 			toast.success(
 				"Pushed " + currentProject.name + " to Airtable successfully!"
@@ -180,6 +185,9 @@ Signed by ${data.name}, T2 Reviewer
 		)
 	})
 	const rejectT2 = async () => {
+		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
+		invalidateAll()
+		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/reject", {
 			method: "POST",
 			headers: {
@@ -192,16 +200,12 @@ Signed by ${data.name}, T2 Reviewer
 				slackId: currentProject.submittedBy,
 			}),
 		})
+
 		if (response.ok && response.status !== 207) {
 			toast.success(
 				"Rejected " + currentProject.name + " and sent notification to user!"
 			)
 			loader = false
-			airtableProjects = airtableProjects.filter(
-				p => p.id !== currentProject.id
-			)
-			invalidateAll()
-			currentProject = {} as AdminProject
 		} else if (response.status === 207) {
 			toast.info("Project rejected but notification not sent")
 			loader = false
@@ -488,13 +492,13 @@ Signed by ${data.name}, T2 Reviewer
 										{#each [...entry.message].reverse() as msg, i}
 											<div
 												class="border {msg.reviewerName === 'user'
-														? 'border-l-amber-500'
-														: i === 0 || msg.reviewerName?.includes('APPROVED')
-															? entry.status === 1 ||
-																msg.reviewerName?.includes('APPROVED')
-																? 'border-l-emerald-500'
-																: 'border-l-rose-500'
-															: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
+													? 'border-l-amber-500'
+													: i === 0 || msg.reviewerName?.includes('APPROVED')
+														? entry.status === 1 ||
+															msg.reviewerName?.includes('APPROVED')
+															? 'border-l-emerald-500'
+															: 'border-l-rose-500'
+														: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
 											>
 												<div
 													class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
@@ -546,7 +550,6 @@ Signed by ${data.name}, T2 Reviewer
 							<Button
 								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={rejectT2}
-						
 								disabled={projectDescriptionLength < 20 || loader}
 							>
 								Reject

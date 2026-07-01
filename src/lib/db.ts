@@ -76,6 +76,7 @@ export const justifications = pgTable("justifications", {
     demo: varchar({ length: 1000 }).notNull(),
     code: varchar({ length: 1000 }).notNull(),
     screenshot: varchar({ length: 1000 }).notNull(),
+    screenshot2: varchar({ length: 1000 }).notNull().default(""),
     description: varchar({ length: 2000 }).notNull(),
     address: varchar({ length: 2000 }).notNull(),
     city: varchar({ length: 255 }).notNull(),
@@ -437,7 +438,8 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
         Theme: projectTable.Theme,
         slackId: projectTable.slackId,
         status: projectTable.status,
-        screenshot: projectTable.screenshot
+        screenshot: projectTable.screenshot,
+        screenshot2: projectTable.screenshot2,
     }
     ).from(projectTable).where(eq(projectTable.owner, owner));
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
@@ -498,6 +500,7 @@ export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
         slackId: projectTable.slackId,
         status: projectTable.status,
         screenshot: projectTable.screenshot,
+        screenshot2: projectTable.screenshot2,
         unifiedId: projectTable.unifiedId
     }).from(projectTable);
 
@@ -816,10 +819,11 @@ export const addToJustifications = async (justificationData: {
     justification: string,
     firstName: string,
     lastName: string,
+    screenshot2: string,
     iv: string
 }): Promise<DBResponse> => {
-    const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, iv } = justificationData
-    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, iv }).returning();
+    const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, screenshot2, iv } = justificationData
+    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, screenshot2, iv }).returning();
     return {
         ok: true,
         status: 201,
