@@ -8,6 +8,8 @@
 		Coins,
 		Undo2,
 	} from "lucide-svelte"
+	const { data } = $props()
+	console.log(data)
 </script>
 
 <a

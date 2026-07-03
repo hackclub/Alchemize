@@ -25,7 +25,7 @@
 				
 					<p class="font-alchemize">
 					
-						 {order.fields.id} |{order.fields.orderItem} | {order.fields.ordererEmail}
+						 {order.fields.id} | {order.fields.qty} x {order.fields.orderItem} | {order.fields.ordererEmail}
 					</p>
 				<a href={`/admin/fulfillment/orders/${order.fields.id}`}>
 					<Button class="bg-admin-primary border border-muted hover:scale-104">
