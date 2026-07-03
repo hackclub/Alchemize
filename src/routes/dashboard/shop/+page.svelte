@@ -6,8 +6,11 @@
 	import { ShoppingBag } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { cn } from "$lib/lib/utils"
+	import Input from "$lib/components/ui/input/input.svelte"
+	import { Search } from "@lucide/svelte"
 
 	let { data } = $props()
+
 	let currencies = $state(
 		looseJson(data.userRecord?.fields?.currency ?? "{}") as UserCurrency
 	)
@@ -29,21 +32,39 @@
 		primaryCurrency: keyof UserCurrency | "none"
 	}
 
-	type FilterOption = "all" | "affordable" | keyof UserCurrency
 	type SortOption = "none" | "affordable" | keyof UserCurrency
 
-	let activeFilter = $state<FilterOption>("all")
+	// NEW
+	let activeCurrencies = $state<Set<keyof UserCurrency>>(new Set())
+	let affordableOnly = $state(false)
+
 	let activeSort = $state<SortOption>("none")
 
 	let isDialogOpen = $state(false)
 	let selectedItem = $state<ShopItem>({
 		name: "",
 		description: "",
-		price: { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 },
+		price: {
+			redstone: 0,
+			glowstone: 0,
+			aqua_regia: 0,
+			potion_mix: 0,
+		},
 		image: "",
 		itemID: "",
 		primaryCurrency: "none",
 	})
+
+	function toggleCurrency(currency: keyof UserCurrency) {
+		if (activeCurrencies.has(currency)) {
+			activeCurrencies.delete(currency)
+		} else {
+			activeCurrencies.add(currency)
+		}
+
+		// force reactivity
+		activeCurrencies = new Set(activeCurrencies)
+	}
 
 	function getPrimaryCurrency(
 		price: UserCurrency
@@ -114,20 +135,26 @@
 				primaryCurrency: getPrimaryCurrency(item.itemPrice),
 			})) ?? []
 
-		let filtered = rawItems
-		if (activeFilter === "affordable") {
+		let filtered = [...rawItems]
+
+		if (affordableOnly) {
 			filtered = filtered.filter(item => !item.grayedOut)
-		} else if (activeFilter !== "all") {
-			filtered = filtered.filter(item => item.primaryCurrency === activeFilter)
+		}
+
+		if (activeCurrencies.size > 0) {
+			filtered = filtered.filter(
+				item =>
+					item.primaryCurrency !== "none" &&
+					activeCurrencies.has(item.primaryCurrency)
+			)
 		}
 
 		if (activeSort === "none") {
 			filtered.sort((a, b) => getItemPriceValue(a) - getItemPriceValue(b))
 		} else if (activeSort === "affordable") {
-			filtered.sort((a, b) => (a.grayedOut ? 1 : 0) - (b.grayedOut ? 1 : 0))
+			filtered.sort((a, b) => Number(a.grayedOut) - Number(b.grayedOut))
 		} else {
-			const currencyKey = activeSort as keyof UserCurrency
-			filtered.sort((a, b) => b.price[currencyKey] - a.price[currencyKey])
+			filtered.sort((a, b) => b.price[activeSort] - a.price[activeSort])
 		}
 
 		return filtered
@@ -144,7 +171,7 @@
 		currencies.glowstone -= qty * selectedItem.price.glowstone
 		currencies.aqua_regia -= qty * selectedItem.price.aqua_regia
 
-		const buyApi = fetch("/dashboard/shop/order", {
+		fetch("/dashboard/shop/order", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -169,6 +196,14 @@
 		if (currency.potion_mix > 0) return `${currency.potion_mix} Potion Mix`
 		return "Free"
 	}
+
+	let searchQuery = $state("")
+
+	let finalItems = $derived(
+		shopItems.filter((item: any) =>
+			item?.name.toLowerCase().includes(searchQuery.toLowerCase())
+		)
+	)
 </script>
 
 <svelte:head>
@@ -196,52 +231,84 @@
 					>Alchemize</span
 				>
 			</h1>
+			<div
+				data-fillout-id="f31FLmPvAXus"
+				data-fillout-embed-type="popup"
+				data-fillout-button-text="Suggest Items"
+				data-fillout-dynamic-resize
+				data-fillout-button-color="transparent"
+				data-fillout-inherit-parameters
+				data-fillout-popup-size="small"
+				class="fillout-embed-popup-button"
+			></div>
 		</div>
 
 		<div
 			class="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wider pr-15"
 		>
-			<div
-				class="border border-red-500/40 bg-red-800/10 text-red-500 rounded px-3 py-1.5 backdrop-blur-sm"
+			<Button
+				onclick={() => toggleCurrency("redstone")}
+				class={cn(
+					"rounded px-2 py-1 backdrop-blur-sm transition-all",
+					activeCurrencies.has("redstone")
+						? "border-red-500 bg-red-700/30 text-red-300"
+						: "border border-red-500/40 bg-red-800/10 text-red-500"
+				)}
 			>
-				<span>Redstone: {currencies.redstone.toString()}</span>
-			</div>
-			<div
-				class="border border-yellow-500/40 bg-yellow-950/20 text-yellow-500 rounded px-3 py-1.5 backdrop-blur-sm"
+				Redstone: {currencies.redstone}
+			</Button>
+
+			<Button
+				onclick={() => toggleCurrency("glowstone")}
+				class={cn(
+					"rounded px-2 py-1 backdrop-blur-sm transition-all",
+					activeCurrencies.has("glowstone")
+						? "border-yellow-400 bg-yellow-600/30 text-yellow-200"
+						: "border border-yellow-500/40 bg-yellow-950/20 text-yellow-500"
+				)}
 			>
-				<span>Glowstone: {currencies.glowstone.toString()}</span>
-			</div>
-			<div
-				class="border border-blue-500/40 bg-blue-950/20 text-blue-400 rounded px-3 py-1.5 backdrop-blur-sm"
+				Glowstone: {currencies.glowstone}
+			</Button>
+
+			<Button
+				onclick={() => toggleCurrency("aqua_regia")}
+				class={cn(
+					"rounded px-2 py-1 backdrop-blur-sm transition-all",
+					activeCurrencies.has("aqua_regia")
+						? "border-blue-400 bg-blue-700/30 text-blue-200"
+						: "border border-blue-500/40 bg-blue-950/20 text-blue-400"
+				)}
 			>
-				<span>Aqua Regia: {currencies.aqua_regia.toString()}</span>
-			</div>
-			<div
-				class="border border-rose-500/40 bg-rose-950/20 text-rose-400 rounded px-3 py-1.5 backdrop-blur-sm"
+				Aqua Regia: {currencies.aqua_regia}
+			</Button>
+
+			<Button
+				onclick={() => toggleCurrency("potion_mix")}
+				class={cn(
+					"rounded px-2 py-1 backdrop-blur-sm transition-all",
+					activeCurrencies.has("potion_mix")
+						? "border-rose-400 bg-rose-700/30 text-rose-200"
+						: "border border-rose-500/40 bg-rose-950/20 text-rose-400"
+				)}
 			>
-				<span>Potion Mix: {currencies.potion_mix.toString()}</span>
-			</div>
+				Potion Mix: {currencies.potion_mix}
+			</Button>
 		</div>
 	</header>
 
 	<div
 		class="relative z-10 w-full flex flex-wrap gap-4 items-center justify-between bg-zinc-950/60 p-2 border-2 border-zinc-800 border-t-0 rounded rounded-t-none text-xs shrink-0"
 	>
-		<div class="flex items-center gap-x-3">
-			<div class="flex items-center gap-2">
-				<span class="text-zinc-500 font-bold uppercase">Filter:</span>
-				<select
-					bind:value={activeFilter}
-					class="bg-zinc-900/20 text-white border border-zinc-700 rounded px-2 py-1 outline-none focus:border-primary font-mono cursor-pointer"
-				>
-					<option value="all">All Items</option>
-					<option value="affordable">Affordable</option>
-					<option value="redstone">Redstone Items</option>
-					<option value="glowstone">Glowstone Items</option>
-					<option value="aqua_regia">Aqua Regia Items</option>
-					<option value="potion_mix">Potion Mix Items</option>
-				</select>
-			</div>
+		<div class="flex items-center gap-x-3 divide-x-2">
+			<label class="flex items-center gap-2 ml-4 cursor-pointer pr-2">
+				<input
+					type="checkbox"
+					bind:checked={affordableOnly}
+					class="accent-primary"
+				/>
+
+				<span class="text-zinc-300 font-bold uppercase"> Affordable </span>
+			</label>
 
 			<div class="flex items-center gap-2">
 				<span class="text-zinc-500 font-bold uppercase">Sort By:</span>
@@ -258,24 +325,21 @@
 				</select>
 			</div>
 		</div>
-
-		<div
-			data-fillout-id="f31FLmPvAXus"
-			data-fillout-embed-type="popup"
-			data-fillout-button-text="Suggest Items now!"
-			data-fillout-dynamic-resize
-			data-fillout-button-color="transparent"
-			data-fillout-inherit-parameters
-			data-fillout-popup-size="medium"
-			class="fillout-embed-popup-button"
-		></div>
+		<div class="flex items-center justify-end gap-x-2">
+			<Input
+				class="border-primary active:border-2 focus:border-2 rounded-md font-mono text-primary"
+				bind:value={searchQuery}
+				placeholder="Search items..."
+			/>
+			<Search class="text-primary size-6" />
+		</div>
 	</div>
 
 	<div
 		class="relative z-10 flex-1 overflow-y-auto pr-2 grid gap-4 mt-5 content-start justify-items-center"
-		style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));"
+		style="grid-template-columns: repeat(auto-fit, minmax(35vh, 1fr));"
 	>
-		{#each shopItems as item}
+		{#each finalItems as item}
 			{@const theme = currencyTheme[item.primaryCurrency]}
 			<div class="relative group h-full w-full max-w-xs flex flex-col">
 				<div
@@ -341,6 +405,13 @@
 				</div>
 			</div>
 		{/each}
+		{#if finalItems.length === 0}
+			<p class="font-mono text-primary text-lg">
+				No Items found matching <strong class="font-black"
+					>'{searchQuery}'</strong
+				> and your selected filters.
+			</p>
+		{/if}
 	</div>
 </main>
 
@@ -370,7 +441,7 @@
 		text-transform: uppercase !important;
 		letter-spacing: 0.05em !important;
 
-		padding: 0.375rem 0.75rem !important;
+		padding: 0.275rem 0.55rem !important;
 		border-radius: 4px !important;
 		background-color: #7e0026 !important;
 		border: 2px solid rgba(239, 68, 68, 0.4) !important;
