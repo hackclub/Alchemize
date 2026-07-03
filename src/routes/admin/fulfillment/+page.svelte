@@ -1,6 +1,9 @@
 <script>
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
+	const { data } = $props()
+	const orders = data.orders
+	console.log(orders)
 </script>
 
 <main class="w-full h-full">
@@ -15,18 +18,22 @@
 		<div
 			class="users-list w-full flex flex-col items-center justify-start gap-y-2 list-none p-2"
 		>
-			<li
-				class="w-full py-1 bg-background/40 rounded-xl border-2 p-2 flex items-center justify-between"
-			>
-				<p class="font-alchemize">
-					Item orderd | Order number | Order placed by | Date placed on
-				</p>
-				<a href={`/admin/fulfillment/orders/id`}>
+			{#each orders as order}
+				<li
+					class="w-full py-1 bg-background/40 rounded-xl border-2 p-2 flex items-center justify-between"
+				>
+				
+					<p class="font-alchemize">
+					
+						 {order.fields.id} |{order.fields.orderItem} | {order.fields.ordererEmail}
+					</p>
+				<a href={`/admin/fulfillment/orders/${order.fields.id}`}>
 					<Button class="bg-admin-primary border border-muted hover:scale-104">
 						View Order
 					</Button>
 				</a>
 			</li>
+			{/each}
 		</div>
 	</div>
 </main>

@@ -1,24 +1,59 @@
 import type { Actions, PageServerLoad } from "./$types"
 import crypto from "crypto"
 import { env } from "$env/dynamic/private"
-import { getDataFromAccessToken, hackatimeAuthUrl} from "$lib/utils"
-import {encryptAES} from "$lib/utils.server"
+import { getDataFromAccessToken, hackatimeAuthUrl } from "$lib/utils"
+import { encryptAES } from "$lib/utils.server"
 import {
 	getProjectsByOwner,
 	createProject,
 	updateProject,
 	getUserByEmail,
-	
 } from "$lib/db"
 import { USER_JWT_SECRET } from "$env/static/private"
 import type {
 	AirtableProject,
 	AirtableProjectWithPII,
 	UserAuthToken,
-	Log
+	Log,
 } from "$lib/types"
 import { redirect } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
+async function uploadScreenshot(file?: File): Promise<string> {
+	if (!file || file.size === 0) return ""
+
+	const body = new FormData()
+	body.append("file", file)
+
+	const response = await fetch("https://cdn.hackclub.com/api/v4/upload", {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${env.CDN_UPLOAD_SECRET}`,
+		},
+		body,
+	})
+
+	if (!response.ok) {
+		const errorData = await response.json()
+
+		const errorCode = errorData.error?.type ?? "UNKNOWN_ERROR"
+		const errorText =
+			errorData.error?.message ??
+			"An error occurred while uploading the screenshot"
+
+		console.error("CDN upload failed:", {
+			status: response.status,
+			errorCode,
+			errorText,
+			timestamp: new Date().toISOString(),
+		})
+
+		throw new Error(
+			`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on Slack with the error code: ${errorCode}`
+		)
+	}
+
+	return (await response.json()).url
+}
 export const actions = {
 	create: async event => {
 		const accessToken = event.cookies.get("access_token_new")
@@ -59,73 +94,34 @@ export const actions = {
 		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		const screenshot2 = formData.get("screenshot-2") as File
-		let url = ""
-		let url2 = ""
 		let iv = crypto.randomBytes(16).toString("hex")
-				if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) {
+		if (
+			(projectUrl && !URL.canParse(projectUrl)) ||
+			(projectCode && !URL.canParse(projectCode))
+		) {
 			throw new Error("Invalid project URL or code repository URL")
 		}
-		if (screenshot && screenshot.size > 0) {
-			tempFormData.append("file", screenshot)
-			var [cdnResponse, userData] = await Promise.all([
-				fetch("https://cdn.hackclub.com/api/v4/upload", {
-					method: "POST",
-					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
-					body: tempFormData,
-				}),
-				getDataFromAccessToken(accessToken),
-			])
-			if (!cdnResponse.ok) {
-				const errorData = await cdnResponse.json()
-				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-				const errorText =
-					errorData.error?.message ||
-					"An error occurred while uploading the screenshot"
-				console.error("CDN upload failed:", {
-					status: cdnResponse.status,
-					errorCode,
-					errorText,
-					timestamp: new Date().toISOString(),
-				})
-				throw new Error(
-					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
-				)
-			}
-			url = (await cdnResponse.json()).url
-		} else {
-			var userData = await getDataFromAccessToken(accessToken)
-		}
-		if (screenshot2 && screenshot2.size > 0) {
-			tempFormData2.append("file", screenshot2)
-			const [cdnResponse] = await Promise.all([
-				fetch("https://cdn.hackclub.com/api/v4/upload", {
-					method: "POST",
-					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
-					body: tempFormData2,
-				})
-			])
-			if (!cdnResponse.ok) {
-				const errorData = await cdnResponse.json()
-				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-				const errorText =
-					errorData.error?.message ||
-					"An error occurred while uploading the screenshot"
-				console.error("CDN upload failed:", {
-					status: cdnResponse.status,
-					errorCode,
-					errorText,
-					timestamp: new Date().toISOString(),
-				})
-				throw new Error(
-					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
-				)
-			}
-			url2 = (await cdnResponse.json()).url
-		} 
-		const addressEncrypted = encryptAES(JSON.stringify(userData.address || []), Buffer.from(iv, "hex"))
-		const bdayEncrypted = encryptAES(userData.birthday || "", Buffer.from(iv, "hex"))
-		const firstNameEncrypted = encryptAES(userData.first_name || "", Buffer.from(iv, "hex"))
-		const lastNameEncrypted = encryptAES(userData.last_name || "", Buffer.from(iv, "hex"))
+		const [url, url2, userData] = await Promise.all([
+			uploadScreenshot(screenshot),
+			uploadScreenshot(screenshot2),
+			getDataFromAccessToken(accessToken),
+		])
+		const addressEncrypted = encryptAES(
+			JSON.stringify(userData.address || []),
+			Buffer.from(iv, "hex")
+		)
+		const bdayEncrypted = encryptAES(
+			userData.birthday || "",
+			Buffer.from(iv, "hex")
+		)
+		const firstNameEncrypted = encryptAES(
+			userData.first_name || "",
+			Buffer.from(iv, "hex")
+		)
+		const lastNameEncrypted = encryptAES(
+			userData.last_name || "",
+			Buffer.from(iv, "hex")
+		)
 		const response = await createProject({
 			Name: projectName,
 			description: projectDescription ?? "",
@@ -224,85 +220,37 @@ export const actions = {
 		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		const screenshot2 = formData.get("screenshot-2") as File
-		let url = ""
-		let url2 = ""
-if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(projectCode))) { 
+
+		if (
+			(projectUrl && !URL.canParse(projectUrl)) ||
+			(projectCode && !URL.canParse(projectCode))
+		) {
 			throw new Error("Invalid project URL or code repository URL")
 		}
-		if (screenshot && screenshot.size > 0) {
-			tempFormData.append("file", screenshot)
-			var [cdnResponse] = await Promise.all([
-				fetch("https://cdn.hackclub.com/api/v4/upload", {
-					method: "POST",
-					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
-					body: tempFormData,
-				}),
-			])
-			if (!cdnResponse.ok) {
-				const errorData = await cdnResponse.json()
-				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-				const errorText =
-					errorData.error?.message ||
-					"An error occurred while uploading the screenshot"
-				console.error("CDN upload failed:", {
-					status: cdnResponse.status,
-					errorCode,
-					errorText,
-					timestamp: new Date().toISOString(),
-				})
-				throw new Error(
-					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
-				)
-			}
-			url = (await cdnResponse.json()).url
-		}
-		if (screenshot2 && screenshot2.size > 0) {
-			console.log("Uploading second screenshot...")
-			tempFormData2.append("file", screenshot2)
-			const [cdnResponse] = await Promise.all([
-				fetch("https://cdn.hackclub.com/api/v4/upload", {
-					method: "POST",
-					headers: { Authorization: "Bearer " + env.CDN_UPLOAD_SECRET },
-					body: tempFormData2,
-				})
-			])
-			if (!cdnResponse.ok) {
-				const errorData = await cdnResponse.json()
-				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-				const errorText =
-					errorData.error?.message ||
-					"An error occurred while uploading the screenshot"
-				console.error("CDN upload failed:", {
-					status: cdnResponse.status,
-					errorCode,
-					errorText,
-					timestamp: new Date().toISOString(),
-				})
-				throw new Error(
-					`Screenshot upload failed: ${errorText}. Please notify TheUtkarsh8939 on slack with the error code: ${errorCode}`
-				)
-			}
-			url2 = (await cdnResponse.json()).url
-		} 
-			console.log(url2, "Screenshot 2 URL")
-			console.log("Theme:", theme)
-			var response = await updateProject(
-				recordId,
-				{
-					Name: projectName,
-					description: projectDescription,
-					type: projectType,
-					demo: projectUrl,
-					code: projectCode,
-					hackatime: hackatimeProject,
-					update: oldProject,
-					Theme: theme,
-					screenshot: url,
-					screenshot2: url2,
-				},
-				email
-			)
-		
+
+		const [url, url2] = await Promise.all([
+			uploadScreenshot(screenshot),
+			uploadScreenshot(screenshot2),
+		])
+		console.log(url2, "Screenshot 2 URL")
+		console.log("Theme:", theme)
+		var response = await updateProject(
+			recordId,
+			{
+				Name: projectName,
+				description: projectDescription,
+				type: projectType,
+				demo: projectUrl,
+				code: projectCode,
+				hackatime: hackatimeProject,
+				update: oldProject,
+				Theme: theme,
+				screenshot: url,
+				screenshot2: url2,
+			},
+			email
+		)
+
 		// Error handling
 		if (!response.ok) {
 			const errorData = await response.json()
@@ -334,10 +282,8 @@ if((projectUrl && !URL.canParse(projectUrl)) || (projectCode && !URL.canParse(pr
 	},
 } satisfies Actions
 const filterLogs = (logsJson: string) => {
-	
-	
 	const logs = JSON.parse(logsJson || "[]") as Log[]
-	
+
 	let filteredLogs: Log[] = []
 	logs.forEach(log => {
 		let message = log.message
@@ -346,9 +292,9 @@ const filterLogs = (logsJson: string) => {
 			msg.justification = ""
 			if (msg.reviewerName?.startsWith("APPROVED")) {
 				msg.reviewerName = "APPROVED"
-			}else if(msg.reviewerName === "user"){
+			} else if (msg.reviewerName === "user") {
 				msg.reviewerName = "user"
-			}else{
+			} else {
 				msg.reviewerName = "REVIEWER"
 			}
 		})

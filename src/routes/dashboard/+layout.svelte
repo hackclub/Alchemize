@@ -25,17 +25,9 @@
 	const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
 	const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=${scopes}&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
 	const excludedRoutes = ["/dashboard"]
-	let unVerified = $state(true)
+	let unVerified = $state(false)
 
-	if (browser) {
-		const hackatimeVerifiedCookie = document.cookie
-			.split("; ")
-			.find(row => row.startsWith("hackatime_verified="))
-		if (hackatimeVerifiedCookie) {
-			unVerified = false
-		}
-	}
-	console.log(isAllowed)
+
 </script>
 
 <svelte:head><link rel="icon" href="/Alchemist.webp" /></svelte:head>

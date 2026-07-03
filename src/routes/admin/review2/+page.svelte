@@ -127,8 +127,8 @@ Signed by ${data.name}, T2 Reviewer
 		}
 	})
 	const sendToDatabase = async () => {
+		
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
-		invalidateAll()
 		const id = currentProject.id
 		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/sendToAirtable", {
@@ -148,9 +148,6 @@ Signed by ${data.name}, T2 Reviewer
 				"Pushed " + currentProject.name + " to Airtable successfully!"
 			)
 			loader = false
-			airtableProjects = airtableProjects.filter(
-				p => p.id !== currentProject.id
-			)
 			invalidateAll()
 			currentProject = {} as AdminProject
 		} else {
@@ -187,7 +184,7 @@ Signed by ${data.name}, T2 Reviewer
 	})
 	const rejectT2 = async () => {
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
-		invalidateAll()
+		
 		const id = currentProject.id
 		const slackId = currentProject.submittedBy
 		currentProject = {} as AdminProject

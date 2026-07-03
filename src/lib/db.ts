@@ -902,3 +902,15 @@ export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DB
         text: async () => JSON.stringify({ records: project }),
     } as DBResponse;
 }
+// SUB FUNCTIONS ADMIN:- Fulfillers' functions
+
+export const getAllOrders = async (): Promise<DBResponse> => {
+    const orders = await db.select().from(ordersTable);
+    const records = orders.map(order => ({ id: order.id + "", fields: order }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}

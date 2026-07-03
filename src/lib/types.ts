@@ -1,3 +1,15 @@
+export type Orders = {
+	id: Number
+	orderItem: string
+	itemID: string
+	qty: string
+	ordererEmail: string
+	ordererUid: string
+	status: string
+	fulfiller: string
+	moreData: string
+}
+
 export type Log = {
 	status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
 	timestamp: string

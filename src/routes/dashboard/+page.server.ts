@@ -9,6 +9,13 @@ import jwt from "jsonwebtoken"
 let slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN);
 
 const getSlackProfile = async (slackId: string) => {
+    if (!slackId || slackId == "") {
+        return {
+            display_name: "",
+            image_512: "",
+
+        }
+    }
     const result = await slackClient.users.info({ user: slackId });
     return result.user?.profile || null;
 }
