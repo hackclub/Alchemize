@@ -4,6 +4,10 @@ import type { Item, UserCurrency } from "$lib/types"
 import { atomicPurchaseItem, getShopItemById } from "$lib/db";
 import jwt from 'jsonwebtoken';
 import type {UserAuthToken} from "$lib/types";
+import { getDataFromAccessToken } from "$lib/utils";
+import crypto from "crypto";
+import { encryptAES } from "$lib/utils.server";
+
 interface RequestBody {
     itemId: string;
     quantity: number;
@@ -24,10 +28,15 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if(body.quantity <= 0){
         return new Response("Quantity must be greater than 0", { status: 400 })
     }
-    const itemResponse = await getShopItemById(body.itemId);
+    const accessToken = cookies.get('access_token_new');
+    if (!accessToken) {
+        return new Response("Unauthorized", { status: 401 })
+    }
+    const [itemResponse, userData] = await Promise.all([getShopItemById(body.itemId), getDataFromAccessToken(accessToken)]);
     if (!itemResponse.ok) {
         return new Response("Failed to fetch item from the database", { status: 500 })
     }
+    
     const itemsData = await itemResponse.json();
     const itemRecord = itemsData;
     const item: Item = {
@@ -61,7 +70,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const currencyUsed = getCurrency(item.itemPrice);
     const totalPrice = item.itemPrice[currencyUsed] * body.quantity;
+    const iv = crypto.randomBytes(16).toString("hex")
+    const encryptedAddress = encryptAES(JSON.stringify(userData.address?? "[]"),  Buffer.from(iv, "hex"))
 
+    
     // Atomic purchase: deducts currency and creates order in a single transaction
     const purchaseResult = await atomicPurchaseItem(
         email,
@@ -72,6 +84,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         item.itemID,
         uid,
         data?.slack_id ?? "",
+        JSON.stringify(
+            {
+                address: encryptedAddress,
+                
+            }
+        )
     );
 
     if (!purchaseResult.ok) {

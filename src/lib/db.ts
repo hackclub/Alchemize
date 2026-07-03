@@ -59,6 +59,7 @@ export const ordersTable = pgTable("orders", {
     status: varchar({ length: 255 }).notNull(),
     fulfiller: varchar({ length: 255 }),
     moreData: varchar({ length: 3000 }),
+    dateCreated: varchar({ length: 255 }).notNull().default(new Date().toISOString()),
 })
 export const adminTable = pgTable("admins", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -243,7 +244,8 @@ export const atomicPurchaseItem = async (
     itemName: string,
     itemID: string,
     ordererUid: string,
-    slackId: string
+    slackId: string,
+    moreData: string,
 ): Promise<DBResponse> => {
     try {
         const [purchase, ledger] = await Promise.all([withTransaction(async (client) => {
@@ -282,7 +284,7 @@ export const atomicPurchaseItem = async (
             // Create order
             const orderResult = await client.query(
                 'INSERT INTO orders ("orderItem", "itemID", qty, "ordererEmail", "ordererUid", status, fulfiller, "moreData") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', '']
+                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', moreData]
             );
             return {
                 ok: true,
@@ -912,5 +914,22 @@ export const getAllOrders = async (): Promise<DBResponse> => {
         status: 200,
         json: async () => ({ records }),
         text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
+export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> => {
+    const order = await db.select().from(ordersTable).where(eq(ordersTable.id, parseInt(orderId)));
+    if (order.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Order not found" }),
+            text: async () => JSON.stringify({ message: "Order not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: order[0].id + "", fields: order[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: order[0].id + "", fields: order[0] } as airtableReplication),
     } as DBResponse;
 }
