@@ -337,7 +337,7 @@
 
 	<div
 		class="relative z-10 flex-1 overflow-y-auto pr-2 grid gap-4 mt-5 content-start justify-items-center"
-		style="grid-template-columns: repeat(auto-fit, minmax(35vh, 1fr));"
+		style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));"
 	>
 		{#each finalItems as item}
 			{@const theme = currencyTheme[item.primaryCurrency]}
