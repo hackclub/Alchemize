@@ -169,7 +169,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		maxAge: 60 * 60 * 24 * 365, // 1 year
 		path: "/",
 	})
-	cookies.set("access_token_new", tokenBody.access_token, {
+	cookies.set("access_token_new", "redact", {
 		httpOnly: true,
 		secure: true,
 		sameSite: "lax",
