@@ -132,15 +132,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         return error(400, "All approved logs are already submitted to HQ")
     }
     const newLog = checkSubmittedToHQ(log, justification, decoded.name)
-    const decrytedAddress = decryptAES(project.fields.address, project.fields.encryptionIv)
+    const decrytedAddress = decryptAES(project.fields.address, project.fields.iv)
 
     const address = parseAddress(decrytedAddress || "")
     const iv = crypto.randomBytes(16)
-    const decryptedBirthdate = decryptAES(project.fields.birthdate, project.fields.encryptionIv)
-    const decryptedFirstName = decryptAES(project.fields.firstName, project.fields.encryptionIv)
-    const decryptedLastName = decryptAES(project.fields.lastName, project.fields.encryptionIv)
+    const decryptedBirthdate = decryptAES(project.fields.birthdate, project.fields.iv)
+    const decryptedFirstName = decryptAES(project.fields.firstName, project.fields.iv)
+    const decryptedLastName = decryptAES(project.fields.lastName, project.fields.iv)
     const currencyType = themeToKeys(project.fields.Theme)
-
+    console.log({
+        project
+    })
     const [updateUserCurrencyResponse, airtableResponse] = await Promise.all([
         updateUserCurrency((calculateNewHours(log) - subtraction), project.fields.owner, currencyType),
         submitProjectToAirtable({

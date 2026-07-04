@@ -94,34 +94,16 @@ export const actions = {
 		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		const screenshot2 = formData.get("screenshot-2") as File
-		let iv = crypto.randomBytes(16).toString("hex")
 		if (
 			(projectUrl && !URL.canParse(projectUrl)) ||
 			(projectCode && !URL.canParse(projectCode))
 		) {
 			throw new Error("Invalid project URL or code repository URL")
 		}
-		const [url, url2, userData] = await Promise.all([
+		const [url, url2] = await Promise.all([
 			uploadScreenshot(screenshot),
 			uploadScreenshot(screenshot2),
-			getDataFromAccessToken(accessToken),
 		])
-		const addressEncrypted = encryptAES(
-			JSON.stringify(userData.address || []),
-			Buffer.from(iv, "hex")
-		)
-		const bdayEncrypted = encryptAES(
-			userData.birthday || "",
-			Buffer.from(iv, "hex")
-		)
-		const firstNameEncrypted = encryptAES(
-			userData.first_name || "",
-			Buffer.from(iv, "hex")
-		)
-		const lastNameEncrypted = encryptAES(
-			userData.last_name || "",
-			Buffer.from(iv, "hex")
-		)
 		const response = await createProject({
 			Name: projectName,
 			description: projectDescription ?? "",
@@ -136,14 +118,14 @@ export const actions = {
 			journals: "",
 			owner: email,
 			Theme: theme ?? "",
-			address: addressEncrypted.finalString,
-			birthdate: bdayEncrypted.finalString,
+			address: "redact",
+			birthdate: "redact",
 			slackId: slackId,
-			firstName: firstNameEncrypted.finalString,
-			lastName: lastNameEncrypted.finalString,
+			firstName: "redact",
+			lastName: "redact",
 			screenshot: url,
 			screenshot2: url2,
-			iv: iv,
+			iv: "redact",
 		})
 
 		// Error handling

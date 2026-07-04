@@ -10,6 +10,7 @@
 	} from "lucide-svelte"
 	const { data } = $props()
 	console.log(data)
+	const order = data.orderDetails
 </script>
 
 <a
@@ -40,7 +41,7 @@
 				<h1
 					class="text-3xl font-extrabold font-alchemize tracking-wide text-center md:text-left"
 				>
-					Cookie for Utkarsh
+					{order.name}
 				</h1>
 
 				<div
@@ -49,18 +50,14 @@
 					<div class="flex items-center gap-3">
 						<Calendar class="w-4 h-4 text-slate-400" />
 						<span class="text-admin-text/60 w-24">Ordered on:</span>
-						<span class="font-semibold text-zinc-200">June 12, 2026</span>
+						<span class="font-semibold text-zinc-200">{new Date(order.dataCreated)}</span>
 					</div>
 					<div class="flex items-center gap-3">
 						<User class="w-4 h-4 text-slate-400" />
 						<span class="text-admin-text/60 w-24">Ordered by:</span>
-						<span class="font-semibold text-zinc-200">Utkarsh</span>
+						<span class="font-semibold text-zinc-200">{order.email}</span>
 					</div>
-					<div class="flex items-center gap-3">
-						<Coins class="w-4 h-4 text-emerald-500" />
-						<span class="text-admin-text/60 w-24">Total cost:</span>
-						<span class="font-bold text-emerald-400">10 potion mix</span>
-					</div>
+
 				</div>
 			</div>
 

@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!accessToken) {
         return new Response("Unauthorized", { status: 401 })
     }
-    const [itemResponse, userData] = await Promise.all([getShopItemById(body.itemId), getDataFromAccessToken(accessToken)]);
+    const [itemResponse] = await Promise.all([getShopItemById(body.itemId)]);
     if (!itemResponse.ok) {
         return new Response("Failed to fetch item from the database", { status: 500 })
     }
@@ -70,8 +70,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
     const currencyUsed = getCurrency(item.itemPrice);
     const totalPrice = item.itemPrice[currencyUsed] * body.quantity;
-    const iv = crypto.randomBytes(16).toString("hex")
-    const encryptedAddress = encryptAES(JSON.stringify(userData.address?? "[]"),  Buffer.from(iv, "hex"))
+
 
     
     // Atomic purchase: deducts currency and creates order in a single transaction
@@ -84,12 +83,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         item.itemID,
         uid,
         data?.slack_id ?? "",
-        JSON.stringify(
-            {
-                address: encryptedAddress,
-                
-            }
-        )
+        ""
     );
 
     if (!purchaseResult.ok) {

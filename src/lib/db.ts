@@ -52,7 +52,7 @@ export const refersTable = pgTable("refers", {
 export const ordersTable = pgTable("orders", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     orderItem: varchar({ length: 255 }).notNull(),
-    itemID: varchar({ length: 255 }).notNull(),
+    itemID: uuid().notNull(),
     qty: varchar({ length: 255 }).notNull(),
     ordererEmail: varchar({ length: 455 }).notNull(),
     ordererUid: varchar({ length: 255 }).notNull(),
@@ -108,6 +108,15 @@ export const ledgerTable = pgTable("ledger", {
     currencyType: varchar({ length: 255 }).notNull(),
     reason: varchar({ length: 455 }).notNull(),
     remarks: varchar({ length: 1000 }).notNull(),
+})
+export const userInternal = pgTable("user_internal_data", {
+    userId: varchar({ length: 255 }).primaryKey(),
+    email: varchar({ length: 455 }).notNull(),
+    address: varchar().notNull(),
+    birthdate: varchar({ length: 1000 }).notNull(),
+    firstName: varchar({ length: 1000 }).notNull(),
+    lastName: varchar({ length: 1000 }).notNull(),
+    iv: varchar().notNull(),
 })
 // Response Interface
 export interface DBResponse {
@@ -579,7 +588,31 @@ export const updateProject = async (projectId: string, projectData: any, email: 
 };
 // POWERFUL FUNCTION: Returns PII too, use with Caution. For use in APIs only, data never to be sent to client
 export const getProjectById = async (projectId: string): Promise<DBResponse> => {
-    const project = await db.select().from(projectTable).where(eq(projectTable.id, parseInt(projectId)));
+    const project = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        type: projectTable.type,
+        description: projectTable.description,
+        owner: projectTable.owner,
+        log: projectTable.log,
+        languages: projectTable.languages,
+        journals: projectTable.journals,
+        hackatime: projectTable.hackatime,
+        update: projectTable.update,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        Theme: projectTable.Theme,
+        slackId: projectTable.slackId,
+        status: projectTable.status,
+        screenshot: projectTable.screenshot,
+        screenshot2: projectTable.screenshot2,
+        unifiedId: projectTable.unifiedId,
+        address: userInternal.address,
+        birthdate: userInternal.birthdate,
+        firstName: userInternal.firstName,
+        lastName: userInternal.lastName,
+        iv: userInternal.iv
+    }).from(projectTable).where(eq(projectTable.id, parseInt(projectId))).leftJoin(userInternal, eq(projectTable.owner, userInternal.email));
     if (project.length === 0) {
         return {
             ok: false,
@@ -688,6 +721,16 @@ export const createOrder = async (orderData: any): Promise<DBResponse> => {
 export const fetchAllItems = async (): Promise<DBResponse> => {
     //Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop
     const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0));
+    const records = items.map(item => ({ id: item.itemID + "", fields: item }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
+export const adminFetchItemsById = async (itemId: string): Promise<DBResponse> => {
+    const items = await db.select().from(shopItemsTable).where(eq(shopItemsTable.itemID, itemId));
     const records = items.map(item => ({ id: item.itemID + "", fields: item }));
     return {
         ok: true,
@@ -917,7 +960,25 @@ export const getAllOrders = async (): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> => {
-    const order = await db.select().from(ordersTable).where(eq(ordersTable.id, parseInt(orderId)));
+    try{
+        const order = await db.select({
+        id: ordersTable.id,
+            orderItem: ordersTable.orderItem,
+            itemID: ordersTable.itemID,
+            qty: ordersTable.qty,
+            ordererEmail: ordersTable.ordererEmail,
+            ordererUid: ordersTable.ordererUid,
+            status: ordersTable.status,
+            fulfiller: ordersTable.fulfiller,
+            moreData: ordersTable.moreData,
+            dateCreated: ordersTable.dateCreated,
+      
+            itemName: shopItemsTable.name,
+            itemDescription: shopItemsTable.description,
+            itemPrice: shopItemsTable.itemPrice,
+            cdnImage: shopItemsTable.cdnImage,
+            priority: shopItemsTable.priority
+    }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID))
     if (order.length === 0) {
         return {
             ok: false,
@@ -926,10 +987,65 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
             text: async () => JSON.stringify({ message: "Order not found" }),
         };
     }
+    
     return {
         ok: true,
         status: 200,
         json: async () => ({ id: order[0].id + "", fields: order[0] } as airtableReplication),
         text: async () => JSON.stringify({ id: order[0].id + "", fields: order[0] } as airtableReplication),
     } as DBResponse;
+    }catch(e){
+        console.error("Database read failed:", e);
+        throw new Error("Database read failed");
+    }
+}
+
+//Special Auth Functions
+export const addUserToAuthTable = async (email: string, address: string, birthdate: string, firstName: string, lastName: string, iv: string, uid: string): Promise<DBResponse> => {
+    try{
+            const newAuthUser = await db.insert(userInternal).values({  email, address, birthdate, firstName, lastName, iv, userId: uid }).onConflictDoUpdate({
+        target: userInternal.userId,
+        set:{
+            address,
+            birthdate,
+            firstName,
+            lastName,
+            iv
+        }
+    }).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
+    } as DBResponse;
+    }catch(e){
+        console.error("Database insert failed:", e);
+        throw new Error("Database insert failed");
+    }
+}
+export const getUserFromAuthTable = async (uid: string): Promise<DBResponse> => {
+    try{
+        const user = await db.select().from(userInternal).where(eq(userInternal.userId, uid));
+        if (user.length === 0) {
+            return {
+                ok: false,
+                status: 404,
+                json: async () => ({ message: "User not found" }),
+                text: async () => JSON.stringify({ message: "User not found" }),
+            };
+        }
+                return {
+            ok: true,
+            status: 200,
+            json: async () => ({ id: user[0].userId + "", fields: user[0] } as airtableReplication),
+            text: async () => JSON.stringify({ id: user[0].userId + "", fields: user[0] } as airtableReplication),
+        }
+    }catch(e){
+        console.error("Database read failed:", e);
+        throw new Error("Database read failed");
+    }
+    
+
+    
 }

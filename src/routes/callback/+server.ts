@@ -1,13 +1,14 @@
 import { env } from "$env/dynamic/private"
 import {PUBLIC_HACKCLUB_AUTH, PUBLIC_HACKCLUB_REDIRECT} from "$env/static/public"
-import { hackatimeAuthUrl } from "$lib/utils"
+import { hackatimeAuthUrl, getDataFromAccessToken } from "$lib/utils"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
 import type { AirtableUser } from "$lib/types"
+import {encryptAES} from "$lib/utils.server"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
-import { createNewUser, getUserByEmail, createReferRecord } from "$lib/db"
+import { createNewUser, getUserByEmail, createReferRecord, addUserToAuthTable } from "$lib/db"
 const XORdecrypt = (textInp: string) => {
 	const tb = Buffer.from(textInp, "base64")
 	const kb = Buffer.from(env.USERID_ENCRYPTION_KEY, "hex")
@@ -84,6 +85,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			tokenBody?.message ?? "Token exchange failed"
 		)
 	}
+	const meResponse = await getDataFromAccessToken(tokenBody.access_token)
+	
 	const decodedToken: any = jwt.verify(tokenBody.id_token, publicKey, { algorithms: ["RS256"] })
 	const email = decodedToken.email
 	const name = decodedToken.name
@@ -92,9 +95,15 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const firstName = decodedToken.nickname
 	const verification = decodedToken.verification_status
 	const yswsEligible = decodedToken.ysws_eligible
+	const iv = crypto.randomBytes(16).toString("hex")
+	const ivBuffer = Buffer.from(iv, "hex")
+	const encryptedAddress = encryptAES(JSON.stringify(meResponse.address), ivBuffer).finalString
+	const encryptedBirthdate = encryptAES(meResponse.birthday, ivBuffer).finalString
+	const encryptedFirstName = encryptAES(name.split(" ")[0], ivBuffer).finalString
+	const encryptedLastName = encryptAES(name.split(" ").at(-1), ivBuffer).finalString
 	let userRecordId = ""
 	//Look for user in DB, if not found create new user
-	const userResponse = await getUserByEmail(email)
+	const [userResponse] = await Promise.all([getUserByEmail(email), addUserToAuthTable( email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)])
 	if (!userResponse.ok) {
 		console.error("Database error:", await userResponse.text())
 		return error(userResponse.status, "Database error")
@@ -143,7 +152,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		last_name: name.split(" ").slice(1).join(" "),
 		slack_id: slackId,
 		ysws_eligible: yswsEligible,
-		version: 2,
+		version: 3,
 	}
 	const jwtToken = jwt.sign(userToken, env.USER_JWT_SECRET, { expiresIn: "120d" })
 	cookies.set("user_token", jwtToken, {

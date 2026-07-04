@@ -22,10 +22,20 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         }
         const orderId = params.id;
 
-        const orderDetails = await getOrderDetailsById(orderId);
-
+        const orderDetailsRes = await getOrderDetailsById(orderId);
+        const orderDetails = await orderDetailsRes.json();
         return {
-           orderDetails: await orderDetails.json()
+           orderDetails:{
+            name: orderDetails.fields.itemName,
+            quantity: orderDetails.fields.qty,
+            status: orderDetails.fields.status,
+            fulfiller: orderDetails.fields.fulfiller,
+            email: orderDetails.fields.ordererEmail,
+            dataCreated: orderDetails.fields.dateCreated,
+            price: orderDetails.fields.itemPrice,
+            img: orderDetails.fields.cdnImage,
+            
+           }
         };
 
 }

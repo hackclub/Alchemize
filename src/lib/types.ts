@@ -79,7 +79,7 @@ export interface AdminProjectView extends AirtableProject {
 		lastName: string
 		address: string
 		birthdate: string
-		encryptionIv: string
+		iv: string
 	}
 }
 export interface AdminProjectViewNormal extends Project {

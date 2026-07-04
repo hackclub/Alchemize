@@ -45,7 +45,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
         throw redirect(302, authUrl);
     }
     const email = decodedToken.email;
-    const isVersion2 = decodedToken.version === 2;
+    const isVersion2 = decodedToken.version === 3;
     if(!isVersion2){
         console.info("User token is not version 2, redirecting to re-login");
         throw redirect(302, authUrl);
