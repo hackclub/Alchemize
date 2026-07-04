@@ -208,11 +208,11 @@
 		}
 	}
 
-	document.addEventListener("keydown", event => {
-		if (event.key === "+") {
-			newProjWindowOpened = true
-		}
-	})
+	// document.addEventListener("keydown", event => {
+	//	if (event.key === "+") {
+	//		newProjWindowOpened = true
+	//	}
+	// })
 </script>
 
 <svelte:head>
