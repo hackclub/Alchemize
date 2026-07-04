@@ -18,7 +18,7 @@
 	} from "$env/static/public"
 	import { scopes } from "$lib/utils"
 	import Accordion from "$lib/components/accordion.svelte"
-	import { User } from "@lucide/svelte"
+	import { ShoppingBag, User } from "@lucide/svelte"
 
 	let { data } = $props()
 	let rsvpCount: number | "Fetching" = $state("Fetching")
@@ -305,17 +305,19 @@
 					</div>
 					<div class="group relative flex items-stretch">
 						<a
-							href="/refer"
+							href="/shop"
 							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
 						>
-							<User class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
-							<span>Refer</span>
+							<ShoppingBag
+								class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0"
+							/>
+							<span>Shop</span>
 						</a>
 
 						<div
 							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 						>
-							Refer more people!
+							Take a look at the shop!
 						</div>
 					</div>
 				</div>
