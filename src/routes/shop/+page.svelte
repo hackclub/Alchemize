@@ -10,7 +10,7 @@
 	import { Search } from "@lucide/svelte"
 
 	let { data } = $props()
-	const loggedIn = !!data.userRecord
+	const loggedIn = false
 
 	let currencies = $state(
 		looseJson(
@@ -211,10 +211,9 @@
 </script>
 
 <svelte:head>
-	<script src="https://server.fillout.com/embed/v1/"></script>
-	<title>Alchemize | Shop</title>
+	<title>Shop</title>
 	<meta name="description" content="Alchemize Shop" />
-	<meta property="og:title" content="Alchemize | Shop" />
+	<meta property="og:title" content="Shop" />
 </svelte:head>
 
 <main
@@ -235,16 +234,6 @@
 					>Alchemize</span
 				>
 			</h1>
-			<div
-				data-fillout-id="f31FLmPvAXus"
-				data-fillout-embed-type="popup"
-				data-fillout-button-text="Suggest Items"
-				data-fillout-dynamic-resize
-				data-fillout-button-color="transparent"
-				data-fillout-inherit-parameters
-				data-fillout-popup-size="small"
-				class="fillout-embed-popup-button"
-			></div>
 		</div>
 
 		{#if loggedIn}
