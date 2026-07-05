@@ -1,6 +1,8 @@
 import {
 	PUBLIC_HACKATIME_AUTH,
 	PUBLIC_HACKATIME_REDIRECT,
+	PUBLIC_HACKCLUB_AUTH,
+	PUBLIC_HACKCLUB_REDIRECT,
 } from "$env/static/public"
 import { currencyValueRelativeToPotionMix } from "./themeCurrencyMaps"
 import type {Address} from "./types"
@@ -16,6 +18,8 @@ interface Data {
 }
 export const scopes =
 	"openid+profile+email+name+verification_status+slack_id+address+basic_info"
+export const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=${scopes}&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
+
 type HackatimeProject = {
 	name?: string
 	project_name?: string

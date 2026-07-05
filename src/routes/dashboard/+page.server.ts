@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { START_DATE, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
 import { getProjectsByOwner, getUserByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
-import { hackatimeAuthUrl } from '$lib/utils';
+import { hackatimeAuthUrl, authUrl } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
 import jwt from "jsonwebtoken"
 
@@ -31,11 +31,11 @@ export const load: PageServerLoad = async ({ cookies }) => {
             const decoded: any = jwt.verify(userToken, USER_JWT_SECRET);
             decodedToken = decoded
         } else {
-            throw new Error("No user token found");
+            throw redirect(302, authUrl);
         }
     } catch (error) {
         console.error("Error decoding user token:", error);
-        throw new Error("Invalid user token");
+        throw redirect(302, authUrl);
     }
 
     
