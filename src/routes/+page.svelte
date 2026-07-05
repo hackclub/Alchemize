@@ -298,7 +298,7 @@
 						</a>
 
 						<div
-							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300"
 						>
 							Read the docs here!
 						</div>
@@ -315,7 +315,7 @@
 						</a>
 
 						<div
-							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300"
 						>
 							Take a look at the shop!
 						</div>

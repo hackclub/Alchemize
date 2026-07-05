@@ -127,17 +127,41 @@
 		)
 	}
 
+	function getEstimatedHours(
+		currency: keyof UserCurrency | "none",
+		amount: number
+	): number {
+		if (currency === "none" || amount <= 0) return 0
+
+		let hours = amount
+		if (currency === "potion_mix") {
+			hours = amount / 4.5
+		}
+
+		return Number(hours.toFixed(2))
+	}
+
 	const shopItems = $derived.by(() => {
 		const rawItems =
-			data?.items?.map((item: any) => ({
-				itemID: item.itemID,
-				name: item.name,
-				description: item.description,
-				price: item.itemPrice,
-				image: item.cdnImage,
-				grayedOut: isGrayedOut(currencies, item.itemPrice),
-				primaryCurrency: getPrimaryCurrency(item.itemPrice),
-			})) ?? []
+			data?.items?.map((item: any) => {
+				const primaryCurrency = getPrimaryCurrency(item.itemPrice)
+
+				const currencyAmount =
+					primaryCurrency !== "none"
+						? (item.itemPrice[primaryCurrency] ?? 0)
+						: 0
+
+				return {
+					itemID: item.itemID,
+					name: item.name,
+					description: item.description,
+					price: item.itemPrice,
+					image: item.cdnImage,
+					grayedOut: isGrayedOut(currencies, item.itemPrice),
+					primaryCurrency: primaryCurrency,
+					estimatedHours: getEstimatedHours(primaryCurrency, currencyAmount),
+				}
+			}) ?? []
 
 		let filtered = [...rawItems]
 
@@ -391,7 +415,12 @@
 							</p>
 						</div>
 
-						<div class="pt-2 border-t border-zinc-900/60 w-full mt-auto">
+						<div class="pt-2 border-t border-muted w-full mt-auto space-y-2">
+							<p
+								class="text-zinc-400 text-[11px] leading-snug font-mono font-bold line-clamp-3"
+							>
+								~{item.estimatedHours}hrs
+							</p>
 							<Button
 								class={cn(
 									"w-full h-8 bg-zinc-900/50 hover:bg-zinc-900 text-[11px] font-bold font-sans tracking-wider uppercase rounded transition-all duration-100 border active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
