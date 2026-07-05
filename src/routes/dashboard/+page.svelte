@@ -137,20 +137,20 @@
 							<p
 								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
 							>
-								Hackatime
+								HCA Configs
 							</p>
 							<div class="flex items-center gap-2">
 								<span
-									class="h-2 w-2 rounded-full {data.hackatimeVerified
+									class="h-2 w-2 rounded-full {data.misconfigured.length === 0
 										? 'bg-emerald-500'
 										: 'bg-red-500'}"
 								></span>
 								<span
-									class="font-alchemize font-bold uppercase text-sm tracking-wider {data.hackatimeVerified
+									class="font-alchemize font-bold uppercase text-sm tracking-wider {data.misconfigured.length === 0
 										? 'text-emerald-400'
 										: 'text-red-400'}"
 								>
-									{data.hackatimeVerified ? "Connected" : "Not Connected"}
+									{data.misconfigured.length === 0 ? "Complete" : data.misconfigured.join(", ")+" Misconfigured"  }
 								</span>
 							</div>
 						</div>

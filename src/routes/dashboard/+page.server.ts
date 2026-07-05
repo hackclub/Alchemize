@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { START_DATE, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
-import { getProjectsByOwner, getUserByEmail } from '$lib/db';
+import { getProjectsByOwner, getUserByEmail, checkConfigByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
 import { hackatimeAuthUrl, authUrl } from '$lib/utils';
 import { redirect } from '@sveltejs/kit';
@@ -41,11 +41,12 @@ export const load: PageServerLoad = async ({ cookies }) => {
     
 
 
-    let [projectsResponse, userResponse, slackprofile] = await Promise.all([
+    let [projectsResponse, userResponse, slackprofile, configResponse] = await Promise.all([
 
         getProjectsByOwner(decodedToken.email),
         getUserByEmail(decodedToken.email),
-        getSlackProfile(decodedToken.slack_id)
+        getSlackProfile(decodedToken.slack_id),
+        checkConfigByEmail(decodedToken.email)
     ])
 
 
@@ -59,10 +60,11 @@ export const load: PageServerLoad = async ({ cookies }) => {
             hackatimeVerified: hackatimeVerified === "true",
             user: {},
             admin: !!cookies.get("admin_access_token"),
-            pfp: slackprofile?.image_512 || ""
+            pfp: slackprofile?.image_512 || "",
+            misconfigured: []
         }
     }
-
+    const configs = await configResponse.json();
     const projectsData = typeof projectsResponse.json === 'function' ? await projectsResponse.json() : projectsResponse;
     const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;
     const admin = !!cookies.get("admin_access_token")
@@ -92,6 +94,15 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
     }
     let userFields = userData?.records?.[0]?.fields
     let {hackatime, ...userFieldsWithoutHackatime} = userFields || {}
+    let misconfigured = []
+    if(!configs.address)
+        misconfigured.push("Address")
+    if(!configs.birthday)
+        misconfigured.push("Birthday")
+    if(!configs.firstName)
+        misconfigured.push("First Name")
+    if(!configs.lastName)
+        misconfigured.push("Last Name")
     return {
         projects: projectsData?.records || [],
         hacks: filteredHacksS || [],
@@ -101,6 +112,7 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
         hackatimeVerified: hackatimeVerified === "true",
         user: userFieldsWithoutHackatime ?? {},
         admin: admin,
-        pfp: slackprofile?.image_512 || ""
+        pfp: slackprofile?.image_512 || "",
+        misconfigured: misconfigured
     }
 };

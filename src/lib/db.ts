@@ -1046,6 +1046,22 @@ export const getUserFromAuthTable = async (uid: string): Promise<DBResponse> => 
         throw new Error("Database read failed");
     }
     
-
     
+}
+export const checkConfigByEmail = async (email: string): Promise<DBResponse> => {
+    const dbRes = await db.select().from(userInternal).where(eq(userInternal.email, email));
+    if (dbRes.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "User not found" }),
+            text: async () => JSON.stringify({ message: "User not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({address: dbRes[0].address !== "null", birthdate: dbRes[0].birthdate !== "null", firstName: dbRes[0].firstName !== "null", lastName: dbRes[0].lastName !== "null"}),
+        text: async () => JSON.stringify({})
+    } 
 }
