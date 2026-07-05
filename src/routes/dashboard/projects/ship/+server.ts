@@ -179,6 +179,9 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	) {
 		return new Response("All project fields are required", { status: 400 })
 	}
+	if(projectData.fields.address === "null" || !projectData.fields.address){
+		return new Response("Your Address is missing, please add it on auth.hackclub.com", { status: 400 })
+	}
 	const hackatimeProject = await getHackatimeProject(
 		htToken,
 		projectData.fields.hackatime

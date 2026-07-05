@@ -97,7 +97,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const yswsEligible = decodedToken.ysws_eligible
 	const iv = crypto.randomBytes(16).toString("hex")
 	const ivBuffer = Buffer.from(iv, "hex")
-	const encryptedAddress = encryptAES(JSON.stringify(meResponse.address), ivBuffer).finalString
+	let encryptedAddress = "null"
+	if (meResponse.address && meResponse.address.length > 0) {
+	encryptedAddress = encryptAES(JSON.stringify(meResponse.address), ivBuffer).finalString
+
+	}
 	const encryptedBirthdate = encryptAES(meResponse.birthday, ivBuffer).finalString
 	const encryptedFirstName = encryptAES(name.split(" ")[0], ivBuffer).finalString
 	const encryptedLastName = encryptAES(name.split(" ").at(-1), ivBuffer).finalString
