@@ -97,8 +97,8 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
     let misconfigured = []
     if(!configs.address)
         misconfigured.push("Address")
-    if(!configs.birthday)
-        misconfigured.push("Birthday")
+    if(!configs.birthdate)
+        misconfigured.push("Birthdate")
     if(!configs.firstName)
         misconfigured.push("First Name")
     if(!configs.lastName)
