@@ -977,8 +977,13 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
             itemDescription: shopItemsTable.description,
             itemPrice: shopItemsTable.itemPrice,
             cdnImage: shopItemsTable.cdnImage,
-            priority: shopItemsTable.priority
-    }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID))
+            priority: shopItemsTable.priority,
+            
+            userBirthdate: userInternal.birthdate,
+            userFirstName: userInternal.firstName,
+            userLastName: userInternal.lastName,
+            iv: userInternal.iv,
+    }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID)).leftJoin(userInternal, eq(ordersTable.ordererEmail, userInternal.email));
     if (order.length === 0) {
         return {
             ok: false,

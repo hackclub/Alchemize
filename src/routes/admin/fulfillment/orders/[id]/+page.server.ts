@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import type { PageServerLoad } from "./$types";
 import type {AdminJWT} from "$lib/types";
 import { redirect } from "@sveltejs/kit";
+import {decryptAES} from "$lib/utils.server";   
 export const load: PageServerLoad = async ({ params, cookies }) => {
         const adminAuthToken = cookies.get('admin_jwt');
         try{
@@ -24,6 +25,11 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
         const orderDetailsRes = await getOrderDetailsById(orderId);
         const orderDetails = await orderDetailsRes.json();
+        const iv = orderDetails.fields.iv;
+        const decryptedBday = decryptAES(orderDetails.fields.userBirthdate, iv);
+        const decryptedFirstName = decryptAES(orderDetails.fields.userFirstName, iv);
+        const decryptedLastName = decryptAES(orderDetails.fields.userLastName, iv);
+        const ageNow = new Date().getFullYear() - new Date(decryptedBday).getFullYear();
         return {
            orderDetails:{
             name: orderDetails.fields.itemName,
@@ -34,7 +40,9 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
             dataCreated: orderDetails.fields.dateCreated,
             price: orderDetails.fields.itemPrice,
             img: orderDetails.fields.cdnImage,
-            
+            ageNow,
+            firstName: decryptedFirstName,
+            lastName: decryptedLastName,
            }
         };
 

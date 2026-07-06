@@ -32,7 +32,7 @@
 					class="flex justify-center bg-slate-950/40 p-6 rounded-xl border border-slate-800/50 shadow-inner"
 				>
 					<img
-						src="/Alchemize-Admin.png"
+						src={order.img}
 						alt="Product Preview"
 						class="h-48 w-48 object-contain"
 					/>
@@ -69,12 +69,12 @@
 				>
 					Mark as Fulfilled
 				</Button>
-				<Button
+				<!-- <Button
 					variant="outline"
 					class="border-slate-700 hover:bg-slate-800 text-admin-text font-medium transition-all w-full"
 				>
 					Mark as Unfulfilled
-				</Button>
+				</Button> -->
 			</div>
 		</div>
 
@@ -95,8 +95,8 @@
 							class="text-[11px] font-semibold text-admin-text/40 uppercase tracking-wider block"
 							>Recipient</span
 						>
-						<p class="font-semibold text-zinc-200">Utkarsh Chandel</p>
-						<p class="text-xs text-admin-text/50 font-mono">TheUtkarsh8939</p>
+						<p class="font-semibold text-zinc-200">{order.firstName} {order.lastName}</p>
+						<p class="text-xs text-admin-text/50 font-mono">{order.ageNow} years old</p>
 					</div>
 
 					<div class="space-y-0.5 pt-1">
@@ -105,11 +105,11 @@
 							>Destination</span
 						>
 						<p class="text-zinc-200 leading-relaxed font-medium">
-							1234 xyz, abcdefgh, ijklmnop, qrstuvqxyz
+							{order.email}
 						</p>
 						<p class="text-zinc-400 text-xs">
-							State, Country — <span class="font-mono text-zinc-300"
-								>Zipcode</span
+							HCB — <span class="font-mono text-zinc-300"
+								>Card Grant</span
 							>
 						</p>
 					</div>
@@ -130,11 +130,11 @@
 						<span
 							class="text-[10px] bg-slate-800 text-admin-text/70 px-2 py-0.5 rounded-md border border-slate-700/40 font-mono"
 						>
-							@TheUtkarsh8939
+							@Slack ID HERE
 						</span>
 					</div>
-
-					<div class="grid grid-cols-2 gap-3">
+					Remind me to add this someday
+					<!-- <div class="grid grid-cols-2 gap-3">
 						<div
 							class="flex flex-col p-3 bg-slate-900/50 rounded-lg border border-slate-800/50"
 						>
@@ -183,7 +183,7 @@
 								></span
 							>
 						</div>
-					</div>
+					</div> -->
 				</div>
 			</div>
 		</div>
