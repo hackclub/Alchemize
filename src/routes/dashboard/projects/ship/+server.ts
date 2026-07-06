@@ -140,6 +140,11 @@ function calculateRecordedTime(log: Log[]): number {
 	}
 	return totalTime
 }
+const isUserIdv = async (email: string): Promise<boolean> => {
+	const fetchRes = await fetch(`https://auth.hackclub.com/api/external/check?email=${email}`)
+	const data = await fetchRes.json()
+	return data.result==="verified_eligible"
+}
 export const POST: RequestHandler = async ({ request, cookies }) => {
 	//Confirm ownership by comparing email from access token with project owner email
 	const authToken = cookies.get("user_token")
@@ -157,10 +162,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	if (!recordId || !accessToken) {
 		return new Response("Missing required fields", { status: 400 })
 	}
-	const [projectData, userDbRes] = await Promise.all([
+	const [projectData, userDbRes, idv] = await Promise.all([
 		getProject(recordId),
 		getUserByEmail((decoded as any).email),
+		isUserIdv((decoded as any).email)
 	])
+	if (!idv) {
+		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
+	}
 	let htToken = (await userDbRes.json())?.records?.[0]?.fields?.hackatime
 	if (!htToken || htToken === "") {
 		throw redirect(303, hackatimeAuthUrl)

@@ -2,7 +2,8 @@
 	//@ts-ignore
 	import looseJson from "loose-json"
 	const { data } = $props()
-
+	import {CircleQuestionMark} from "@lucide/svelte"
+	import {Button} from "$lib/components/ui/button"
 	type HackatimeProject = {
 		name?: string
 		project_name?: string
@@ -135,9 +136,9 @@
 							class="relative flex flex-col gap-2 bg-black/90 border-2 border-primary/80 p-4 rounded-md"
 						>
 							<p
-								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest"
+								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest flex items-center"
 							>
-								HCA Configs
+								HCA Configs <a href="/docs/issues/hca-configs" target="_blank"><CircleQuestionMark class="ml-2 size-3"/></a> {#if data.misconfigured.length >0 }<a href="/auth"><Button class="bg-primary px-1 h-6 ml-3 text-xs tracking-tight">Re-login</Button></a> {/if}
 							</p>
 							<div class="flex items-center gap-2">
 								<span

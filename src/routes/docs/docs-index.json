@@ -67,5 +67,13 @@
             "path": "/docs/unreal-engine/creating-a-2d-game-with-unreal-engine",
             "filePath": "/markdown/Software/UnrealEngine/CreatingA2DGameWithUnrealEngine/Guide.md"
         }
+    ],
+    "Issues" : [
+                {
+            "name": "HCA Configs",
+            "path": "/docs/issues/hca-configs",
+            "filePath": "/markdown/issues/HCAConfigs.md"
+        }
     ]
+    
 }
