@@ -80,8 +80,8 @@ For Season 1:
 
 | Theme         | Currency   |
 | ------------- | ---------- |
-| Indie Gamedev | Aqua Regia |
-| Endless       | Redstone   |
+| Indie Gamedev | Redstone   |
+| Endless       | Aqua Regia |
 | No Internet   | Glowstone  |
 
 The more you build, the more currency you earn.
@@ -162,15 +162,7 @@ You can share this link with friends who may be interested in joining Alchemize.
 
 ### Referral Rewards
 
-Participants who successfully refer others may receive:
-
-* Bonus currency
-* Exclusive seasonal rewards
-* Special shop items
-* Referral leaderboard recognition
-
-Specific referral rewards may vary between seasons and will be announced alongside each season's reward pool.
-
+TBD
 ---
 
 ## Need Help?
