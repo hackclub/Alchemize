@@ -40,7 +40,7 @@
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours: Math.floor(
+			hours: Math.ceil(
 				calculateRecordedTime(
 					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
 				) / 60
@@ -69,7 +69,7 @@
 				delta += entry.deltaTime
 			}
 		}
-		return Math.floor(delta / 60)
+		return Math.ceil(delta / 60)
 	}
 	const generateUserLogs = (log: Log[]): string => {
 		let logs = ""
