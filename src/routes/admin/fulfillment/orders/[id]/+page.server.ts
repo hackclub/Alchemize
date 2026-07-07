@@ -32,17 +32,20 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
         const ageNow = new Date().getFullYear() - new Date(decryptedBday).getFullYear();
         return {
            orderDetails:{
+            id: orderDetails.id,
+            fulfillerId: orderDetails.fields.fulfiller,
             name: orderDetails.fields.itemName,
-            quantity: orderDetails.fields.qty,
+            qty: orderDetails.fields.qty,
             status: orderDetails.fields.status,
             fulfiller: orderDetails.fields.fulfiller,
             email: orderDetails.fields.ordererEmail,
-            dataCreated: orderDetails.fields.dateCreated,
+            dateCreated: orderDetails.fields.dateCreated,
             price: orderDetails.fields.itemPrice,
             img: orderDetails.fields.cdnImage,
             ageNow,
             firstName: decryptedFirstName,
             lastName: decryptedLastName,
+            
            }
         };
 

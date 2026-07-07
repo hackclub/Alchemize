@@ -1070,3 +1070,20 @@ export const checkConfigByEmail = async (email: string): Promise<DBResponse> => 
         text: async () => JSON.stringify({})
     } 
 }
+export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): Promise<DBResponse> => {
+    const updatedOrder = await db.update(ordersTable).set({ status: "fulfilled", fulfiller }).where(eq(ordersTable.id, parseInt(orderId))).returning();
+    if (updatedOrder.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Order not found" }),
+            text: async () => JSON.stringify({ message: "Order not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ message: "Order marked as fulfilled" }),
+        text: async () => JSON.stringify({ message: "Order marked as fulfilled" }),
+    };
+}
