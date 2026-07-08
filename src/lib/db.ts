@@ -720,7 +720,7 @@ export const createOrder = async (orderData: any): Promise<DBResponse> => {
 }
 export const fetchAllItems = async (): Promise<DBResponse> => {
     //Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop
-    const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0));
+    const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0)).orderBy(asc(shopItemsTable.priority));
     const records = items.map(item => ({ id: item.itemID + "", fields: item }));
     return {
         ok: true,
