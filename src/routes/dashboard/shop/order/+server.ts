@@ -25,8 +25,8 @@ const getCurrency = (itemPrice: UserCurrency): keyof UserCurrency => {
 }
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const body: RequestBody = await request.json();
-    if(body.quantity <= 0){
-        return new Response("Quantity must be greater than 0", { status: 400 })
+    if (typeof body.quantity !== "number" || !Number.isInteger(body.quantity) || body.quantity <= 0) {
+        return new Response("Quantity must be a positive integer", { status: 400 })
     }
     const accessToken = cookies.get('access_token_new');
     if (!accessToken) {
