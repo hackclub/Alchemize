@@ -14,6 +14,9 @@ export const POST = async ({ request, cookies }) => {
         if (!decoded) {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
         }
+        if (!decoded.isFulfiller) {
+            return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+        }
     } catch (error) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
