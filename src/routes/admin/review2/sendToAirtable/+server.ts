@@ -201,7 +201,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             lastName: encryptAES(decryptedLastName, iv).finalString,
             iv: iv.toString('hex')
         }),
-        fetch("https://aoishik.qzz.io/review-accept", {
+        fetch("https://notifications.alchemize.hackclub.com/review-accept", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

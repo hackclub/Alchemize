@@ -55,7 +55,7 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
     const updatedLog = updateLog(JSON.parse(log), -decreaseTime, userExternal, name, internalNote, justification)
     const [response, botResponse] = await Promise.all([
         patchProjectForShip(recordId, updatedLog, "rejected"),
-        fetch("https://aoishik.qzz.io/review-reject", {
+        fetch("https://notifications.alchemize.hackclub.com/review-reject", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
