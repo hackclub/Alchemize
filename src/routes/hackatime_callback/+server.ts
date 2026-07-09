@@ -80,7 +80,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 
 
 	cookies.set('hackatime_verified', 'true', {
-		httpOnly: false,
+		httpOnly: true,
 		secure: true,
 		sameSite: 'lax',
 		path: '/',
