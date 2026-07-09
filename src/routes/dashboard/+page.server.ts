@@ -3,6 +3,7 @@ import { START_DATE, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/privat
 import { getProjectsByOwner, getUserByEmail, checkConfigByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
 import { hackatimeAuthUrl, authUrl } from '$lib/utils';
+import { filterLogs } from '$lib/utils.server';
 import { redirect } from '@sveltejs/kit';
 import jwt from "jsonwebtoken"
 
@@ -103,8 +104,15 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
         misconfigured.push("First Name")
     if(!configs.lastName)
         misconfigured.push("Last Name")
+    const sanitizedProjects = (projectsData?.records || []).map((record: any) => ({
+        ...record,
+        fields: {
+            ...record.fields,
+            log: filterLogs(record.fields?.log ?? "")
+        }
+    }))
     return {
-        projects: projectsData?.records || [],
+        projects: sanitizedProjects,
         hacks: filteredHacksS || [],
         email: decodedToken.email,
         eligiblity: decodedToken.ysws_eligible,
