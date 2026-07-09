@@ -189,16 +189,18 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             description: project.fields.description,
             screenshot: project.fields.screenshot,
             screenshot2: project.fields.screenshot2 || "",
-            address: encryptAES(address.line_1 ?? "", iv).finalString,
-            city: encryptAES(address.city ?? "", iv).finalString,
-            state: encryptAES(address.state ?? "", iv).finalString,
-            country: encryptAES(address.country ?? "", iv).finalString,
-            zip: encryptAES(address.postal_code ?? "", iv).finalString,
-            birthdate: encryptAES(decryptedBirthdate, iv).finalString,
+            address: encryptAES(address.line_1 ?? "").finalString,
+            city: encryptAES(address.city ?? "").finalString,
+            state: encryptAES(address.state ?? "").finalString,
+            country: encryptAES(address.country ?? "").finalString,
+            zip: encryptAES(address.postal_code ?? "").finalString,
+            birthdate: encryptAES(decryptedBirthdate).finalString,
             overrideHoursSpent: (calculateNewHours(log) - subtraction) + "",
             justification: justification,
-            firstName: encryptAES(decryptedFirstName, iv).finalString,
-            lastName: encryptAES(decryptedLastName, iv).finalString,
+            firstName: encryptAES(decryptedFirstName).finalString,
+            lastName: encryptAES(decryptedLastName).finalString,
+            // Per-field IVs are embedded in each ciphertext above; this legacy
+            // column is retained only for decrypting older rows.
             iv: iv.toString('hex')
         }),
         fetch("https://notifications.alchemize.hackclub.com/review-accept", {

@@ -95,16 +95,18 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const firstName = decodedToken.nickname
 	const verification = decodedToken.verification_status
 	const yswsEligible = decodedToken.ysws_eligible
-	const iv = crypto.randomBytes(16).toString("hex")
-	const ivBuffer = Buffer.from(iv, "hex")
+	// Each field is encrypted with its own IV embedded in the ciphertext, so no
+	// shared record-level IV is needed. The legacy `iv` column is kept as "" for
+	// schema/backward-compat; decryption reads the per-field IV from the payload.
+	const iv = ""
 	let encryptedAddress = "null"
 	if (meResponse.address && meResponse.address.length > 0) {
-	encryptedAddress = encryptAES(JSON.stringify(meResponse.address), ivBuffer).finalString
+	encryptedAddress = encryptAES(JSON.stringify(meResponse.address)).finalString
 
 	}
-	const encryptedBirthdate = encryptAES(meResponse.birthday, ivBuffer).finalString
-	const encryptedFirstName = encryptAES(name.split(" ")[0], ivBuffer).finalString
-	const encryptedLastName = encryptAES(name.split(" ").at(-1), ivBuffer).finalString
+	const encryptedBirthdate = encryptAES(meResponse.birthday).finalString
+	const encryptedFirstName = encryptAES(name.split(" ")[0]).finalString
+	const encryptedLastName = encryptAES(name.split(" ").at(-1)).finalString
 	let userRecordId = ""
 	//Look for user in DB, if not found create new user
 	const [userResponse] = await Promise.all([getUserByEmail(email), addUserToAuthTable( email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)])

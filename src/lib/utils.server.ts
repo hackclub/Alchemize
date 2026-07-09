@@ -30,8 +30,12 @@ export const filterLogs = (logsJson: string): string => {
 	})
 	return JSON.stringify(filteredLogs)
 }
-export const encryptAES = (text: string, iv: Buffer) => {
+// AES-256-GCM. A fresh 12-byte IV is generated per call and embedded in
+// finalString as `iv:ciphertext:authTag`. Never reuse an IV across plaintexts
+// under the same key: GCM nonce reuse leaks the auth subkey and plaintext XORs.
+export const encryptAES = (text: string) => {
 	const algorithm = 'aes-256-gcm';
+	const iv = crypto.randomBytes(12);
 	const cipher = crypto.createCipheriv(
 		algorithm,
 		Buffer.from(PII_ENCRYPTION_KEY, "hex"),
@@ -40,26 +44,41 @@ export const encryptAES = (text: string, iv: Buffer) => {
 	let encrypted = cipher.update(text, 'utf8', 'hex')
 	encrypted += cipher.final('hex')
 	const authTag = cipher.getAuthTag().toString('hex')
+	const ivHex = iv.toString('hex')
 	return {
-		iv: iv.toString('hex'),
+		iv: ivHex,
 		encryptedData: encrypted,
 		authTag: authTag,
-		finalString: `${encrypted}:${authTag}`
+		// iv is embedded so each ciphertext is self-describing and decryptable
+		// without relying on a shared, reused record-level IV.
+		finalString: `${ivHex}:${encrypted}:${authTag}`
 	}
 }
 export const decryptAES = (encryptedDataWithTag: string, ivHex: string) => {
-	if (!encryptedDataWithTag || !ivHex) return '';
-		const algorithm = 'aes-256-gcm';
-	
+	if (!encryptedDataWithTag) return '';
+	const algorithm = 'aes-256-gcm';
 	const key = Buffer.from(PII_ENCRYPTION_KEY, 'hex');
-	const iv = Buffer.from(ivHex, 'hex');
-	const [encryptedText, authTagHex] = encryptedDataWithTag.split(':');
-	
+
+	const parts = encryptedDataWithTag.split(':');
+	let iv: Buffer;
+	let encryptedText: string;
+	let authTagHex: string;
+	if (parts.length === 3) {
+		// New format: IV is embedded in the payload.
+		[, encryptedText, authTagHex] = parts;
+		iv = Buffer.from(parts[0], 'hex');
+	} else {
+		// Legacy format: `ciphertext:authTag` with a separate record-level IV.
+		if (!ivHex) return '';
+		[encryptedText, authTagHex] = parts;
+		iv = Buffer.from(ivHex, 'hex');
+	}
+
 	const decipher = crypto.createDecipheriv(algorithm, key, iv);
 	decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-	
+
 	let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
 	decrypted += decipher.final('utf8');
-	
+
 	return decrypted;
 }
