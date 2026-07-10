@@ -126,6 +126,8 @@
 			screenshot: nextProject.fields.screenshot,
 			unifiedId: nextProject.fields.unifiedId,
 		}
+					currentHackatimeAnalysis = {} as HackatimeAnalysis
+			fetchHackatimeAnalysis(currentProject.id + "")
 		console.log("Current project set to log:", currentProject.log)
 	}
 	const calculateDelta = (log: Log[]): number => {
@@ -182,8 +184,7 @@ Signed by ${data.name}, T2 Reviewer
 	$effect(() => {
 		if (currentProject.name) {
 			generateFullJustification()
-			currentHackatimeAnalysis = {} as HackatimeAnalysis
-			fetchHackatimeAnalysis(currentProject.id + "")
+
 		}
 	})
 	$effect(() => {
