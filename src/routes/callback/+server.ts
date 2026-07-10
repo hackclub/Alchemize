@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// airtable_user_record_id: Stores the Airtable record ID of the user, used for database operations
 	// user_token: JWT containing user information, used for authentication and authorization in the app
 	// access_token_new: The access token from Hack Club OAuth, used for making authenticated requests to Hack Club API
-	// hackatime_verified: HTTP-only flag indicating the user has a verified Hackatime account, read server-side only
+	// hackatime_verified:  flag indicating the user has a verified Hackatime account, read server-side only
 	// slack_id: The user's Slack ID from Hack Club, used for Slack integration features in the app
 	// Hackatime Token stored for 1 year
 	// User Token stored for 4 months
@@ -193,7 +193,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	if(userData.length > 0 && userData[0].fields.hackatime){
 		
 		cookies.set("hackatime_verified", "true", {
-			httpOnly: true,
+			httpOnly: false,
 			secure: true,
 			sameSite: "lax",
 			maxAge: 60 * 60 * 24 * 365, // 1 year
