@@ -559,19 +559,23 @@ Signed by ${data.name}, T2 Reviewer
 											<div
 												class="h-full bg-admin-primary flex items-center justify-center text-xl text-zinc-200"
 												style={`width: ${currentHackatimeAnalysis.codingSec / totalTime * 100}%`}
-											></div>
+											>
+											Normal Coding Time: {Math.round(currentHackatimeAnalysis.codingSec/360)/10}h/{Math.round(totalTime/360)/10}h	
+										</div>
 											<div
 												class="h-full bg-[#DE7356] flex items-center justify-center text-xl text-zinc-200"
 												style={`width: ${currentHackatimeAnalysis.aiSec / totalTime * 100}%`}
-											></div>
+											>
+											AI Time: {Math.round(currentHackatimeAnalysis.aiSec/360)/10}h/{Math.round(totalTime/360)/10}h
+										</div>
 											<div
 												class="h-full bg-[#F5A623] flex items-center justify-center text-xl text-zinc-200"
 												style={`width: ${currentHackatimeAnalysis.buildingSec / totalTime * 100}%`}
-											></div>
+											>Building Time: {Math.round(currentHackatimeAnalysis.buildingSec/360)/10}h/{Math.round(totalTime/360)/10}h</div>
 											<div
 												class="h-full bg-[#BF0B0B] flex items-center justify-center text-xl text-zinc-200"
 												style={`width: ${currentHackatimeAnalysis.timelapsingSec / totalTime * 100}%`}
-											></div>
+											>Timelapsing Time: {Math.round(currentHackatimeAnalysis.timelapsingSec/360)/10}h/{Math.round(totalTime/360)/10}h</div>
 											<div
 												class="h-full bg-gray-500 flex items-center justify-center text-xl text-zinc-200"
 												style={`width: ${currentHackatimeAnalysis.others / totalTime * 100}%`}
