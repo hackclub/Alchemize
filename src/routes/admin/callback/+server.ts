@@ -3,6 +3,7 @@ import { PUBLIC_ADMIN_HACKCLUB_AUTH, PUBLIC_ADMIN_HACKCLUB_REDIRECT } from "$env
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import jwt from "jsonwebtoken"
+import crypto from "crypto"
 import { doesAdminExist } from "$lib/db"
 
 interface AirtableUser {
@@ -34,27 +35,40 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     }
 
 
-    const tokenResponse = await fetch("https://auth.hackclub.com/oauth/token", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: redirectUri,
-            code,
-            grant_type: "authorization_code",
+    const [tokenResponse, keysResponse] = await Promise.all([
+        fetch("https://auth.hackclub.com/oauth/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                code,
+                grant_type: "authorization_code",
+            }),
         }),
-    })
+        fetch("https://auth.hackclub.com/oauth/discovery/keys")
+    ])
 
-    const tokenBody = await tokenResponse.json()
+    const [tokenBody, keysBody] = await Promise.all([tokenResponse.json(), keysResponse.json()])
 
     if (!tokenResponse.ok) {
         const message = tokenBody?.message ?? "Token exchange failed";
         throw redirect(303, `/admin/error?message=${encodeURIComponent(message)}&status=${tokenResponse.status}`);
     }
-    const decodedToken = jwt.decode(tokenBody.id_token) as { slack_id: string, email: string, name: string } | null
+    // Verify the ID token signature against Hack Club's JWKS before trusting any
+    // of its claims (previously it was jwt.decode'd without verification).
+    let decodedToken: { slack_id: string, email: string, name: string } | null
+    try {
+        const jwk = keysBody.keys[0]
+        const publicKey = crypto.createPublicKey({ key: jwk, format: "jwk" })
+        decodedToken = jwt.verify(tokenBody.id_token, publicKey, { algorithms: ["RS256"] }) as { slack_id: string, email: string, name: string }
+    } catch (err) {
+        console.error("Admin ID token verification failed:", err)
+        throw redirect(303, `/admin/error?message=${encodeURIComponent("Invalid identity token")}&status=401`)
+    }
     const airtableRes = await doesAdminExist(decodedToken?.slack_id || "")
     if (!airtableRes.ok) {
         console.error("Failed to fetch user data from Airtable", await airtableRes.text())

@@ -4,6 +4,8 @@ import type { PageServerLoad } from './$types';
 import { WebClient } from "@slack/web-api"
 import type { AirtableReferRecord, Refers } from '$lib/types';
 import { getAllRefers } from '$lib/db';
+import { redirect } from '@sveltejs/kit';
+import { authUrl } from '$lib/utils';
 import jwt from 'jsonwebtoken';
 
 
@@ -78,6 +80,9 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         catch (err) {
             console.error("Error verifying JWT:", err);
         }
+    }
+    if (!data?.id || !data?.slack_id) {
+        throw redirect(302, authUrl);
     }
     const id = encodeURIComponent(XORencrypt(`${data.id.slice(6)} ${data.slack_id}`));
     let referalsResponse = await getAllRefers()

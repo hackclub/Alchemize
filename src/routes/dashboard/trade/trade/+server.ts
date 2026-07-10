@@ -7,7 +7,9 @@ import type { UserAuthToken } from "$lib/types";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const { redstone, glowstone, aqua_regia } = await request.json();
-    if (redstone < 0 || glowstone < 0 || aqua_regia < 0) {
+    const isValidAmount = (v: unknown): v is number =>
+        typeof v === "number" && Number.isInteger(v) && v >= 0;
+    if (![redstone, glowstone, aqua_regia].every(isValidAmount)) {
         return new Response(JSON.stringify({
             error: "Invalid currency amounts"
         }), { status: 400 })

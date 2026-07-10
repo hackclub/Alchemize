@@ -2,7 +2,7 @@ import type { Actions, PageServerLoad } from "./$types"
 import crypto from "crypto"
 import { env } from "$env/dynamic/private"
 import { getDataFromAccessToken, hackatimeAuthUrl } from "$lib/utils"
-import { encryptAES } from "$lib/utils.server"
+import { encryptAES, filterLogs } from "$lib/utils.server"
 import {
 	getProjectsByOwner,
 	createProject,
@@ -14,7 +14,6 @@ import type {
 	AirtableProject,
 	AirtableProjectWithPII,
 	UserAuthToken,
-	Log,
 } from "$lib/types"
 import { redirect } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
@@ -263,28 +262,6 @@ export const actions = {
 		}
 	},
 } satisfies Actions
-const filterLogs = (logsJson: string) => {
-	const logs = JSON.parse(logsJson || "[]") as Log[]
-
-	let filteredLogs: Log[] = []
-	logs.forEach(log => {
-		let message = log.message
-		message.forEach(msg => {
-			msg.internalNote = ""
-			msg.justification = ""
-			if (msg.reviewerName?.startsWith("APPROVED")) {
-				msg.reviewerName = "APPROVED"
-			} else if (msg.reviewerName === "user") {
-				msg.reviewerName = "user"
-			} else {
-				msg.reviewerName = "REVIEWER"
-			}
-		})
-		log.message = message
-		filteredLogs.push(log)
-	})
-	return JSON.stringify(filteredLogs)
-}
 export const load: PageServerLoad = async ({ cookies }) => {
 	const accessToken =
 		cookies.get("access_token_new") ?? cookies.get("access_token")

@@ -4,8 +4,38 @@ import { PII_ENCRYPTION_KEY } from "$env/static/private"
 // const  PII_ENCRYPTION_KEY  = process.env.PII_ENCRYPTION_KEY || "default_key_32_bytes_long_1234567890"; // Ensure this is 32 bytes for AES-256
 // // console.log("PII_ENCRYPTION_KEY:", PII_ENCRYPTION_KEY); // Debugging line to check the key
 import crypto from "crypto"
-export const encryptAES = (text: string, iv: Buffer) => {
+import type { Log } from "./types"
+
+// Strips reviewer-internal fields (internalNote, justification) and the real
+// reviewer identity from a project log before it is sent to a project owner.
+// Must be applied on every user-facing load that returns project.log.
+export const filterLogs = (logsJson: string): string => {
+	const logs = JSON.parse(logsJson || "[]") as Log[]
+	const filteredLogs: Log[] = []
+	logs.forEach(log => {
+		const message = log.message
+		message.forEach(msg => {
+			msg.internalNote = ""
+			msg.justification = ""
+			if (msg.reviewerName?.startsWith("APPROVED")) {
+				msg.reviewerName = "APPROVED"
+			} else if (msg.reviewerName === "user") {
+				msg.reviewerName = "user"
+			} else {
+				msg.reviewerName = "REVIEWER"
+			}
+		})
+		log.message = message
+		filteredLogs.push(log)
+	})
+	return JSON.stringify(filteredLogs)
+}
+// AES-256-GCM. A fresh 12-byte IV is generated per call and embedded in
+// finalString as `iv:ciphertext:authTag`. Never reuse an IV across plaintexts
+// under the same key: GCM nonce reuse leaks the auth subkey and plaintext XORs.
+export const encryptAES = (text: string) => {
 	const algorithm = 'aes-256-gcm';
+	const iv = crypto.randomBytes(12);
 	const cipher = crypto.createCipheriv(
 		algorithm,
 		Buffer.from(PII_ENCRYPTION_KEY, "hex"),
@@ -14,26 +44,41 @@ export const encryptAES = (text: string, iv: Buffer) => {
 	let encrypted = cipher.update(text, 'utf8', 'hex')
 	encrypted += cipher.final('hex')
 	const authTag = cipher.getAuthTag().toString('hex')
+	const ivHex = iv.toString('hex')
 	return {
-		iv: iv.toString('hex'),
+		iv: ivHex,
 		encryptedData: encrypted,
 		authTag: authTag,
-		finalString: `${encrypted}:${authTag}`
+		// iv is embedded so each ciphertext is self-describing and decryptable
+		// without relying on a shared, reused record-level IV.
+		finalString: `${ivHex}:${encrypted}:${authTag}`
 	}
 }
 export const decryptAES = (encryptedDataWithTag: string, ivHex: string) => {
-	if (!encryptedDataWithTag || !ivHex) return '';
-		const algorithm = 'aes-256-gcm';
-	
+	if (!encryptedDataWithTag) return '';
+	const algorithm = 'aes-256-gcm';
 	const key = Buffer.from(PII_ENCRYPTION_KEY, 'hex');
-	const iv = Buffer.from(ivHex, 'hex');
-	const [encryptedText, authTagHex] = encryptedDataWithTag.split(':');
-	
+
+	const parts = encryptedDataWithTag.split(':');
+	let iv: Buffer;
+	let encryptedText: string;
+	let authTagHex: string;
+	if (parts.length === 3) {
+		// New format: IV is embedded in the payload.
+		[, encryptedText, authTagHex] = parts;
+		iv = Buffer.from(parts[0], 'hex');
+	} else {
+		// Legacy format: `ciphertext:authTag` with a separate record-level IV.
+		if (!ivHex) return '';
+		[encryptedText, authTagHex] = parts;
+		iv = Buffer.from(ivHex, 'hex');
+	}
+
 	const decipher = crypto.createDecipheriv(algorithm, key, iv);
 	decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-	
+
 	let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
 	decrypted += decipher.final('utf8');
-	
+
 	return decrypted;
 }

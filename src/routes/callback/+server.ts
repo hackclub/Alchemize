@@ -35,7 +35,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// airtable_user_record_id: Stores the Airtable record ID of the user, used for database operations
 	// user_token: JWT containing user information, used for authentication and authorization in the app
 	// access_token_new: The access token from Hack Club OAuth, used for making authenticated requests to Hack Club API
-	// NON HTTPONLY -> hackatime_verified: A flag to indicate if the user has a verified Hackatime account, used for conditional rendering and features
+	// hackatime_verified:  flag indicating the user has a verified Hackatime account, read server-side only
 	// slack_id: The user's Slack ID from Hack Club, used for Slack integration features in the app
 	// Hackatime Token stored for 1 year
 	// User Token stored for 4 months
@@ -95,16 +95,18 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const firstName = decodedToken.nickname
 	const verification = decodedToken.verification_status
 	const yswsEligible = decodedToken.ysws_eligible
-	const iv = crypto.randomBytes(16).toString("hex")
-	const ivBuffer = Buffer.from(iv, "hex")
+	// Each field is encrypted with its own IV embedded in the ciphertext, so no
+	// shared record-level IV is needed. The legacy `iv` column is kept as "" for
+	// schema/backward-compat; decryption reads the per-field IV from the payload.
+	const iv = ""
 	let encryptedAddress = "null"
 	if (meResponse.address && meResponse.address.length > 0) {
-	encryptedAddress = encryptAES(JSON.stringify(meResponse.address), ivBuffer).finalString
+	encryptedAddress = encryptAES(JSON.stringify(meResponse.address)).finalString
 
 	}
-	const encryptedBirthdate = encryptAES(meResponse.birthday, ivBuffer).finalString
-	const encryptedFirstName = encryptAES(name.split(" ")[0], ivBuffer).finalString
-	const encryptedLastName = encryptAES(name.split(" ").at(-1), ivBuffer).finalString
+	const encryptedBirthdate = encryptAES(meResponse.birthday).finalString
+	const encryptedFirstName = encryptAES(name.split(" ")[0]).finalString
+	const encryptedLastName = encryptAES(name.split(" ").at(-1)).finalString
 	let userRecordId = ""
 	//Look for user in DB, if not found create new user
 	const [userResponse] = await Promise.all([getUserByEmail(email), addUserToAuthTable( email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)])
