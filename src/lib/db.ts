@@ -461,7 +461,31 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+export const getProjectWithHackatime = async (projectId: string): Promise<DBResponse> => {
+    const projects = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        hackatime: projectTable.hackatime,
+        hackatimeToken: userTable.hackatime,
 
+    }).from(projectTable).where(eq(projectTable.id, parseInt(projectId))).leftJoin(userTable, eq(projectTable.owner, userTable.email));
+    if (projects.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Project not found" }),
+            text: async () => JSON.stringify({ message: "Project not found" }),
+        }
+    }
+    
+    const records = projects.map(project => ({ id: project.id + "", fields: project }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
+}
 export const getAllProjects = async (): Promise<DBResponse> => {
     // Explicitly select only non-sensitive fields
     const projects = await db.select({

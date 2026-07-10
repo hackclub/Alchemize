@@ -3,11 +3,13 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
-	import type { Project, Log, AirtableProject } from "$lib/types"
+	import type { Project, Log, AirtableProject, HackatimeAnalysis } from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
+	import { tick } from "svelte"
+	import {BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Title, Tooltip} from "chart.js";
 	interface AdminProjectAccess extends AirtableProject {
 		fields: AirtableProject["fields"] & {
 			unifiedId: string
@@ -17,10 +19,14 @@
 		unifiedId: string
 	}
 	let detailsOpen = $state(false)
+	let currentHackatimeAnalysis = $state({} as HackatimeAnalysis)
 	let { data } = $props()
 	let airtableProjects = $derived(data.projects as AdminProjectAccess[])
 	let project = $state({} as Project)
 	let justificationOpen = $state(false)
+	let daySummaryChart = $state<HTMLCanvasElement | undefined>(undefined)
+	let daySummaryChartInstance: Chart<"bar"> | null = null
+	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title)
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
 		console.log("Checking if project was ever approved:", project.fields.Name)
@@ -36,15 +42,75 @@
 		}
 		return totalTime
 	}
+		const renderBar = () => {
+		if (!daySummaryChart || !currentHackatimeAnalysis?.dayMap) {
+			return
+		}
+		let dataLabels = []
+		let dataValues = []
+		for (const [key, value] of Object.entries(currentHackatimeAnalysis.dayMap)) {
+			dataLabels.push(key)
+			dataValues.push(Math.round((value / 3600) * 10) / 10)
+		}
+		const configs = {
+			  type: 'bar',
+			data: {
+				labels: dataLabels,
+				datasets: [
+					{
+						label: "Time spent (hours)",
+						data: dataValues,
+						backgroundColor: "#4ade80",
+					},
+				],
+			},
+		
+		}
+		daySummaryChartInstance?.destroy()
+		daySummaryChartInstance = new Chart(daySummaryChart, {
+			type: 'bar',
+			data: configs.data,
+			options: {
+				indexAxis: 'y',
+				plugins: {
+					tooltip: {
+						callbacks: {
+							label: context => `${context.parsed.x} hrs`,
+						},
+					},
+				},
+			},
+		})
+	}
+	const fetchHackatimeAnalysis = async (projectId: string) => {
+	
+
+		const response = await fetch(`/admin/review2/analyzeHackatime`,{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				projectId: projectId,
+			}),
+
+		})
+		const data = await response.json()
+		console.log("Hackatime analysis data:", data)
+		currentHackatimeAnalysis = data
+		await tick()
+		renderBar()
+	}
+
 	const setCurrentProject = (nextProject: AdminProjectAccess) => {
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours: Math.ceil(
+			hours: Math.floor(
 				calculateRecordedTime(
 					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
-				) / 60
-			),
+				)*10 / 60
+			)/10,
 			submittedBy: nextProject.fields.slackId,
 			type: nextProject.fields.type,
 			category: nextProject.fields.Theme,
@@ -69,7 +135,7 @@
 				delta += entry.deltaTime
 			}
 		}
-		return Math.ceil(delta / 60)
+		return Math.floor(delta / 60)
 	}
 	const generateUserLogs = (log: Log[]): string => {
 		let logs = ""
@@ -113,10 +179,11 @@ Signed by ${data.name}, T2 Reviewer
 	let gitCommits = 0
 	let subtraction = 0
 	let projectDescriptionLength = $derived(countCharacters(projectDescription))
-
 	$effect(() => {
 		if (currentProject.name) {
 			generateFullJustification()
+			currentHackatimeAnalysis = {} as HackatimeAnalysis
+			fetchHackatimeAnalysis(currentProject.id + "")
 		}
 	})
 	$effect(() => {
@@ -125,9 +192,10 @@ Signed by ${data.name}, T2 Reviewer
 		} else {
 			currentProject = {} as AdminProject
 		}
+
 	})
+
 	const sendToDatabase = async () => {
-		
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		const id = currentProject.id
 		currentProject = {} as AdminProject
@@ -184,7 +252,7 @@ Signed by ${data.name}, T2 Reviewer
 	})
 	const rejectT2 = async () => {
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
-		
+
 		const id = currentProject.id
 		const slackId = currentProject.submittedBy
 		currentProject = {} as AdminProject
@@ -345,7 +413,7 @@ Signed by ${data.name}, T2 Reviewer
 								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
 								>Repo</a
 							>
-														<a
+							<a
 								href="https://introspect.sahil.ink?repo_url={currentProject.code}&demo_url={currentProject.demo}&slack_id={currentProject.submittedBy}&hours={currentProject.hours}&project_name={currentProject.name}"
 								target="_blank"
 								rel="noreferrer noopener"
@@ -356,126 +424,169 @@ Signed by ${data.name}, T2 Reviewer
 					</header>
 
 					<div
-						class="flex-1 overflow-hidden grid grid-cols-1 xl:grid-cols-3 min-h-0"
+						class="overflow-hidden grid grid-cols-1 xl:grid-cols-[2fr_1fr] grid-rows-2 xl:grid-rows-1 min-h-0"
 					>
-						<main
-							class="xl:col-span-2 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 custom-scrollbar"
-						>
-							<div class="flex flex-col gap-y-3">
-								<div class="flex flex-col flex-1 min-h-[160px]">
-									<label
-										for="project-desc"
-										class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
-										>Project Summary</label
-									>
-									<Textarea
-										id="project-desc"
-										class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 min-h-[120px]"
-										placeholder="Briefly describe the project..."
-										bind:value={projectDescription}
-										oninput={generateFullJustification}
-									/>
-								</div>
-
-								<div
-									class="w-full min-h-8 gap-2 rounded-lg flex items-center px-3 text-[11px] border transition-all duration-200 bg-zinc-950/10
-									{projectDescriptionLength > 20
-										? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
-										: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
-								>
-									<i class="fa-solid fa-circle-info"></i>
-									<span>
-										{projectDescriptionLength > 20
-											? "Description character target met."
-											: `Requires 20+ characters (${projectDescriptionLength}/20)`}
-									</span>
-								</div>
-							</div>
-
-							<div class="w-full space-y-4 flex flex-col justify-between">
-								<div class="w-full grid grid-rows-2 gap-3">
-									<div
-										class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-									>
+						<div class="w-full h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
+							<main
+								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 "
+							>
+								<div class="flex flex-col gap-y-3">
+									<div class="flex flex-col flex-1 min-h-[160px]">
 										<label
-											for="git-commits"
-											class="text-[11px] font-medium text-zinc-400"
-											>Git Commits</label
-										>
-										<Input
-											id="git-commits"
-											type="number"
-											class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
-											placeholder="0"
-											bind:value={gitCommits}
-											oninput={generateFullJustification}
-										/>
-									</div>
-
-									<div
-										class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-									>
-										<label
-											for="override-hours"
-											class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
-										>
-											<span>Deduct Hours</span>
-											<span class="text-[9px] text-zinc-600 font-normal"
-												>Optional</span
-											>
-										</label>
-										<Input
-											id="override-hours"
-											type="number"
-											min="0"
-											class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
-											placeholder="0"
-											bind:value={subtraction}
-											oninput={generateFullJustification}
-										/>
-									</div>
-								</div>
-
-								<div class="space-y-3 flex-1 flex flex-col justify-end">
-									<div class="space-y-1">
-										<label
-											id="changelogs-label"
-											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
-											>Changelog Notes</label
+											for="project-desc"
+											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
+											>Project Summary</label
 										>
 										<Textarea
-											aria-labelledby="changelogs-label"
-											class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
-											placeholder="What distinct changes were made?..."
-											bind:value={changelogs}
+											id="project-desc"
+											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 min-h-[120px]"
+											placeholder="Briefly describe the project..."
+											bind:value={projectDescription}
 											oninput={generateFullJustification}
-											disabled={currentProject.update ||
-												currentProject.log.length > 1}
 										/>
 									</div>
 
-									{#if subtraction > 0}
-										<div class="space-y-1">
+									<div
+										class="w-full min-h-8 gap-2 rounded-lg flex items-center px-3 text-[11px] border transition-all duration-200 bg-zinc-950/10
+									{projectDescriptionLength > 20
+											? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
+											: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
+									>
+										<i class="fa-solid fa-circle-info"></i>
+										<span>
+											{projectDescriptionLength > 20
+												? "Description character target met."
+												: `Requires 20+ characters (${projectDescriptionLength}/20)`}
+										</span>
+									</div>
+								</div>
+
+								<div class="w-full space-y-4 flex flex-col justify-between">
+									<div class="w-full grid grid-rows-2 gap-3">
+										<div
+											class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
+										>
 											<label
-												id="override-label"
-												class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider"
-												>Deduction Justification</label
+												for="git-commits"
+												class="text-[11px] font-medium text-zinc-400"
+												>Git Commits</label
 											>
-											<Textarea
-												aria-labelledby="override-label"
-												class="resize-none h-16 bg-zinc-950/40 border-amber-900/30 focus:border-amber-800 text-xs rounded-lg p-2"
-												placeholder="Provide context regarding modifications..."
-												bind:value={reasonForOverride}
+											<Input
+												id="git-commits"
+												type="number"
+												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+												placeholder="0"
+												bind:value={gitCommits}
 												oninput={generateFullJustification}
 											/>
 										</div>
-									{/if}
+
+										<div
+											class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
+										>
+											<label
+												for="override-hours"
+												class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
+											>
+												<span>Deduct Hours</span>
+												<span class="text-[9px] text-zinc-600 font-normal"
+													>Optional</span
+												>
+											</label>
+											<Input
+												id="override-hours"
+												type="number"
+												min="0"
+												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+												placeholder="0"
+												bind:value={subtraction}
+												oninput={generateFullJustification}
+											/>
+										</div>
+									</div>
+
+									<div class="space-y-3 flex-1 flex flex-col justify-end">
+										<div class="space-y-1">
+											<label
+												id="changelogs-label"
+												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
+												>Changelog Notes</label
+											>
+											<Textarea
+												aria-labelledby="changelogs-label"
+												class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+												placeholder="What distinct changes were made?..."
+												bind:value={changelogs}
+												oninput={generateFullJustification}
+												disabled={currentProject.update ||
+													currentProject.log.length > 1}
+											/>
+										</div>
+
+										{#if subtraction > 0}
+											<div class="space-y-1">
+												<label
+													id="override-label"
+													class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider"
+													>Deduction Justification</label
+												>
+												<Textarea
+													aria-labelledby="override-label"
+													class="resize-none h-16 bg-zinc-950/40 border-amber-900/30 focus:border-amber-800 text-xs rounded-lg p-2"
+													placeholder="Provide context regarding modifications..."
+													bind:value={reasonForOverride}
+													oninput={generateFullJustification}
+												/>
+											</div>
+										{/if}
+									</div>
 								</div>
-							</div>
-						</main>
+							</main>
+							{#if currentHackatimeAnalysis.aiSec !== undefined}
+								{@const totalTime = Math.max(
+									currentHackatimeAnalysis.aiSec +
+										currentHackatimeAnalysis.buildingSec +
+										currentHackatimeAnalysis.others +
+										currentHackatimeAnalysis.codingSec +
+										currentHackatimeAnalysis.timelapsingSec,
+									1
+								)}
+								<div class="ht-data w-9/10 h-auto py-20 border-2 border-neutral-800rounded-xl flex flex-col items-center pt-4">
+									<header>Hackatime Project: {currentHackatimeAnalysis.hackatimeProject} ({Math.round(totalTime/360)/10}h)</header>
+									<div class="ai h-6 w-9/10">
+										<div class="bar h-full w-full flex">
+											<div
+												class="h-full bg-admin-primary flex items-center justify-center text-xl text-zinc-200"
+												style={`width: ${currentHackatimeAnalysis.codingSec / totalTime * 100}%`}
+											></div>
+											<div
+												class="h-full bg-[#DE7356] flex items-center justify-center text-xl text-zinc-200"
+												style={`width: ${currentHackatimeAnalysis.aiSec / totalTime * 100}%`}
+											></div>
+											<div
+												class="h-full bg-[#F5A623] flex items-center justify-center text-xl text-zinc-200"
+												style={`width: ${currentHackatimeAnalysis.buildingSec / totalTime * 100}%`}
+											></div>
+											<div
+												class="h-full bg-[#BF0B0B] flex items-center justify-center text-xl text-zinc-200"
+												style={`width: ${currentHackatimeAnalysis.timelapsingSec / totalTime * 100}%`}
+											></div>
+											<div
+												class="h-full bg-gray-500 flex items-center justify-center text-xl text-zinc-200"
+												style={`width: ${currentHackatimeAnalysis.others / totalTime * 100}%`}
+											></div>
+										</div>
+									</div>
+									<div class="day-summary-chart w-9/10">
+									
+										<canvas bind:this={daySummaryChart} class="w-full"></canvas>
+									</div>
+								</div>
+							{/if}
+						</div>
 
 						<aside
-							class="xl:col-span-1 bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
+							class="xl:col-span-1 min-h-100  bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
 						>
 							<div
 								class="px-4 py-3 border-b border-zinc-800/60 bg-zinc-950/20 flex items-center justify-between flex-shrink-0"

@@ -158,7 +158,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             country: address.country,
             zip: address.postal_code,
             birthday: decryptedBirthdate,
-            overrideHoursSpent: (Math.ceil(calculateNewHours(log)) - subtraction),
+            overrideHoursSpent: (Math.floor(calculateNewHours(log)) - subtraction),
             overrideHoursJustification: justification,
             firstName: decryptedFirstName,
             lastName: decryptedLastName

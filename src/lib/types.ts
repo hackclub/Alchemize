@@ -164,3 +164,33 @@ export interface Address {
 	phone_number: string
 	primary: boolean
 }
+export interface Heartbeats{
+	branch: string
+	category: string
+	cursorpos: number
+	editor: string
+	entity: string
+	id: number
+	is_write: boolean
+	language: string
+	machine: string
+	operating_system: string
+	project: string
+	time: number
+}	
+interface FileBreakdown {
+    [file: string]: {
+        totalMs: number;
+        formatted: string;
+    };
+}
+export interface HackatimeAnalysis {
+	hackatimeProject: string
+	aiSec: number
+	timelapsingSec: number
+	buildingSec: number
+	codingSec: number
+	others: number
+	dayMap: Record<string, number>
+	perFileBreakdown: FileBreakdown
+}
