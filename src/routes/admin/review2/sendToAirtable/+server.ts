@@ -90,7 +90,7 @@ const calculateNewHours = (log: Log[]) => {
             minsSpent += entry.deltaTime
         }
     })
-    return Math.floor(minsSpent / 60)
+    return minsSpent / 60
 }
 const themeToKeys = (theme: string): keyof UserCurrency => {
     const themeMap = themeCurrencyMaps as Record<string, keyof UserCurrency>
@@ -144,7 +144,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         project
     })
     const [updateUserCurrencyResponse, airtableResponse] = await Promise.all([
-        updateUserCurrency((calculateNewHours(log) - subtraction), project.fields.owner, currencyType),
+        updateUserCurrency((Math.floor(calculateNewHours(log)) - subtraction), project.fields.owner, currencyType),
         submitProjectToAirtable({
             githubUsername: findGithubUsernameFromCodeUrl(project.fields.code || "") ?? "",
             email: project.fields.owner,
@@ -158,7 +158,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             country: address.country,
             zip: address.postal_code,
             birthday: decryptedBirthdate,
-            overrideHoursSpent: (calculateNewHours(log) - subtraction),
+            overrideHoursSpent: (Math.ceil(calculateNewHours(log)) - subtraction),
             overrideHoursJustification: justification,
             firstName: decryptedFirstName,
             lastName: decryptedLastName
@@ -201,7 +201,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             lastName: encryptAES(decryptedLastName, iv).finalString,
             iv: iv.toString('hex')
         }),
-        fetch("https://aoishik.qzz.io/review-accept", {
+        fetch("https://notifications.alchemize.hackclub.com/review-accept", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

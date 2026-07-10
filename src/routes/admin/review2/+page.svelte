@@ -40,7 +40,7 @@
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours: Math.floor(
+			hours: Math.ceil(
 				calculateRecordedTime(
 					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
 				) / 60
@@ -69,7 +69,7 @@
 				delta += entry.deltaTime
 			}
 		}
-		return Math.floor(delta / 60)
+		return Math.ceil(delta / 60)
 	}
 	const generateUserLogs = (log: Log[]): string => {
 		let logs = ""
@@ -334,16 +334,23 @@ Signed by ${data.name}, T2 Reviewer
 							<a
 								href={currentProject.demo}
 								target="_blank"
-								rel="noreferrer"
+								rel="noreferrer noopener"
 								class="text-[11px] font-medium px-2.5 py-1 bg-admin-primary/20 hover:bg-admin-primary/30 text-admin-text rounded-md transition"
 								>Demo</a
 							>
 							<a
 								href={currentProject.code}
 								target="_blank"
-								rel="noreferrer"
+								rel="noreferrer noopener"
 								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
 								>Repo</a
+							>
+														<a
+								href="https://introspect.sahil.ink?repo_url={currentProject.code}&demo_url={currentProject.demo}&slack_id={currentProject.submittedBy}&hours={currentProject.hours}&project_name={currentProject.name}"
+								target="_blank"
+								rel="noreferrer noopener"
+								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
+								>Introspect</a
 							>
 						</div>
 					</header>

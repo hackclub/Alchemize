@@ -221,7 +221,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	const updatedLog = updateLog(previousLogs, deltaTime, changelog)
 	const [response, botResponse] = await Promise.all([
 		patchProjectForShip(recordId, updatedLog, `pending_${currentTime}`),
-		fetch("https://aoishik.qzz.io/ship", {
+		fetch("https://notifications.alchemize.hackclub.com/ship", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

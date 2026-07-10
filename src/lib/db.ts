@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and, gte } from 'drizzle-orm'
+import { eq, and, gte, asc } from 'drizzle-orm'
 import { integer, pgTable, varchar, uuid, jsonb, boolean, real} from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
@@ -720,7 +720,7 @@ export const createOrder = async (orderData: any): Promise<DBResponse> => {
 }
 export const fetchAllItems = async (): Promise<DBResponse> => {
     //Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop
-    const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0));
+    const items = await db.select().from(shopItemsTable).where(gte(shopItemsTable.priority, 0)).orderBy(asc(shopItemsTable.priority));
     const records = items.map(item => ({ id: item.itemID + "", fields: item }));
     return {
         ok: true,
@@ -1069,4 +1069,21 @@ export const checkConfigByEmail = async (email: string): Promise<DBResponse> => 
         json: async () => ({address: dbRes[0].address !== "null", birthdate: dbRes[0].birthdate !== "null", firstName: dbRes[0].firstName !== "null", lastName: dbRes[0].lastName !== "null"}),
         text: async () => JSON.stringify({})
     } 
+}
+export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): Promise<DBResponse> => {
+    const updatedOrder = await db.update(ordersTable).set({ status: "fulfilled", fulfiller }).where(eq(ordersTable.id, parseInt(orderId))).returning();
+    if (updatedOrder.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "Order not found" }),
+            text: async () => JSON.stringify({ message: "Order not found" }),
+        };
+    }
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ message: "Order marked as fulfilled" }),
+        text: async () => JSON.stringify({ message: "Order marked as fulfilled" }),
+    };
 }

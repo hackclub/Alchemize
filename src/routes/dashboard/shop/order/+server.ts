@@ -98,7 +98,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     const purchaseData = await purchaseResult.json();
-    const botResponse = await fetch("https://aoishik.qzz.io/fulfill_pending", {
+    const botResponse = await fetch("https://notifications.alchemize.hackclub.com/fulfill_pending", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
