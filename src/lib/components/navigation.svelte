@@ -21,21 +21,21 @@
 			icon: Home,
 			label: "Dashboard",
 		},
-		{
-			href: "/docs",
-			icon: Newspaper,
-			label: "Documentation",
-		},
+		// {
+		// 	href: "/docs",
+		// 	icon: Newspaper,
+		// 	label: "Documentation",
+		// },
 	]
 
 	const navItems = [
-		{
-			href: "/dashboard/explore",
-			label: "Explore",
-			icon: Compass,
-			side: "left",
-		},
-		// { href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
+		// {
+		// 	href: "/dashboard/explore",
+		// 	label: "Explore",
+		// 	icon: Compass,
+		// 	side: "left",
+		// },
+		{ href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
 		{ href: "/refer", label: "Refer", icon: Users, side: "left" },
 		{
 			href: "/dashboard/trade",
@@ -121,7 +121,7 @@
 							Where do you want to go today?
 						</p>
 					</div>
-					<div class="flex items-center justify-between w-full">
+					<div class="flex items-center justify-evenly w-full">
 						{#each centerItems as item}
 							<Dialog.Close class="text-left" title={item.label}>
 								<a
