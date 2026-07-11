@@ -49,7 +49,7 @@
 		<h1
 			class="font-alchemize mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl"
 		>
-			Was Alchemize Good?
+			Is Alchemize Good?
 		</h1>
 
 		<p class="mt-4 text-sm leading-relaxed text-zinc-400">
