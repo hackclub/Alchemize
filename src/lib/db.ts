@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte, asc } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real} from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp} from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -117,6 +117,14 @@ export const userInternal = pgTable("user_internal_data", {
     firstName: varchar({ length: 1000 }).notNull(),
     lastName: varchar({ length: 1000 }).notNull(),
     iv: varchar().notNull(),
+})
+export const rsvpTable = pgTable("rsvp", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    program: varchar({ length: 255 }).notNull(),
+    slackId: varchar({ length: 255 }), // Not all RSVPs will have a Slack ID
+    data: jsonb().notNull(),
+    createdAt: timestamp().defaultNow().notNull()
+
 })
 // Response Interface
 export interface DBResponse {
@@ -1131,4 +1139,19 @@ export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): 
         json: async () => ({ message: "Order marked as fulfilled" }),
         text: async () => JSON.stringify({ message: "Order marked as fulfilled" }),
     };
+}
+//RSVP Functions
+export const createRSVP = async (rsvpData:{
+    name: string,
+    slackId: string,
+    moreData: any,
+} ) => {
+    const { name, slackId, moreData } = rsvpData
+    const newRSVP = await db.insert(rsvpTable).values({ program: name, slackId,data: moreData }).returning();
+    return {
+        ok: true,
+        status: 201,
+        json: async () => ({ id: newRSVP[0].id + "", fields: newRSVP[0] } as airtableReplication),
+        text: async () => JSON.stringify({ id: newRSVP[0].id + "", fields: newRSVP[0] } as airtableReplication),
+    } as DBResponse;
 }
