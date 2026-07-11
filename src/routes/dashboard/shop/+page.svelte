@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/button/button.svelte"
 	import ShopDialog from "$lib/components/shopitem-dialog.svelte"
+	import { getSlackProfile } from "$lib/utils"
 	//@ts-ignore
 	import looseJson from "loose-json"
 	import { ShoppingBag } from "lucide-svelte"
@@ -11,7 +12,7 @@
 
 	let { data } = $props()
 	const loggedIn = !!data.userRecord
-
+	console.log(data)
 	let currencies = $state(
 		looseJson(
 			data.userRecord?.fields?.currency ??
@@ -224,7 +225,7 @@
 		if (currency.potion_mix > 0) return `${currency.potion_mix} Potion Mix`
 		return "Free"
 	}
-
+	let ordersDialogOpen = $state(false)
 	let searchQuery = $state("")
 
 	let finalItems = $derived(
@@ -259,16 +260,10 @@
 					>Alchemize</span
 				>
 			</h1>
-			<div
-				data-fillout-id="f31FLmPvAXus"
-				data-fillout-embed-type="popup"
-				data-fillout-button-text="Can't suggest"
-				data-fillout-dynamic-resize
-				data-fillout-button-color="transparent"
-				data-fillout-inherit-parameters
-				data-fillout-popup-size="small"
-				class="fillout-embed-popup-button"
-			></div>
+			<button
+				class="border-primary border-2 rounded-lg bg-primary/70 p-2"
+				onclick={() => ordersDialogOpen = true}
+			>View your orders</button>
 		</div>
 
 		{#if loggedIn}
@@ -452,6 +447,28 @@
 		{/if}
 	</div>
 </main>
+<div class="modal-ovr h-screen w-screen flex items-center justify-center absolute bg-black/50 z-10" style="display: {ordersDialogOpen ? 'flex' : 'none'}">
+	<div class="ovr bg-black min-h-100 h-2/3 w-1/2 min-w-50 border-primary  border-4 mt-2 ml-2 border-b-10 border-r-10 relative">
+		<header class="font-alchemize tracking-tight w-full pt-4 pl-3 border-b-primary border-b font-bold text-xl pb-1">Your Orders
+
+			<button class="absolute right-4 top-2 text-zinc-400" onclick={() => ordersDialogOpen = false}>Close</button>
+		</header>
+		<div class="orders w-full px-4 pt-4 flex flex-col gap-4 overflow-y-scroll max-h-[calc(100%-4rem)]">
+			{#each data.orders as order}
+				<div class="w-full h-30 {order.fields.fulfiller === "" ? "border-primary" : "border-emerald-700"} border border-b-4 border-r-4 flex p-3 relative">
+				<img src={order.fields.cdnImage} alt={order.fields.orderItem} class="h-full aspect-square object-contain max-h-20"/>
+				<div class="text ml-4">
+					<h1 class="font-bold text-lg">{order.fields.orderItem}</h1>
+					<p class="text-sm text-zinc-400">Quantity: {order.fields.qty}</p>
+
+				</div>
+				<div class="stat absolute right-4 text-zinc-400"> {order.fields.fulfiller === "" ? "Pending" : "Fulfilled" } </div>
+			</div>
+			{/each}
+			
+		</div>
+	</div>
+</div>
 
 {#if loggedIn}
 	<ShopDialog

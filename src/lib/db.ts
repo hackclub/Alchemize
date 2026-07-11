@@ -348,6 +348,7 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
         };
     }
 }
+
 export const createNewUser = async (email: string, userid: string, slackId: string): Promise<DBResponse> => {
     const currency = JSON.stringify({ redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 } as UserCurrency)
     try {
@@ -741,6 +742,26 @@ export const createOrder = async (orderData: any): Promise<DBResponse> => {
             text: async () => JSON.stringify({ message: "Database insert failed" }),
         }
     }
+}
+export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
+    const orders = await db.select({
+        id: ordersTable.id,
+        orderItem: ordersTable.orderItem,
+        itemID: ordersTable.itemID,
+        qty: ordersTable.qty,
+        ordererEmail: ordersTable.ordererEmail,
+        fulfiller: ordersTable.fulfiller,
+        itemName: shopItemsTable.name,
+        cdnImage: shopItemsTable.cdnImage,
+        itemPrice: shopItemsTable.itemPrice
+    }).from(ordersTable).where(eq(ordersTable.ordererEmail, email)).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID));
+    const records = orders.map(order => ({ id: order.id + "", fields: order }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
+    } as DBResponse;
 }
 export const fetchAllItems = async (): Promise<DBResponse> => {
     //Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop

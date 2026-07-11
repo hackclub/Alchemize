@@ -57,6 +57,14 @@ export const getDataFromAccessToken = async (
         birthday: data.identity.birthday,
 	}
 }
+export const getSlackProfile = async (slackId: string): Promise<string> => {
+	const response = await fetch("https://cachet.hackclub.com/users/" + slackId)
+	const data = await response.json()
+	if (!response.ok) {
+		throw new Error(data?.message ?? "Failed to fetch Slack profile")
+	}
+	return data
+}
 export function formatHours(totalSeconds: number | undefined): string {
 	const hours = (totalSeconds ?? 0) / 3600
 	const mins = (totalSeconds ?? 0) % 3600

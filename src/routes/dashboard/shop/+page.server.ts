@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import type { Item, UserCurrency } from "$lib/types"
-import { getUserByEmail, fetchAllItems} from '$lib/db';
+import { getUserByEmail, fetchAllItems, getOrdersByEmail} from '$lib/db';
 import jwt from 'jsonwebtoken';
 import {USER_JWT_SECRET} from '$env/static/private';
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -18,8 +18,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         }
     }
     const email = data?.email;
-    const userResponse = await getUserByEmail(email);
-    const itemsResponse = await fetchAllItems();
+    const [userResponse, ordersResponse, itemsResponse] = await Promise.all([getUserByEmail(email), getOrdersByEmail(email), fetchAllItems()]);
     if (!itemsResponse.ok) {
         throw new Error("Failed to fetch items from the database");
     }
@@ -32,7 +31,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         cdnImage: record.fields.cdnImage,
     }));
     
-    
+    const ordersData = await ordersResponse.json();
     const userData = await userResponse.json();
     const userRecord = userData.records[0];
     const formatedUserRecord = {
@@ -45,6 +44,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     }
     return {
         items,
-        userRecord: formatedUserRecord
+        userRecord: formatedUserRecord,
+        orders: ordersData.records
     }
 }
