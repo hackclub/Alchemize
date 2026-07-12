@@ -7,6 +7,16 @@
 	let anythingElse = ""
 	let submitted = false
 
+	const checkAllFilled = () => {
+		return (
+			score === null ||
+			slack.trim() === "" ||
+			heardFrom.trim() === "" ||
+			wentWell.trim() === "" ||
+			couldImprove.trim() === ""
+		)
+	}
+
 	const scores = Array.from({ length: 11 }, (_, i) => i)
 
 	async function submit() {
@@ -36,9 +46,9 @@
 <div
 	class="fixed inset-0 -z-20 bg-[url('/alchbg.png')] bg-cover bg-center blur-xl"
 ></div>
-<div class="fixed inset-0 -z-10 bg-black/90"></div>
+<div class="fixed inset-0 -z-10 bg-black/50"></div>
 
-<div class="min-h-screen w-full flex items-center justify-center px-6 py-12">
+<div class="min-h-screen w-full flex items-center justify-center px-6 py-5">
 	<div
 		class="w-full rounded-3xl bg-black/60 p-8 pt-4 shadow-2xl backdrop-blur-xl sm:p-12"
 	>
@@ -194,8 +204,8 @@
 
 				<button
 					type="submit"
-					disabled={score === null}
-					class="w-full rounded-full bg-primary py-3 font-semibold text-black transition
+					disabled={checkAllFilled()}
+					class="w-full rounded-full bg-primary py-3 font-semibold text-white transition
 					enabled:hover:scale-[1.02] enabled:hover:shadow-lg enabled:hover:shadow-primary/30 enabled:active:scale-95
 					disabled:cursor-not-allowed disabled:opacity-40"
 				>

@@ -1,12 +1,26 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte, asc } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp} from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
 dotenv.config();
-// import { DATABASE_URL } from "$env/static/private"
-const DATABASE_URL = process.env.DATABASE_URL;
+
+let DATABASE_URL: string | undefined;
+
+try {
+    const svelteEnv = await import("$env/static/private");
+    DATABASE_URL = svelteEnv.DATABASE_URL;
+} catch (e) {
+    const dotenv = await import('dotenv');
+    dotenv.config();
+    DATABASE_URL = process.env.DATABASE_URL;
+}
+
+if (!DATABASE_URL) {
+    throw new Error("DATABASE_URL is not defined");
+}
+
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -345,7 +359,7 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
             text: async () => JSON.stringify({ records }),
         }
     } catch (error) {
-   
+
 
         console.error("Database read failed:", error);
         return {
@@ -443,24 +457,24 @@ export const createReferRecord = async (referedEmail: string, referer: string, y
 export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => {
     const projects = await db.select(
         {
-        id: projectTable.id,
-        Name: projectTable.Name,
-        type: projectTable.type,
-        description: projectTable.description,
-        owner: projectTable.owner,
-        log: projectTable.log,
-        languages: projectTable.languages,
-        journals: projectTable.journals,
-        hackatime: projectTable.hackatime,
-        update: projectTable.update,
-        code: projectTable.code,
-        demo: projectTable.demo,
-        Theme: projectTable.Theme,
-        slackId: projectTable.slackId,
-        status: projectTable.status,
-        screenshot: projectTable.screenshot,
-        screenshot2: projectTable.screenshot2,
-    }
+            id: projectTable.id,
+            Name: projectTable.Name,
+            type: projectTable.type,
+            description: projectTable.description,
+            owner: projectTable.owner,
+            log: projectTable.log,
+            languages: projectTable.languages,
+            journals: projectTable.journals,
+            hackatime: projectTable.hackatime,
+            update: projectTable.update,
+            code: projectTable.code,
+            demo: projectTable.demo,
+            Theme: projectTable.Theme,
+            slackId: projectTable.slackId,
+            status: projectTable.status,
+            screenshot: projectTable.screenshot,
+            screenshot2: projectTable.screenshot2,
+        }
     ).from(projectTable).where(eq(projectTable.owner, owner));
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
     return {
@@ -486,7 +500,7 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
             text: async () => JSON.stringify({ message: "Project not found" }),
         }
     }
-    
+
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
     return {
         ok: true,
@@ -569,7 +583,7 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
 }
 export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
     const allowedFields = ['Name', 'description', 'type', 'demo', 'code', 'hackatime', 'update', 'screenshot', 'Theme', 'screenshot2'];
-    
+
     const updatePayload = Object.fromEntries(
         Object.entries(projectData)
             .filter(([key, value]) => allowedFields.includes(key) && value !== undefined && value !== "")
@@ -921,7 +935,7 @@ export const addToJustifications = async (justificationData: {
     iv: string
 }): Promise<DBResponse> => {
     const { name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, screenshot2, iv } = justificationData
-    const newJustification = await db.insert(justifications).values({name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, screenshot2, iv }).returning();
+    const newJustification = await db.insert(justifications).values({ name, projectId, email, demo, code, screenshot, description, address, city, state, country, zip, birthdate, overrideHoursSpent, justification, firstName, lastName, screenshot2, iv }).returning();
     return {
         ok: true,
         status: 201,
@@ -1013,9 +1027,9 @@ export const getAllOrders = async (): Promise<DBResponse> => {
     } as DBResponse;
 }
 export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> => {
-    try{
+    try {
         const order = await db.select({
-        id: ordersTable.id,
+            id: ordersTable.id,
             orderItem: ordersTable.orderItem,
             itemID: ordersTable.itemID,
             qty: ordersTable.qty,
@@ -1025,34 +1039,34 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
             fulfiller: ordersTable.fulfiller,
             moreData: ordersTable.moreData,
             dateCreated: ordersTable.dateCreated,
-      
+
             itemName: shopItemsTable.name,
             itemDescription: shopItemsTable.description,
             itemPrice: shopItemsTable.itemPrice,
             cdnImage: shopItemsTable.cdnImage,
             priority: shopItemsTable.priority,
-            
+
             userBirthdate: userInternal.birthdate,
             userFirstName: userInternal.firstName,
             userLastName: userInternal.lastName,
             iv: userInternal.iv,
-    }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID)).leftJoin(userInternal, eq(ordersTable.ordererEmail, userInternal.email));
-    if (order.length === 0) {
+        }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID)).leftJoin(userInternal, eq(ordersTable.ordererEmail, userInternal.email));
+        if (order.length === 0) {
+            return {
+                ok: false,
+                status: 404,
+                json: async () => ({ message: "Order not found" }),
+                text: async () => JSON.stringify({ message: "Order not found" }),
+            };
+        }
+
         return {
-            ok: false,
-            status: 404,
-            json: async () => ({ message: "Order not found" }),
-            text: async () => JSON.stringify({ message: "Order not found" }),
-        };
-    }
-    
-    return {
-        ok: true,
-        status: 200,
-        json: async () => ({ id: order[0].id + "", fields: order[0] } as airtableReplication),
-        text: async () => JSON.stringify({ id: order[0].id + "", fields: order[0] } as airtableReplication),
-    } as DBResponse;
-    }catch(e){
+            ok: true,
+            status: 200,
+            json: async () => ({ id: order[0].id + "", fields: order[0] } as airtableReplication),
+            text: async () => JSON.stringify({ id: order[0].id + "", fields: order[0] } as airtableReplication),
+        } as DBResponse;
+    } catch (e) {
         console.error("Database read failed:", e);
         throw new Error("Database read failed");
     }
@@ -1060,30 +1074,30 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
 
 //Special Auth Functions
 export const addUserToAuthTable = async (email: string, address: string, birthdate: string, firstName: string, lastName: string, iv: string, uid: string): Promise<DBResponse> => {
-    try{
-            const newAuthUser = await db.insert(userInternal).values({  email, address, birthdate, firstName, lastName, iv, userId: uid }).onConflictDoUpdate({
-        target: userInternal.userId,
-        set:{
-            address,
-            birthdate,
-            firstName,
-            lastName,
-            iv
-        }
-    }).returning();
-    return {
-        ok: true,
-        status: 201,
-        json: async () => ({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
-        text: async () => JSON.stringify({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
-    } as DBResponse;
-    }catch(e){
+    try {
+        const newAuthUser = await db.insert(userInternal).values({ email, address, birthdate, firstName, lastName, iv, userId: uid }).onConflictDoUpdate({
+            target: userInternal.userId,
+            set: {
+                address,
+                birthdate,
+                firstName,
+                lastName,
+                iv
+            }
+        }).returning();
+        return {
+            ok: true,
+            status: 201,
+            json: async () => ({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
+            text: async () => JSON.stringify({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
+        } as DBResponse;
+    } catch (e) {
         console.error("Database insert failed:", e);
         throw new Error("Database insert failed");
     }
 }
 export const getUserFromAuthTable = async (uid: string): Promise<DBResponse> => {
-    try{
+    try {
         const user = await db.select().from(userInternal).where(eq(userInternal.userId, uid));
         if (user.length === 0) {
             return {
@@ -1093,18 +1107,18 @@ export const getUserFromAuthTable = async (uid: string): Promise<DBResponse> => 
                 text: async () => JSON.stringify({ message: "User not found" }),
             };
         }
-                return {
+        return {
             ok: true,
             status: 200,
             json: async () => ({ id: user[0].userId + "", fields: user[0] } as airtableReplication),
             text: async () => JSON.stringify({ id: user[0].userId + "", fields: user[0] } as airtableReplication),
         }
-    }catch(e){
+    } catch (e) {
         console.error("Database read failed:", e);
         throw new Error("Database read failed");
     }
-    
-    
+
+
 }
 export const checkConfigByEmail = async (email: string): Promise<DBResponse> => {
     const dbRes = await db.select().from(userInternal).where(eq(userInternal.email, email));
@@ -1119,9 +1133,9 @@ export const checkConfigByEmail = async (email: string): Promise<DBResponse> => 
     return {
         ok: true,
         status: 200,
-        json: async () => ({address: dbRes[0].address !== "null", birthdate: dbRes[0].birthdate !== "null", firstName: dbRes[0].firstName !== "null", lastName: dbRes[0].lastName !== "null"}),
+        json: async () => ({ address: dbRes[0].address !== "null", birthdate: dbRes[0].birthdate !== "null", firstName: dbRes[0].firstName !== "null", lastName: dbRes[0].lastName !== "null" }),
         text: async () => JSON.stringify({})
-    } 
+    }
 }
 export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): Promise<DBResponse> => {
     const updatedOrder = await db.update(ordersTable).set({ status: "fulfilled", fulfiller }).where(eq(ordersTable.id, parseInt(orderId))).returning();
@@ -1141,13 +1155,13 @@ export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): 
     };
 }
 //RSVP Functions
-export const createRSVP = async (rsvpData:{
+export const createRSVP = async (rsvpData: {
     name: string,
     slackId: string,
     moreData: any,
-} ) => {
+}) => {
     const { name, slackId, moreData } = rsvpData
-    const newRSVP = await db.insert(rsvpTable).values({ program: name, slackId,data: moreData }).returning();
+    const newRSVP = await db.insert(rsvpTable).values({ program: name, slackId, data: moreData }).returning();
     return {
         ok: true,
         status: 201,
