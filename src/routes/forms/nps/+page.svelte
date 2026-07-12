@@ -10,7 +10,6 @@
 	const checkAllFilled = () => {
 		return (
 			score === null ||
-			slack.trim() === "" ||
 			heardFrom.trim() === "" ||
 			wentWell.trim() === "" ||
 			couldImprove.trim() === ""

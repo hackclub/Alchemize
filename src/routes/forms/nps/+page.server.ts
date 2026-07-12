@@ -1,5 +1,5 @@
 import type { Actions } from './$types';
-import {createRSVP} from '$lib/db';
+import { createRSVP } from '$lib/db';
 export const actions = {
     default: async event => {
         const formData = await event.request.formData();
