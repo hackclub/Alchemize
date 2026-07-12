@@ -1,15 +1,19 @@
-<script>
-	const results = [
-		{
-			score: 10,
-			slackId: "UAH749VJE",
-			headFrom: "ghjghjghjk",
-			wentWell: "",
-			couldImprove:
-				"you could improvldfzsdgbfthrgesrfvgfbhgjuytryterfsdvfbghgdzk;kml",
-			anythingElse: "dghfhgsfdgfhjmkiloiutytgrbhnjmi",
-		},
-	]
+<script lang="ts">
+
+	const {data} = $props();
+	const res = data.npsResults.results;
+	console.log(res)
+	let results: any[] = []
+	res.forEach((result: any) => {
+		results.push({
+			score: result.data.score,
+			slackId: result.slackId,
+			headFrom: result.data.hear,
+			wentWell: result.data.well,
+			couldImprove: result.data.better,
+			anythingElse: result.data.anythingElse,
+		});
+	});
 </script>
 
 <main class="h-screen w-full p-5">

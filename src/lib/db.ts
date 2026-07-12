@@ -1169,3 +1169,12 @@ export const createRSVP = async (rsvpData: {
         text: async () => JSON.stringify({ id: newRSVP[0].id + "", fields: newRSVP[0] } as airtableReplication),
     } as DBResponse;
 }
+export const getNPSResults = async (): Promise<DBResponse> => {
+    const npsResults = await db.select().from(rsvpTable).where(eq(rsvpTable.program, "NPS"));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ results: npsResults }),
+        text: async () => JSON.stringify({ results: npsResults }),
+    };
+}
