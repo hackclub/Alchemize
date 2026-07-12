@@ -2,8 +2,8 @@
 	//@ts-ignore
 	import looseJson from "loose-json"
 	const { data } = $props()
-	import {CircleQuestionMark} from "@lucide/svelte"
-	import {Button} from "$lib/components/ui/button"
+	import { CircleQuestionMark } from "@lucide/svelte"
+	import { Button } from "$lib/components/ui/button"
 	type HackatimeProject = {
 		name?: string
 		project_name?: string
@@ -138,7 +138,16 @@
 							<p
 								class="text-zinc-400 text-[10px] font-bold uppercase tracking-widest flex items-center"
 							>
-								HCA Configs <a href="/docs/issues/hca-configs" target="_blank"><CircleQuestionMark class="ml-2 size-3"/></a> {#if data.misconfigured.length >0 }<a href="/auth"><Button class="bg-primary px-1 h-6 ml-3 text-xs tracking-tight">Re-login</Button></a> {/if}
+								HCA Configs <a href="/docs/issues/hca-configs" target="_blank"
+									><CircleQuestionMark class="ml-2 size-3" /></a
+								>
+								{#if data.misconfigured.length > 0}<a href="/auth"
+										><Button
+											class="bg-primary px-1 h-6 ml-3 text-xs tracking-tight"
+											>Re-login</Button
+										></a
+									>
+								{/if}
 							</p>
 							<div class="flex items-center gap-2">
 								<span
@@ -147,11 +156,14 @@
 										: 'bg-red-500'}"
 								></span>
 								<span
-									class="font-alchemize font-bold uppercase text-sm tracking-wider {data.misconfigured.length === 0
+									class="font-alchemize font-bold uppercase text-sm tracking-wider {data
+										.misconfigured.length === 0
 										? 'text-emerald-400'
 										: 'text-red-400'}"
 								>
-									{data.misconfigured.length === 0 ? "Complete" : data.misconfigured.join(", ")+" Misconfigured"  }
+									{data.misconfigured.length === 0
+										? "Complete"
+										: data.misconfigured.join(", ") + " Misconfigured"}
 								</span>
 							</div>
 						</div>
@@ -209,6 +221,23 @@
 								class="flex flex-col gap-3 max-h-[190px] overflow-y-auto pr-1"
 							>
 								<div
+									class="border-l-2 border-white bg-zinc-950/50 p-3 rounded-r-md"
+								>
+									<span
+										class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
+										>July 9th 2026</span
+									>
+									<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
+										Fulfillment updates
+									</h3>
+									<p
+										class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
+									>
+										Fulfillment has started! Now go buy some stuff from the
+										shop!
+									</p>
+								</div>
+								<div
 									class="border-l-2 border-primary/40 bg-zinc-950/50 p-3 rounded-r-md"
 								>
 									<span
@@ -230,23 +259,6 @@
 										</a> page!
 									</p>
 								</div>
-
-								<!-- <div
-									class="border-l-2 border-zinc-700 bg-zinc-950/50 p-3 rounded-r-md"
-								>
-									<span
-										class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
-										>June 2026</span
-									>
-									<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
-										test news
-									</h3>
-									<p
-										class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
-									>
-										efhijo;cdkbjiljekopdcl;vkbl
-									</p>
-								</div> -->
 							</div>
 							<!-- No news or updates currently.... -->
 						</div>
