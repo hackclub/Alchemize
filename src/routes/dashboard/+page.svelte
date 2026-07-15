@@ -217,9 +217,27 @@
 						<div
 							class="flex-1 overflow-y-auto pr-1 text-zinc-400 text-sm no-scrollbar"
 						>
-							<div
-								class="flex flex-col gap-3 max-h-[190px] overflow-y-auto pr-1"
-							>
+							<div class="flex flex-col gap-3 max-h-full overflow-y-auto pr-1">
+								<div
+									class="border-l-2 border-white bg-zinc-950/50 p-3 rounded-r-md"
+								>
+									<span
+										class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase"
+										>July 10th 2026</span
+									>
+									<h3 class="text-xs font-bold text-zinc-300 mt-0.5">
+										NPS survey
+									</h3>
+									<p
+										class="text-zinc-500 text-[11px] font-sans mt-1 leading-relaxed"
+									>
+										Go tell us what you think about our ysws from
+										<a href="/forms/nps" class="font-bold text-primary italic">
+											this
+										</a>
+										page. Only two of the orgs get to read your results
+									</p>
+								</div>
 								<div
 									class="border-l-2 border-white bg-zinc-950/50 p-3 rounded-r-md"
 								>
@@ -251,7 +269,8 @@
 										class="text-zinc-400 text-[11px] font-sans mt-1 leading-relaxed"
 									>
 										Go suggest new items to be added to the shop every week from
-										the <a
+										the
+										<a
 											href="/dashboard/shop"
 											class="font-bold text-primary italic"
 										>
