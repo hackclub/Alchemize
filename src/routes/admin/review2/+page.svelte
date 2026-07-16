@@ -3,13 +3,27 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
-	import type { Project, Log, AirtableProject, HackatimeAnalysis } from "$lib/types"
+	import type {
+		Project,
+		Log,
+		AirtableProject,
+		HackatimeAnalysis,
+	} from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
 	import { tick } from "svelte"
-	import {BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Title, Tooltip} from "chart.js";
+	import {
+		BarController,
+		BarElement,
+		CategoryScale,
+		Chart,
+		Legend,
+		LinearScale,
+		Title,
+		Tooltip,
+	} from "chart.js"
 	interface AdminProjectAccess extends AirtableProject {
 		fields: AirtableProject["fields"] & {
 			unifiedId: string
@@ -26,7 +40,15 @@
 	let justificationOpen = $state(false)
 	let daySummaryChart = $state<HTMLCanvasElement | undefined>(undefined)
 	let daySummaryChartInstance: Chart<"bar"> | null = null
-	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title)
+	Chart.register(
+		BarController,
+		BarElement,
+		CategoryScale,
+		LinearScale,
+		Tooltip,
+		Legend,
+		Title
+	)
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
 		console.log("Checking if project was ever approved:", project.fields.Name)
@@ -42,18 +64,20 @@
 		}
 		return totalTime
 	}
-		const renderBar = () => {
+	const renderBar = () => {
 		if (!daySummaryChart || !currentHackatimeAnalysis?.dayMap) {
 			return
 		}
 		let dataLabels = []
 		let dataValues = []
-		for (const [key, value] of Object.entries(currentHackatimeAnalysis.dayMap)) {
+		for (const [key, value] of Object.entries(
+			currentHackatimeAnalysis.dayMap
+		)) {
 			dataLabels.push(key)
 			dataValues.push(Math.round((value / 3600) * 10) / 10)
 		}
 		const configs = {
-			  type: 'bar',
+			type: "bar",
 			data: {
 				labels: dataLabels,
 				datasets: [
@@ -64,14 +88,13 @@
 					},
 				],
 			},
-		
 		}
 		daySummaryChartInstance?.destroy()
 		daySummaryChartInstance = new Chart(daySummaryChart, {
-			type: 'bar',
+			type: "bar",
 			data: configs.data,
 			options: {
-				indexAxis: 'y',
+				indexAxis: "y",
 				plugins: {
 					tooltip: {
 						callbacks: {
@@ -83,9 +106,7 @@
 		})
 	}
 	const fetchHackatimeAnalysis = async (projectId: string) => {
-	
-
-		const response = await fetch(`/admin/review2/analyzeHackatime`,{
+		const response = await fetch(`/admin/review2/analyzeHackatime`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -93,7 +114,6 @@
 			body: JSON.stringify({
 				projectId: projectId,
 			}),
-
 		})
 		const data = await response.json()
 		console.log("Hackatime analysis data:", data)
@@ -106,11 +126,14 @@
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours: Math.floor(
-				calculateRecordedTime(
-					JSON.parse(nextProject.fields.log ?? "[]") as Log[]
-				)*10 / 60
-			)/10,
+			hours:
+				Math.floor(
+					(calculateRecordedTime(
+						JSON.parse(nextProject.fields.log ?? "[]") as Log[]
+					) *
+						10) /
+						60
+				) / 10,
 			submittedBy: nextProject.fields.slackId,
 			type: nextProject.fields.type,
 			category: nextProject.fields.Theme,
@@ -126,8 +149,8 @@
 			screenshot: nextProject.fields.screenshot,
 			unifiedId: nextProject.fields.unifiedId,
 		}
-					currentHackatimeAnalysis = {} as HackatimeAnalysis
-			fetchHackatimeAnalysis(currentProject.id + "")
+		currentHackatimeAnalysis = {} as HackatimeAnalysis
+		fetchHackatimeAnalysis(currentProject.id + "")
 		console.log("Current project set to log:", currentProject.log)
 	}
 	const calculateDelta = (log: Log[]): number => {
@@ -184,7 +207,6 @@ Signed by ${data.name}, T2 Reviewer
 	$effect(() => {
 		if (currentProject.name) {
 			generateFullJustification()
-
 		}
 	})
 	$effect(() => {
@@ -193,7 +215,6 @@ Signed by ${data.name}, T2 Reviewer
 		} else {
 			currentProject = {} as AdminProject
 		}
-
 	})
 
 	const sendToDatabase = async () => {
@@ -283,6 +304,9 @@ Signed by ${data.name}, T2 Reviewer
 			loader = false
 		}
 	}
+
+	let confirmPushOpen = $state(false)
+	let confirmRejectOpen = $state(false)
 </script>
 
 <svelte:head>
@@ -427,9 +451,11 @@ Signed by ${data.name}, T2 Reviewer
 					<div
 						class="overflow-hidden grid grid-cols-1 xl:grid-cols-[2fr_1fr] grid-rows-2 xl:grid-rows-1 min-h-0"
 					>
-						<div class="w-full h-full flex flex-col items-center overflow-y-auto custom-scrollbar">
+						<div
+							class="w-full h-full flex flex-col items-center overflow-y-auto custom-scrollbar"
+						>
 							<main
-								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800 "
+								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800"
 							>
 								<div class="flex flex-col gap-y-3">
 									<div class="flex flex-col flex-1 min-h-[160px]">
@@ -552,38 +578,54 @@ Signed by ${data.name}, T2 Reviewer
 										currentHackatimeAnalysis.timelapsingSec,
 									1
 								)}
-								<div class="ht-data w-9/10 h-auto py-20 border-2 border-neutral-800rounded-xl flex flex-col items-center pt-4">
-									<header>Hackatime Project: {currentHackatimeAnalysis.hackatimeProject} ({Math.round(totalTime/360)/10}h)</header>
+								<div
+									class="ht-data w-9/10 h-auto py-20 border-2 border-neutral-800rounded-xl flex flex-col items-center pt-4"
+								>
+									<header>
+										Hackatime Project: {currentHackatimeAnalysis.hackatimeProject}
+										({Math.round(totalTime / 360) / 10}h)
+									</header>
 									<div class="ai h-6 w-9/10">
 										<div class="bar h-full w-full flex">
 											<div
 												class="h-full bg-admin-primary flex items-center justify-center text-xs overflow-hidden text-zinc-200"
-												style={`width: ${currentHackatimeAnalysis.codingSec / totalTime * 100}%`}
+												style={`width: ${(currentHackatimeAnalysis.codingSec / totalTime) * 100}%`}
 											>
-											Normal Coding Time: {Math.round(currentHackatimeAnalysis.codingSec/360)/10}h/{Math.round(totalTime/360)/10}h	
-										</div>
+												Normal Coding Time: {Math.round(
+													currentHackatimeAnalysis.codingSec / 360
+												) / 10}h/{Math.round(totalTime / 360) / 10}h
+											</div>
 											<div
 												class="h-full bg-[#DE7356] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${currentHackatimeAnalysis.aiSec / totalTime * 100}%`}
+												style={`width: ${(currentHackatimeAnalysis.aiSec / totalTime) * 100}%`}
 											>
-											AI Time: {Math.round(currentHackatimeAnalysis.aiSec/360)/10}h/{Math.round(totalTime/360)/10}h
-										</div>
+												AI Time: {Math.round(
+													currentHackatimeAnalysis.aiSec / 360
+												) / 10}h/{Math.round(totalTime / 360) / 10}h
+											</div>
 											<div
 												class="h-full bg-[#F5A623] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${currentHackatimeAnalysis.buildingSec / totalTime * 100}%`}
-											>Building Time: {Math.round(currentHackatimeAnalysis.buildingSec/360)/10}h/{Math.round(totalTime/360)/10}h</div>
+												style={`width: ${(currentHackatimeAnalysis.buildingSec / totalTime) * 100}%`}
+											>
+												Building Time: {Math.round(
+													currentHackatimeAnalysis.buildingSec / 360
+												) / 10}h/{Math.round(totalTime / 360) / 10}h
+											</div>
 											<div
 												class="h-full bg-[#BF0B0B] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${currentHackatimeAnalysis.timelapsingSec / totalTime * 100}%`}
-											>Timelapsing Time: {Math.round(currentHackatimeAnalysis.timelapsingSec/360)/10}h/{Math.round(totalTime/360)/10}h</div>
+												style={`width: ${(currentHackatimeAnalysis.timelapsingSec / totalTime) * 100}%`}
+											>
+												Timelapsing Time: {Math.round(
+													currentHackatimeAnalysis.timelapsingSec / 360
+												) / 10}h/{Math.round(totalTime / 360) / 10}h
+											</div>
 											<div
 												class="h-full bg-gray-500 flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${currentHackatimeAnalysis.others / totalTime * 100}%`}
+												style={`width: ${(currentHackatimeAnalysis.others / totalTime) * 100}%`}
 											></div>
 										</div>
 									</div>
 									<div class="day-summary-chart w-9/10">
-									
 										<canvas bind:this={daySummaryChart} class="w-full"></canvas>
 									</div>
 								</div>
@@ -591,7 +633,7 @@ Signed by ${data.name}, T2 Reviewer
 						</div>
 
 						<aside
-							class="xl:col-span-1 min-h-100  bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
+							class="xl:col-span-1 min-h-100 bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
 						>
 							<div
 								class="px-4 py-3 border-b border-zinc-800/60 bg-zinc-950/20 flex items-center justify-between flex-shrink-0"
@@ -672,7 +714,7 @@ Signed by ${data.name}, T2 Reviewer
 						{#if pending}
 							<Button
 								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
-								onclick={rejectT2}
+								onclick={() => (confirmRejectOpen = true)}
 								disabled={projectDescriptionLength < 20 || loader}
 							>
 								Reject
@@ -686,7 +728,7 @@ Signed by ${data.name}, T2 Reviewer
 							</Button>
 							<Button
 								class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
-								onclick={sendToDatabase}
+								onclick={() => (confirmPushOpen = true)}
 								disabled={projectDescriptionLength < 20 || loader}
 							>
 								{#if loader}
@@ -745,6 +787,71 @@ Signed by ${data.name}, T2 Reviewer
 			>
 				Close
 			</Button>
+		</div>
+	</div>
+{/if}
+{#if confirmRejectOpen}
+	<div
+		class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
+	>
+		<div
+			class="w-96 bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col gap-y-4"
+		>
+			<h2 class="text-lg font-bold text-rose-500">Confirm Rejection</h2>
+			<p class="text-sm text-zinc-400">
+				Are you sure you want to reject <strong>{currentProject.name}</strong>?
+				This will notify the user.
+			</p>
+			<div class="flex justify-end gap-2">
+				<Button
+					onclick={() => (confirmRejectOpen = false)}
+					class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs"
+				>
+					Cancel
+				</Button>
+				<Button
+					onclick={async () => {
+						confirmRejectOpen = false
+						await rejectT2()
+					}}
+					class="bg-rose-600 hover:bg-rose-500 text-white text-xs"
+				>
+					Yes, Reject
+				</Button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if confirmPushOpen}
+	<div
+		class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
+	>
+		<div
+			class="w-96 bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col gap-y-4"
+		>
+			<h2 class="text-lg font-bold text-emerald-500">Confirm Push</h2>
+			<p class="text-sm text-zinc-400">
+				Are you ready to submit <strong>{currentProject.name}</strong> to Airtable?
+				This action is final.
+			</p>
+			<div class="flex justify-end gap-2">
+				<Button
+					onclick={() => (confirmPushOpen = false)}
+					class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs"
+				>
+					Cancel
+				</Button>
+				<Button
+					onclick={async () => {
+						confirmPushOpen = false
+						await sendToDatabase()
+					}}
+					class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs"
+				>
+					Yes, Push
+				</Button>
+			</div>
 		</div>
 	</div>
 {/if}
