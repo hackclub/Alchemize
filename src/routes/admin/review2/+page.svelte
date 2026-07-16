@@ -462,12 +462,12 @@ Signed by ${data.name}, T2 Reviewer
 										<label
 											for="project-desc"
 											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
-											>Project Summary</label
+											>Justification</label
 										>
 										<Textarea
 											id="project-desc"
 											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 min-h-[120px]"
-											placeholder="Briefly describe the project..."
+											placeholder="Describe in detail, everything technical. What the project does, how many commits, any hours deducted, why deduction of hours, how is the readme, any AI time logged, etc."
 											bind:value={projectDescription}
 											oninput={generateFullJustification}
 										/>
