@@ -525,6 +525,7 @@
 										<option value="mobile">Mobile App</option>
 										<option value="desktop">Desktop App</option>
 										<option value="terminal">Terminal App</option>
+										<option value="terminal">Cross platform playable</option>
 										<!-- <option value="hardware">Hardware Build</option> -->
 									</select>
 								</div>
