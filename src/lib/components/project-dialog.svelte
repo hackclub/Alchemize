@@ -594,7 +594,8 @@
 										>This is an update</Label
 									>
 									<p class="text-[11px] text-zinc-500 leading-normal">
-										Check this if your project was started before June.
+										Check this if your project was started before June 18th
+										2026.
 									</p>
 								</div>
 							</div>
