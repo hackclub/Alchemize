@@ -61,7 +61,6 @@
 		hackatime = project?.fields.hackatime ?? ""
 		projectUpdate = project?.fields.update ?? false
 		theme = project?.fields.Theme ?? ""
-				
 	})
 
 	let descriptionCharCount = $derived(countCharacters(description))
@@ -115,7 +114,6 @@
 		} else {
 			fileinputPreview = ""
 		}
-		
 	})
 	$effect(() => {
 		if (files2 && files2.length > 0) {
@@ -129,7 +127,7 @@
 			}
 		} else if (mode === "update" && project?.fields.screenshot2 && !hasFile2) {
 			fileinputPreview2 = project.fields.screenshot2
-		}else {
+		} else {
 			fileinputPreview2 = ""
 		}
 	})
@@ -336,7 +334,7 @@
 							: 'w-full'}"
 						use:enhance={() => {
 							showSecondRotator = true
-				
+
 							return async ({ result }) => {
 								showSecondRotator = false
 								if (result.type === "success") {
@@ -463,7 +461,7 @@
 												type="file"
 												accept="image/*"
 												class="hidden"
-												bind:files={files}
+												bind:files
 											/>
 										</label>
 									</div>
@@ -527,7 +525,7 @@
 										<option value="mobile">Mobile App</option>
 										<option value="desktop">Desktop App</option>
 										<option value="terminal">Terminal App</option>
-										<option value="hardware">Hardware Build</option>
+										<!-- <option value="hardware">Hardware Build</option> -->
 									</select>
 								</div>
 
@@ -687,9 +685,7 @@
 											class="w-3.5 h-3.5 border-2 border-zinc-400 border-t-white rounded-full animate-spin mr-2"
 										></div>
 									{/if}
-									{mode === "create"
-										? "Initialize Project"
-										: "Update Project"}
+									{mode === "create" ? "Initialize Project" : "Update Project"}
 								</Button>
 							</div>
 						</div>
