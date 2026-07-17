@@ -1,19 +1,21 @@
 <script lang="ts">
 	import { slide } from "svelte/transition"
 
-	let { Title, Content, addClass } = $props()
+	let { Title, Content } = $props()
 	let open = $state(false)
 </script>
 
 <div class="flex flex-col w-full items-stretch justify-start group">
 	<button
 		onclick={() => (open = !open)}
-		class="w-full flex items-center justify-between text-left px-5 py-4 border-2 border-zinc-800 bg-black/95 hover:bg-zinc-900/40 font-mono tracking-wide uppercase transition-colors rounded-none outline-none relative z-10 select-none {open
-			? 'border-b-zinc-950'
-			: ''} {addClass || ''}"
+		class="w-full flex items-center justify-between text-left px-5 py-4 border-2 border-zinc-800 bg-black/95 hover:bg-zinc-900/40 font-mono tracking-wide uppercase transition-colors rounded-t-md outline-none relative z-10 select-none {open
+			? 'border-b-zinc-950 rounded-b-none'
+			: 'rounded-b-md'}"
 	>
 		<h3
-			class="text-sm md:text-base font-black text-white tracking-tight line-clamp-1 pr-8"
+			class="text-sm md:text-base font-black tracking-tight line-clamp-1 pr-8 {open
+				? 'text-primary'
+				: 'text-white'}"
 		>
 			{Title}
 		</h3>
@@ -31,7 +33,7 @@
 
 	{#if open}
 		<div
-			class="w-full border-2 border-t-0 border-zinc-800 bg-black/40 backdrop-blur-sm rounded-none relative z-0"
+			class="w-full border-2 border-t-0 border-zinc-800 bg-black/40 backdrop-blur-sm rounded-b-md rounded-t-none relative z-0"
 			transition:slide={{ duration: 200 }}
 		>
 			<div

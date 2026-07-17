@@ -8,6 +8,7 @@
 		ShoppingCart,
 		X,
 		Newspaper,
+		LoaderCircleIcon,
 	} from "lucide-svelte"
 	import { onMount } from "svelte"
 	import { browser } from "$app/environment"
@@ -126,7 +127,7 @@
 		<div
 			class="w-full h-8 md:absolute md:top-[88px] md:-right-[70px] md:w-[360px] md:h-11 bg-primary/70 shadow-black shadow-md backdrop-blur-sm text-primary-foreground text-[10px] md:text-sm font-mono font-black uppercase tracking-[0.2em] md:rotate-45 border-b-2 md:border-y-2 border-black pointer-events-auto select-none flex items-center justify-center text-center"
 		>
-			LAUNCHES on 21st June 2026
+			LAUNCHED on 21st June 2026
 		</div>
 	</div>
 
@@ -135,7 +136,7 @@
 	>
 		<a href="https://hackclub.com/">
 			<img
-				class="w-24 md:w-40 bg-transparent p-1 rounded-none"
+				class="w-24 md:w-40 bg-transparent p-1 rounded-md"
 				src="https://assets.hackclub.com/banners/2026.svg"
 				alt="Hack Club"
 			/>
@@ -149,7 +150,7 @@
 				<div
 					class="flex items-center gap-2 text-xs font-bold text-primary tracking-[0.3em] uppercase"
 				>
-					<span class="h-2 w-2 bg-primary animate-pulse"></span>
+					<LoaderCircleIcon class="text-primary animate-spin h-3 w-3" />
 					<span>Season 1</span>
 				</div>
 				<h1
@@ -160,9 +161,7 @@
 			</div>
 
 			<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full lg:w-[60%]">
-				<div
-					class="max-w-full border-l-4 border-primary p-4 md:p-6 rounded-none"
-				>
+				<div class="max-w-full border-l-4 border-primary p-4 md:p-6 rounded-md">
 					<p
 						class="text-zinc-200 text-base md:text-xl leading-relaxed uppercase tracking-wide"
 					>
@@ -174,13 +173,13 @@
 						</strong>
 					</p>
 					<div
-						class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-none"
+						class="inline-block mt-4 px-2 py-0.5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-md"
 					>
 						Ages 13-18 Only
 					</div>
 				</div>
-				<div
-					class="flex flex-col gap-1 max-w-full bg-black/50 border border-zinc-800 p-4 rounded-none font-mono"
+				<!-- <div
+					class="flex flex-col gap-1 max-w-full bg-black/50 border border-zinc-800 p-4 rounded-md font-mono"
 				>
 					{#if timeLeft > 0}
 						<div
@@ -257,7 +256,7 @@
 							<img src="/Alchemize.png" alt="" class="h-20" />
 						</div>
 					{/if}
-				</div>
+				</div> -->
 			</div>
 
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:w-[60%]">
@@ -267,10 +266,10 @@
 					onclick={() => (showRotator = true)}
 				>
 					<div
-						class="absolute inset-0 bg-primary translate-x-1 translate-y-1 rounded-none transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class="absolute inset-0 bg-primary translate-x-0.5 translate-y-0.5 rounded-md transition-transform group-hover:translate-x-0 group-hover:translate-y-0"
 					></div>
 					<div
-						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary text-xl font-black uppercase tracking-widest text-center px-4 md:px-6 py-3 rounded-none transition-transform group-hover:-translate-x-px group-hover:-translate-y-px"
+						class="relative flex items-center justify-between border-2 border-primary bg-black text-primary text-xl font-black uppercase tracking-widest text-center px-4 md:px-6 py-3 rounded-md transition-transform"
 					>
 						<span>GET STARTED</span>
 						{#if showRotator}
@@ -278,9 +277,7 @@
 								class="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"
 							></div>
 						{:else}
-							<div
-								class="flex gap-0.5 font-sans tracking-normal opacity-80 group-hover:translate-x-1 transition-transform"
-							>
+							<div class="flex gap-0.5 font-sans tracking-normal opacity-80">
 								<ChevronsRight class="h-4 w-4" />
 							</div>
 						{/if}
@@ -291,14 +288,14 @@
 					<div class="group relative flex items-stretch">
 						<a
 							href="/docs"
-							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-md transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
 						>
 							<Newspaper class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
 							<span>Docs</span>
 						</a>
 
 						<div
-							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300"
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-2 rounded-md text-xs text-zinc-300"
 						>
 							Read the docs here!
 						</div>
@@ -306,7 +303,7 @@
 					<div class="group relative flex items-stretch">
 						<a
 							href="/shop"
-							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
+							class="flex items-center justify-center gap-2 md:gap-3 w-full border-2 border-zinc-800 bg-black/60 hover:bg-zinc-900/60 text-zinc-300 hover:text-white font-bold uppercase tracking-wider px-3 md:px-6 py-3 rounded-md transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.2)] text-lg md:text-lg"
 						>
 							<ShoppingBag
 								class="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0"
@@ -315,7 +312,7 @@
 						</a>
 
 						<div
-							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-3 rounded-none text-xs text-zinc-300"
+							class="absolute top-full left-0 mt-2 hidden group-hover:block w-full z-50 bg-zinc-900 border-2 border-zinc-700 p-2 rounded-md text-xs text-zinc-300"
 						>
 							Take a look at the shop!
 						</div>
@@ -325,7 +322,7 @@
 
 			<a
 				href="#features"
-				class="self-start animate-bounce mt-4 border border-zinc-800 p-2 hover:border-primary bg-black/40 transition-colors"
+				class="self-start animate-bounce mt-4 border border-zinc-800 p-2 hover:border-primary bg-black/40 transition-colors rounded-md"
 			>
 				<ArrowDown class="w-5 h-5 text-primary" />
 			</a>
@@ -349,14 +346,14 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class="absolute inset-0 bg-primary/70 translate-x-0.5 translate-y-0.5 rounded-md"
 					></div>
 					<div
-						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-primary group-hover:border-primary/80 p-5 rounded-md transition-transform hover:translate-x-0.5 hover:translate-y-0.5"
 					>
 						<div class="shrink-0 flex items-start pt-1">
 							<div
-								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+								class="p-2 border border-primary bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors rounded-md"
 							>
 								<Blocks class="h-6 w-6" />
 							</div>
@@ -365,7 +362,7 @@
 							<h3
 								class="text-lg font-black uppercase tracking-tight text-white"
 							>
-								01 / Create
+								01 - Create
 							</h3>
 							<p class="text-zinc-400 text-xs leading-relaxed">
 								Pick a theme (Endless, No Internet, or Indie Gamedev) and track
@@ -377,14 +374,14 @@
 
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class="absolute inset-0 bg-primary/70 translate-x-0.5 translate-y-0.5 rounded-md"
 					></div>
 					<div
-						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-primary group-hover:border-primary/80 p-5 rounded-md transition-transform hover:translate-x-0.5 hover:translate-y-0.5"
 					>
 						<div class="shrink-0 flex items-start pt-1">
 							<div
-								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+								class="p-2 border border-primary bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors rounded-md"
 							>
 								<Rocket class="h-6 w-6" />
 							</div>
@@ -393,7 +390,7 @@
 							<h3
 								class="text-lg font-black uppercase tracking-tight text-white"
 							>
-								02 / Ship It
+								02 - Ship It
 							</h3>
 							<p class="text-zinc-400 text-xs leading-relaxed">
 								Submit your project for review by the Alchinspectors to earn
@@ -405,14 +402,14 @@
 
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class="absolute inset-0 bg-primary/70 translate-x-0.5 translate-y-0.5 rounded-md"
 					></div>
 					<div
-						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-primary group-hover:border-primary/80 p-5 rounded-md transition-transform hover:translate-x-0.5 hover:translate-y-0.5"
 					>
 						<div class="shrink-0 flex items-start pt-1">
 							<div
-								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+								class="p-2 border border-primary bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors rounded-md"
 							>
 								<FlaskConical class="h-6 w-6" />
 							</div>
@@ -421,7 +418,7 @@
 							<h3
 								class="text-lg font-black uppercase tracking-tight text-white"
 							>
-								03 / Mix Potions
+								03 - Mix Potions
 							</h3>
 							<p class="text-zinc-400 text-xs leading-relaxed">
 								Convert currencies into Potion Mix. Mixing multiple types grants
@@ -433,14 +430,14 @@
 
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/70 translate-x-1 translate-y-1 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
+						class="absolute inset-0 bg-primary/70 translate-x-0.5 translate-y-0.5 rounded-md"
 					></div>
 					<div
-						class="relative h-full flex flex-row gap-4 bg-black border-2 border-zinc-800 group-hover:border-primary/80 p-5 rounded-none transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative h-full flex flex-row gap-4 bg-black border-2 border-primary group-hover:border-primary/80 p-5 rounded-md transition-transform hover:translate-x-0.5 hover:translate-y-0.5"
 					>
 						<div class="shrink-0 flex items-start pt-1">
 							<div
-								class="p-2 border border-zinc-800 bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+								class="p-2 border border-primary bg-zinc-950/60 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors rounded-md"
 							>
 								<ShoppingCart class="h-6 w-6" />
 							</div>
@@ -449,7 +446,7 @@
 							<h3
 								class="text-lg font-black uppercase tracking-tight text-white"
 							>
-								04 / Dynamic Shop
+								04 - Dynamic Shop
 							</h3>
 							<p class="text-zinc-400 text-xs leading-relaxed">
 								Spend your Potion Mix on rewards. New items are added every
@@ -479,10 +476,10 @@
 			<div class="flex flex-col gap-4 w-full">
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-md transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
 					></div>
 					<div
-						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-primary rounded-md p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
 					>
 						<div
 							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
@@ -490,7 +487,7 @@
 							<div
 								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
 							>
-								// THEME_01
+								THEME_01
 							</div>
 							<h3
 								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
@@ -512,10 +509,10 @@
 
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-md transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
 					></div>
 					<div
-						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-primary rounded-md p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
 					>
 						<div
 							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
@@ -523,7 +520,7 @@
 							<div
 								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
 							>
-								// THEME_02
+								THEME_02
 							</div>
 							<h3
 								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
@@ -546,10 +543,10 @@
 
 				<div class="relative group">
 					<div
-						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-none transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
+						class="absolute inset-0 bg-primary/80 translate-x-1.5 translate-y-1.5 rounded-md transition-transform group-hover:translate-x-1 group-hover:translate-y-1"
 					></div>
 					<div
-						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-zinc-800 group-hover:border-primary/80 rounded-none p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
+						class="relative w-full flex flex-col md:flex-row bg-black/95 border-2 border-primary rounded-md p-5 gap-4 transition-transform hover:-translate-x-px hover:-translate-y-px"
 					>
 						<div
 							class="w-full md:w-48 shrink-0 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-900 pb-3 md:pb-0 md:pr-4"
@@ -557,7 +554,7 @@
 							<div
 								class="text-primary font-mono text-xs font-black uppercase tracking-widest mb-1"
 							>
-								// THEME_03
+								THEME_03
 							</div>
 							<h3
 								class="text-xl font-black uppercase tracking-tight text-white font-alchemize"
@@ -600,22 +597,18 @@
 				<Accordion
 					Title="What is a 'ship'?"
 					Content="A 'ship' is the project you submit to this event. You can ship any general project or a project related to one of the themes"
-					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
 				/>
 				<Accordion
 					Title="Who is Eligible?"
 					Content="Anyone ages 13-18 who isn't banned from Hack Club can participate."
-					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
 				/>
 				<Accordion
 					Title="How is time tracked?"
 					Content="Software development time is tracked using <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='hackatime.hackclub.com'>Hackatime</a> and hardware time is tracked through <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='lapse.hackclub.com'>Lapse</a>"
-					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
 				/>
 				<Accordion
 					Title="Where can I find more information?"
 					Content="If you have any questions or need help with anything, just join the <a class='text-rose-400 p-1 hover:bg-rose-900/50 transition rounded hover:text-white' target='_blank' href='https://hackclub.enterprise.slack.com/archives/C0ASY6R552R'>#alchemize-help</a> channel in the Hack Club Slack! You can ask for help there, and the community will be happy to assist you. "
-					addClass="faq-item h-auto w-full font-mono relative z-10 border-2 border-zinc-800 bg-black text-zinc-300 text-xs p-1 rounded-none hover:border-primary/50 transition-colors"
 				/>
 			</div>
 		</section>
