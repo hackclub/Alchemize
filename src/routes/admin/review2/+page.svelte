@@ -272,6 +272,25 @@ Signed by ${data.name}, T2 Reviewer
 			pending
 		)
 	})
+
+	let pendingCount = $derived(
+		airtableProjects?.filter(
+			project =>
+				wasEverApproved(project) &&
+				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) ===
+					true
+		).length ?? 0
+	)
+
+	let sentCount = $derived(
+		airtableProjects?.filter(
+			project =>
+				wasEverApproved(project) &&
+				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) ===
+					false
+		).length ?? 0
+	)
+
 	const rejectT2 = async () => {
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 
@@ -323,7 +342,7 @@ Signed by ${data.name}, T2 Reviewer
 		class="relative z-50 p-5 h-full w-full flex items-start justify-start gap-x-5"
 	>
 		<aside
-			class="w-1/4 h-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col overflow-hidden"
+			class="w-1/4 h-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col overflow-y-auto"
 		>
 			<div class="p-4 border-b border-zinc-800 bg-zinc-900/20">
 				<h3
@@ -370,7 +389,17 @@ Signed by ${data.name}, T2 Reviewer
 					)}
 					onclick={() => (pending = true)}
 				>
-					Pending
+					<span>Pending</span>
+					<span
+						class={cn(
+							"text-xs px-1.5 py-0.5 rounded-md font-mono",
+							pending
+								? "bg-amber-500/20 text-amber-300"
+								: "bg-zinc-800 text-zinc-500"
+						)}
+					>
+						{pendingCount}
+					</span>
 				</button>
 
 				<button
@@ -382,7 +411,17 @@ Signed by ${data.name}, T2 Reviewer
 					)}
 					onclick={() => (pending = false)}
 				>
-					Sent
+					<span>Sent</span>
+					<span
+						class={cn(
+							"text-xs px-1.5 py-0.5 rounded-md font-mono",
+							!pending
+								? "bg-emerald-500/20 text-emerald-300"
+								: "bg-zinc-800 text-zinc-500"
+						)}
+					>
+						{sentCount}
+					</span>
 				</button>
 			</nav>
 			<div
