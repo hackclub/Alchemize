@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { Button } from "$lib/components/ui/button/index.js"
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
-	import { cn } from "$lib/lib/utils"
 	import {
 		CompassIcon,
 		Home,
@@ -12,110 +10,159 @@
 		LockKeyhole,
 		Star,
 	} from "lucide-svelte"
+
 	const navItems = [
 		{
 			href: "/admin/",
 			label: "Admin",
 			icon: ShieldUser,
-			description: "Admin panel",
+			side: "left",
 		},
 		{
 			href: "/admin/fulfillment",
 			label: "Fulfillment",
 			icon: Package,
-			description: "Fulfillment",
+			side: "right",
 		},
 		{
 			href: "/admin/shop",
 			label: "Shop",
 			icon: ShoppingBag,
-			description: "Manage the shop",
+			side: "right",
 		},
 		{
 			href: "/admin/review",
 			label: "T1 Review",
 			icon: Star,
-			description: "Tier 1 review Dash",
+			side: "left",
 		},
 		{
 			href: "/admin/review2",
 			label: "T2 Review",
 			icon: UserStar,
-			description: "Tier 2 review Dash",
-		},
-		{
-			href: "/admin/super-admin",
-			label: "Supaadmin",
-			icon: LockKeyhole,
-			description: "Super admin commands",
+			side: "left",
 		},
 	]
 </script>
 
-<Dialog.Root>
-	<Dialog.Trigger
-		type="button"
-		class="top-5 right-5 z-999 fixed bg-indigo-800/20 hover:bg-indigo-800/40 p-2 border border-indigo-800/50 rounded-full transition-colors pointer-events-auto"
-	>
-		<CompassIcon class="w-6 h-6 text-indigo-800" />
-	</Dialog.Trigger>
-
-	<Dialog.Content
-		class="bg-background p-0 border-blue-500/40 border-dashed min-w-[60vw] overflow-hidden"
-	>
-		<Dialog.Header
-			class="flex flex-row justify-center items-center gap-3 px-6 py-4 border-blue-500/20 border-b"
+<div class="relative font-mono tracking-wide">
+	<Dialog.Root>
+		<Dialog.Trigger
+			type="button"
+			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-admin-primary/80 hover:border-admin-primary hover:bg-admin-primary/5 p-2 rounded-md transition-all duration-200 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.3)] group"
 		>
-			<Dialog.Close>
-				<a href={"/dashboard"} class="group">
-					<div
-						class="self-baseline flex gap-1 hover:bg-blue-950/20 p-2 border border-blue-500/20 hover:border-blue-500/60 rounded-lg transition-all"
-					>
-						<Home class="w-6 h-6 text-indigo-900" />
-					</div>
-				</a>
-			</Dialog.Close>
-			<img
-				src="/Alchemize-Admin.png"
-				alt=""
-				class="h-14 object-contain shrink-0"
+			<CompassIcon
+				class="w-5 h-5 text-zinc-400 group-hover:text-admin-primary transition-colors"
 			/>
-			<div>
-				<Dialog.Title class="font-bold text-indigo-900 text-2xl">
-					Alchemize Admin
-				</Dialog.Title>
-				<p class="text-muted-foreground text-xs">
-					Where do you want to go today admin...
-				</p>
-			</div>
-		</Dialog.Header>
-		<div class="gap-3 grid grid-cols-3 px-6 pb-6">
-			{#each navItems as item}
-				<Dialog.Close>
-					<a href={item.href} class="group">
-						<div
-							class="flex gap-1 hover:bg-blue-950/20 p-4 border border-blue-500/20 hover:border-blue-500/60 rounded-lg transition-all"
-						>
-							<div class="p-2">
-								<item.icon class="w-6 h-6 text-indigo-900" />
-							</div>
-							<div class="flex flex-col items-start">
-								<p class="font-semibold text-foreground text-lg">
-									{item.label}
-								</p>
-								<p
-									class={cn(
-										"text-muted-foreground text-xs",
-										item.label === "Supaadmin" && "text-[10px]"
-									)}
+		</Dialog.Trigger>
+
+		<Dialog.Content
+			class="bg-black/60 backdrop-blur-2xl border-2 border-admin-primary rounded-md max-w-3xl min-w-[60vw] p-6 sm:p-8 overflow-hidden"
+		>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
+				<!-- Left -->
+				<div class="flex flex-col gap-4">
+					{#each navItems.filter(i => i.side === "left") as item}
+						<Dialog.Close class="w-full">
+							<a
+								href={item.href}
+								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group"
+							>
+								<div
+									class="p-1.5 bg-black/50 border border-admin-primary/20 rounded"
 								>
-									{item.description}
-								</p>
+									<item.icon class="w-4 h-4" />
+								</div>
+
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									{item.label}
+								</span>
+							</a>
+						</Dialog.Close>
+					{/each}
+				</div>
+
+				<!-- Center -->
+				<div
+					class="flex flex-col items-center text-center gap-4 order-first md:order-none"
+				>
+					<div
+						class="flex items-center justify-center w-20 h-20 bg-black/40 rounded-md shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.3)]"
+					>
+						<img
+							src="/Alchemize-Admin.png"
+							alt=""
+							class="w-16 h-16 object-contain"
+						/>
+					</div>
+
+					<div>
+						<Dialog.Title
+							class="font-alchemize font-extrabold uppercase tracking-widest text-admin-primary text-3xl"
+						>
+							Admin
+						</Dialog.Title>
+
+						<p class="text-zinc-400 text-xs mt-2">
+							Where do you want to go today admin...
+						</p>
+					</div>
+
+					<Dialog.Close>
+						<a
+							href="/dashboard"
+							class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 p-2 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all"
+						>
+							<Home class="w-4 h-4" />
+						</a>
+					</Dialog.Close>
+				</div>
+
+				<!-- Right -->
+				<div class="flex flex-col gap-4">
+					{#each navItems.filter(i => i.side === "right") as item}
+						<Dialog.Close class="w-full">
+							<a
+								href={item.href}
+								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group"
+							>
+								<div
+									class="p-1.5 bg-black/50 border border-admin-primary/20 rounded"
+								>
+									<item.icon class="w-4 h-4" />
+								</div>
+
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									{item.label}
+								</span>
+							</a>
+						</Dialog.Close>
+					{/each}
+
+					<!-- Supaadmin -->
+					<Dialog.Close>
+						<a
+							href="/admin/super-admin"
+							class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all"
+						>
+							<div class="p-1.5 bg-black/50 border border-blue-600/20 rounded">
+								<LockKeyhole class="w-4 h-4" />
 							</div>
-						</div>
-					</a>
-				</Dialog.Close>
-			{/each}
-		</div>
-	</Dialog.Content>
-</Dialog.Root>
+
+							<span
+								class="font-alchemize font-bold text-xs uppercase tracking-wider"
+							>
+								Supaadmin
+							</span>
+						</a>
+					</Dialog.Close>
+				</div>
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
+</div>
+```
