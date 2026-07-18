@@ -66,7 +66,7 @@
 	<Dialog.Root>
 		<Dialog.Trigger
 			type="button"
-			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-admin-primary/80 hover:border-admin-primary hover:bg-admin-primary/5 p-2 rounded-md transition-all duration-200 shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.3)] group"
+			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-admin-primary/80 hover:border-admin-primary hover:bg-admin-primary/5 p-2 rounded-md transition-all duration-200 shadow-sm shadow-admin-primary group"
 		>
 			<CompassIcon
 				class="w-5 h-5 text-zinc-400 group-hover:text-admin-primary transition-colors"
@@ -83,7 +83,7 @@
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group"
+								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group shadow-sm shadow-admin-primary"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-admin-primary/20 rounded"
@@ -103,11 +103,9 @@
 
 				<!-- Center -->
 				<div
-					class="flex flex-col items-center text-center gap-4 order-first md:order-none"
+					class="flex flex-col items-center text-center gap-4 order-first md:order-0"
 				>
-					<div
-						class="flex items-center justify-center w-20 h-20 bg-black/40 rounded-md shadow-[2px_2px_0px_0px_rgba(var(--admin-primary),0.3)]"
-					>
+					<div class="flex items-center justify-center w-20 h-20 rounded-md">
 						<img
 							src="/Alchemize-Admin.png"
 							alt=""
@@ -130,7 +128,7 @@
 					<Dialog.Close>
 						<a
 							href="/dashboard"
-							class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 p-2 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all"
+							class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 p-2 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all shadow-sm shadow-admin-primary"
 						>
 							<Home class="w-4 h-4" />
 						</a>
@@ -143,7 +141,7 @@
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group"
+								class="flex items-center gap-3 bg-black/90 border-2 border-admin-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-admin-primary hover:border-admin-primary transition-all group shadow-sm shadow-admin-primary"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-admin-primary/20 rounded"
@@ -165,7 +163,7 @@
 						<Dialog.Close>
 							<a
 								href="/admin/super-admin"
-								class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all"
+								class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all shadow-sm shadow-blue-600"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-blue-600/20 rounded"

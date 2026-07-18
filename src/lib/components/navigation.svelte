@@ -62,7 +62,7 @@
 	<Dialog.Root>
 		<Dialog.Trigger
 			type="button"
-			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-primary/80 hover:border-primary hover:bg-primary/5 p-2 rounded-md transition-all duration-200 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)] active:translate-x-0.5 active:translate-y-0.5 group"
+			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-primary/80 hover:border-primary hover:bg-primary/5 p-2 rounded-md transition-all duration-200 shadow-sm shadow-primary active:translate-x-0.5 active:translate-y-0.5 group"
 		>
 			<CompassIcon
 				class="w-5 h-5 text-zinc-400 group-hover:text-primary transition-colors"
@@ -80,7 +80,7 @@
 						<Dialog.Close class="w-full text-left">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-sm shadow-primary"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-primary/20 rounded text-zinc-400 group-hover:text-primary group-hover:border-primary/50 transition-colors"
@@ -101,7 +101,7 @@
 					class="flex flex-col justify-center items-center gap-3 px-2 text-center order-first md:order-none py-4 md:py-0 border-b-2 border-primary/20 md:border-b-0"
 				>
 					<div
-						class="relative flex items-center justify-center w-20 h-20 bg-black/40 rounded-md p-2 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.3)]"
+						class="relative flex items-center justify-center w-20 h-20 rounded-md p-2"
 					>
 						<img
 							src="/Alchemist.webp"
@@ -126,7 +126,7 @@
 							<Dialog.Close class="text-left" title={item.label}>
 								<a
 									href={item.href}
-									class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+									class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all duration-150 group shadow-sm shadow-primary"
 								>
 									<item.icon class="w-4 h-4 stroke-2" />
 								</a>
@@ -140,7 +140,7 @@
 						<Dialog.Close class="w-full text-left">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(var(--primary),0.1)]"
+								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary hover:bg-black/20 transition-all duration-150 group shadow-sm shadow-primary"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-primary/20 rounded text-zinc-400 group-hover:text-primary group-hover:border-primary/50 transition-colors"
@@ -160,7 +160,7 @@
 						<Dialog.Close class="w-full text-left">
 							<a
 								href="/admin"
-								class="flex items-center gap-3 bg-black/90 border-2 border-red-500/40 hover:border-red-500 px-4 py-3 rounded-md text-red-400 hover:bg-red-500/5 transition-all duration-150 group shadow-[2px_2px_0px_0px_rgba(239,68,68,0.1)]"
+								class="flex items-center gap-3 bg-black/90 border-2 border-red-500/40 hover:border-red-500 px-4 py-3 rounded-md text-red-400 hover:bg-red-500/5 transition-all duration-150 group shadow-sm shadow-red-500/40"
 							>
 								<div
 									class="p-1.5 bg-black/50 border border-red-500/20 rounded text-red-400/70 group-hover:text-red-400 group-hover:border-red-500/50 transition-colors"
