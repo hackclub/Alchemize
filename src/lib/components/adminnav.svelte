@@ -11,38 +11,55 @@
 		Star,
 	} from "lucide-svelte"
 
-	const navItems = [
+	let {
+		admin,
+	}: {
+		admin: {
+			isReviewer: boolean
+			isT2Reviewer: boolean
+			isShopManager: boolean
+			isFulfiller: boolean
+			isSuperAdmin: boolean
+		} | null
+	} = $props()
+
+	const navItems = $derived.by(() => [
 		{
 			href: "/admin/",
 			label: "Admin",
 			icon: ShieldUser,
 			side: "left",
+			visible: true,
 		},
 		{
 			href: "/admin/fulfillment",
 			label: "Fulfillment",
 			icon: Package,
 			side: "right",
+			visible: admin?.isFulfiller,
 		},
 		{
 			href: "/admin/shop",
 			label: "Shop",
 			icon: ShoppingBag,
 			side: "right",
+			visible: admin?.isShopManager,
 		},
 		{
 			href: "/admin/review",
 			label: "T1 Review",
 			icon: Star,
 			side: "left",
+			visible: admin?.isReviewer,
 		},
 		{
 			href: "/admin/review2",
 			label: "T2 Review",
 			icon: UserStar,
 			side: "left",
+			visible: admin?.isT2Reviewer,
 		},
-	]
+	])
 </script>
 
 <div class="relative font-mono tracking-wide">
@@ -62,7 +79,7 @@
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
 				<!-- Left -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "left") as item}
+					{#each navItems.filter(i => i.side === "left" && i.visible) as item}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
@@ -122,7 +139,7 @@
 
 				<!-- Right -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "right") as item}
+					{#each navItems.filter(i => i.side === "right" && i.visible) as item}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
@@ -144,22 +161,26 @@
 					{/each}
 
 					<!-- Supaadmin -->
-					<Dialog.Close>
-						<a
-							href="/admin/super-admin"
-							class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all"
-						>
-							<div class="p-1.5 bg-black/50 border border-blue-600/20 rounded">
-								<LockKeyhole class="w-4 h-4" />
-							</div>
-
-							<span
-								class="font-alchemize font-bold text-xs uppercase tracking-wider"
+					{#if admin?.isSuperAdmin}
+						<Dialog.Close>
+							<a
+								href="/admin/super-admin"
+								class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all"
 							>
-								Supaadmin
-							</span>
-						</a>
-					</Dialog.Close>
+								<div
+									class="p-1.5 bg-black/50 border border-blue-600/20 rounded"
+								>
+									<LockKeyhole class="w-4 h-4" />
+								</div>
+
+								<span
+									class="font-alchemize font-bold text-xs uppercase tracking-wider"
+								>
+									Supaadmin
+								</span>
+							</a>
+						</Dialog.Close>
+					{/if}
 				</div>
 			</div>
 		</Dialog.Content>

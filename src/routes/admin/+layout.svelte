@@ -9,7 +9,7 @@
 	import { Button } from "$lib/components/ui/button/index.js"
 	import { Palette } from "lucide-svelte"
 
-	let { children } = $props()
+	let { children, data } = $props()
 	const excludedRoutes = ["/admin", "/admin/login", "/admin/error"]
 	const colorRoutes = "/admin/review2/"
 	let adminPrimary = $state("#6875f6")
@@ -100,7 +100,7 @@
 </div>
 
 {#if !excludedRoutes.includes(page.url.pathname)}
-	<Adminnav />
+	<Adminnav admin={data.admin} />
 {/if}
 {#if $navigating || $loaderStore}
 	<div
