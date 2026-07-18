@@ -3,6 +3,7 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
 	import Textarea from "$lib/components/ui/textarea/textarea.svelte"
+	import * as Dialog from "$lib/components/ui/dialog"
 	import type {
 		Project,
 		Log,
@@ -514,15 +515,15 @@ Signed by ${data.name}, T2 Reviewer
 
 									<div
 										class="w-full gap-2 rounded-lg flex items-center px-3 py-2 text-[10px] border transition-all duration-200 bg-zinc-950/10
-									{projectDescriptionLength > 1000
+									{projectDescriptionLength > 250
 											? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
 											: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
 									>
 										<i class="fa-solid fa-circle-info"></i>
 										<span>
-											{projectDescriptionLength > 1000
+											{projectDescriptionLength > 250
 												? "Justification character target met."
-												: `Requires 20+ characters for rejection and 1000+ for approval (${projectDescriptionLength}/1000)`}
+												: `Requires 20+ characters for rejection and 250+ for approval (${projectDescriptionLength}/250)`}
 										</span>
 									</div>
 								</div>
@@ -754,7 +755,6 @@ Signed by ${data.name}, T2 Reviewer
 							<Button
 								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={() => (justificationOpen = true)}
-								disabled={projectDescriptionLength < 1000 || loader}
 								oninput={generateFullJustification}
 							>
 								Preview Justification
@@ -769,7 +769,7 @@ Signed by ${data.name}, T2 Reviewer
 							<Button
 								class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
 								onclick={() => (confirmPushOpen = true)}
-								disabled={projectDescriptionLength < 1000 || loader}
+								disabled={projectDescriptionLength < 250 || loader}
 							>
 								{#if loader}
 									<div
@@ -811,24 +811,28 @@ Signed by ${data.name}, T2 Reviewer
 
 <ProjectDetailsDialog bind:open={detailsOpen} project={currentProject} />
 {#if justificationOpen}
-	<div
-		class="generatedJustificationOverlay w-screen h-screen absolute top-0 bg-black/80 z-50 flex items-center justify-center"
-	>
-		<div class="w-1/2 h-1/2 bg-background rounded-lg p-5 flex flex-col gap-y-5">
-			<h1 class="text-xl font-bold">Generated Justification</h1>
-			<Textarea
-				class="resize-none overflow-y-auto h-full"
-				readonly
-				bind:value={template}
-			/>
-			<Button
-				onclick={() => (justificationOpen = false)}
-				class="bg-red-900 w-full"
-			>
-				Close
-			</Button>
-		</div>
-	</div>
+	<Dialog.Root bind:open={justificationOpen}>
+		<Dialog.Content
+			class="min-w-[40vw] h-[50vh] flex flex-col bg-zinc-950 border-zinc-800 text-zinc-100 p-4"
+		>
+			<Dialog.Header class="shrink-0">
+				<Dialog.Title class="text-xl font-bold text-zinc-100">
+					Generated Justification
+				</Dialog.Title>
+				<Dialog.Description class="text-zinc-400 text-xs">
+					Review the auto-generated justification.
+				</Dialog.Description>
+			</Dialog.Header>
+
+			<div class="my-4 flex-1 flex flex-col min-h-0">
+				<Textarea
+					class="resize-none overflow-y-auto h-full w-full bg-zinc-900/50 border-zinc-800 text-zinc-300 font-mono text-xs custom-scrollbar p-3 rounded-lg"
+					readonly
+					bind:value={template}
+				/>
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
 {/if}
 {#if confirmRejectOpen}
 	<div
