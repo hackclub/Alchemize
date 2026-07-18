@@ -521,8 +521,8 @@ Signed by ${data.name}, T2 Reviewer
 										<i class="fa-solid fa-circle-info"></i>
 										<span>
 											{projectDescriptionLength > 100
-												? "Description character target met."
-												: `Requires 20+ characters (${projectDescriptionLength}/100)`}
+												? "Justification character target met."
+												: `Requires 100+ characters (${projectDescriptionLength}/100)`}
 										</span>
 									</div>
 								</div>
@@ -752,19 +752,19 @@ Signed by ${data.name}, T2 Reviewer
 					>
 						{#if pending}
 							<Button
-								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
-								onclick={() => (confirmRejectOpen = true)}
-								disabled={projectDescriptionLength < 100 || loader}
-							>
-								Reject
-							</Button>
-							<Button
 								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={() => (justificationOpen = true)}
 								disabled={projectDescriptionLength < 100 || loader}
 								oninput={generateFullJustification}
 							>
 								Preview Justification
+							</Button>
+							<Button
+								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								onclick={() => (confirmRejectOpen = true)}
+								disabled={projectDescriptionLength < 100 || loader}
+							>
+								Return
 							</Button>
 							<Button
 								class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
@@ -839,7 +839,7 @@ Signed by ${data.name}, T2 Reviewer
 		>
 			<h2 class="text-lg font-bold text-rose-500">Confirm Rejection</h2>
 			<p class="text-sm text-zinc-400">
-				Are you sure you want to reject <strong>{currentProject.name}</strong>?
+				Are you sure you want to return <strong>{currentProject.name}</strong>?
 				This will notify the user.
 			</p>
 			<div class="flex justify-end gap-2">
@@ -856,7 +856,7 @@ Signed by ${data.name}, T2 Reviewer
 					}}
 					class="bg-rose-600 hover:bg-rose-500 text-white text-xs"
 				>
-					Yes, Reject
+					Yes, Return
 				</Button>
 			</div>
 		</div>
