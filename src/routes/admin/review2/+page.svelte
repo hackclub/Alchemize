@@ -497,7 +497,7 @@ Signed by ${data.name}, T2 Reviewer
 								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800"
 							>
 								<div class="flex flex-col gap-y-3">
-									<div class="flex flex-col flex-1 min-h-[160px]">
+									<div class="flex flex-col flex-1 max-h-50 h-50 overflow-auto">
 										<label
 											for="project-desc"
 											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
@@ -505,7 +505,7 @@ Signed by ${data.name}, T2 Reviewer
 										>
 										<Textarea
 											id="project-desc"
-											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 min-h-[120px]"
+											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 h-full overflow-auto"
 											placeholder="Describe in detail, everything technical. What the project does, how many commits, any hours deducted, why deduction of hours, how is the readme, any AI time logged, etc."
 											bind:value={projectDescription}
 											oninput={generateFullJustification}
@@ -513,16 +513,16 @@ Signed by ${data.name}, T2 Reviewer
 									</div>
 
 									<div
-										class="w-full min-h-8 gap-2 rounded-lg flex items-center px-3 text-[11px] border transition-all duration-200 bg-zinc-950/10
-									{projectDescriptionLength > 100
+										class="w-full gap-2 rounded-lg flex items-center px-3 py-2 text-[10px] border transition-all duration-200 bg-zinc-950/10
+									{projectDescriptionLength > 1000
 											? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
 											: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
 									>
 										<i class="fa-solid fa-circle-info"></i>
 										<span>
-											{projectDescriptionLength > 100
+											{projectDescriptionLength > 1000
 												? "Justification character target met."
-												: `Requires 100+ characters (${projectDescriptionLength}/100)`}
+												: `Requires 20+ characters for rejection and 1000+ for approval (${projectDescriptionLength}/1000)`}
 										</span>
 									</div>
 								</div>
@@ -754,7 +754,7 @@ Signed by ${data.name}, T2 Reviewer
 							<Button
 								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={() => (justificationOpen = true)}
-								disabled={projectDescriptionLength < 100 || loader}
+								disabled={projectDescriptionLength < 1000 || loader}
 								oninput={generateFullJustification}
 							>
 								Preview Justification
@@ -762,14 +762,14 @@ Signed by ${data.name}, T2 Reviewer
 							<Button
 								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={() => (confirmRejectOpen = true)}
-								disabled={projectDescriptionLength < 100 || loader}
+								disabled={projectDescriptionLength < 20 || loader}
 							>
 								Return
 							</Button>
 							<Button
 								class="bg-emerald-600 hover:bg-emerald-500 text-white w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
 								onclick={() => (confirmPushOpen = true)}
-								disabled={projectDescriptionLength < 100 || loader}
+								disabled={projectDescriptionLength < 1000 || loader}
 							>
 								{#if loader}
 									<div
