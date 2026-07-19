@@ -1,8 +1,7 @@
 # Alchemize Website
-**NOTE:** The demo link refers to production version of website with not all features, refer to this link 
-https://alchemize-git-main-theutkarsh8939s-projects.vercel.app/
+https://alchemize.hackclub.com
 
-This is a website for a draft YSWS "Alchemize", it would contain a dashboard and review platform when complete
+This is a website for the YSWS "Alchemize", it would contain a dashboard and review platform when complete
 
 ## Tech stack used:
 - SvelteKit
