@@ -1,7 +1,7 @@
 # Alchemize Website
 https://alchemize.hackclub.com
 
-This is a website for the YSWS "Alchemize", it would contain a dashboard and review platform when complete
+This is a website for the YSWS "Alchemize", it contains everyhing from review dashboard to fulfillment panel and others.
 
 ## Tech stack used:
 - SvelteKit
