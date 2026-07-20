@@ -184,6 +184,7 @@
 		}
 		return logs
 	}
+
 	let template = $state("")
 	let loader = $state(false)
 	const generateFullJustification = () => {
@@ -327,6 +328,8 @@ Signed by ${data.name}, T2 Reviewer
 
 	let confirmPushOpen = $state(false)
 	let confirmRejectOpen = $state(false)
+
+	console.log(data)
 </script>
 
 <svelte:head>
@@ -827,7 +830,6 @@ Signed by ${data.name}, T2 Reviewer
 			<div class="my-4 flex-1 flex flex-col min-h-0">
 				<Textarea
 					class="resize-none overflow-y-auto h-full w-full bg-zinc-900/50 border-zinc-800 text-zinc-300 font-mono text-xs custom-scrollbar p-3 rounded-lg"
-					readonly
 					bind:value={template}
 				/>
 			</div>
