@@ -90,8 +90,8 @@
 			<!-- i didnt know what to call it.... -->
 			TRADE STATION
 		</h1>
-		<h2 class="text-muted-foreground uppercase text-sm">
-			Convert your raw stones into potion mix
+		<h2 class="text-muted-foreground text-sm">
+			Convert your raw stones into potion mix, (only whole numbers)
 		</h2>
 		<!-- the main 3 coulumn cont. -->
 		<div class="w-[85%] h-[50%] grid grid-cols-3 gap-x-10">

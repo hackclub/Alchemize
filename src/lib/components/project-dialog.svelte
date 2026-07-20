@@ -633,6 +633,14 @@
 						<div
 							class="shrink-0 flex items-center justify-end gap-3 p-4 border-t border-zinc-900 bg-zinc-950"
 						>
+							<Button
+								type="button"
+								variant="outline"
+								class="text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 h-10"
+								onclick={() => (open = false)}
+							>
+								Cancel
+							</Button>
 							{#if mode === "update"}
 								<Button
 									type="button"
@@ -646,15 +654,6 @@
 									<Trash class="size-4 mr-1" /> Delete Project
 								</Button>
 							{/if}
-
-							<Button
-								type="button"
-								variant="ghost"
-								class="text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-200 h-10"
-								onclick={() => (open = false)}
-							>
-								Cancel
-							</Button>
 
 							<div
 								class={cn(
