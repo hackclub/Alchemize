@@ -121,6 +121,7 @@
 		currentHackatimeAnalysis = data
 		await tick()
 		renderBar()
+		generateFullJustification(data.dayMap)
 	}
 
 	const setCurrentProject = (nextProject: AdminProjectAccess) => {
@@ -187,8 +188,9 @@
 
 	let template = $state("")
 	let loader = $state(false)
-	const generateFullJustification = () => {
+	const generateFullJustification = (dayMap = {}) => {
 		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
+Time ranged observed from ${Object.keys(dayMap).at(0)} to ${Object.keys(dayMap).at(-1)}
 ${currentProject.update || currentProject.log.length > 1 ? `This project is an update to an existing project` : `This is the first submission of this project`}
 Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours \n
 ${projectDescription}
