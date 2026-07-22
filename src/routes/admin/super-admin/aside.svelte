@@ -6,11 +6,17 @@
 	<div class="flex items-center justify-start gap-x-2">
 		<!-- <div class="bg-white rounded-full h-8 w-8"></div> -->
 		<div class=" flex flex-col items-start justify-start">
-			<p class="text-sm text-white">TODO: Add something here</p>
+			<p class="text-xl text-white">Supaadmin</p>
 			<p class="text-muted-foreground text-xs">admin</p>
 		</div>
 	</div>
 	<Button class="bg-admin-primary border-2 border-muted hover:scale-104">
+		<a href="/admin/super-admin/nps-results"> NPS results </a>
+	</Button>
+	<Button
+		class="bg-admin-primary border-2 border-muted hover:scale-104"
+		disabled
+	>
 		User Data Regen
 	</Button>
 </aside>

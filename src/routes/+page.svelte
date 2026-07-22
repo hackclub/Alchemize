@@ -640,7 +640,7 @@
 			>
 				<div class="flex flex-col gap-3">
 					<div class="text-zinc-500 text-[10px] font-mono tracking-widest">
-						// DIRECTORY
+						DIRECTORY
 					</div>
 					<a
 						class="text-zinc-400 hover:text-primary transition-colors"
@@ -661,7 +661,7 @@
 				</div>
 				<div class="flex flex-col gap-3">
 					<div class="text-zinc-500 text-[10px] font-mono tracking-widest">
-						// RESOURCES
+						RESOURCES
 					</div>
 					<a
 						class="text-zinc-400 hover:text-primary transition-colors"
