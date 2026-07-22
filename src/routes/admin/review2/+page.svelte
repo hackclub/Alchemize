@@ -122,6 +122,7 @@
 		await tick()
 		renderBar()
 		generateFullJustification(data.dayMap)
+		fullTimeRange(data.dayMap)
 	}
 
 	const setCurrentProject = (nextProject: AdminProjectAccess) => {
@@ -187,6 +188,7 @@
 	}
 
 	let template = $state("")
+	let range = $state("")
 	let loader = $state(false)
 	const generateFullJustification = (dayMap = {}) => {
 		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
@@ -202,6 +204,14 @@ ${generateUserLogs(currentProject.log)}
 Signed by ${data.name}, T2 Reviewer
  `
 	}
+
+	const fullTimeRange = (dayMap = {}) => {
+		range =
+			new Date(Object.keys(dayMap).at(0) || "").toDateString() +
+			" to " +
+			new Date(Object.keys(dayMap).at(-1) || "").toDateString()
+	}
+
 	let changelogs = $state("")
 	let projectDescription = $state("")
 	let reasonForOverride = $state("")
@@ -211,6 +221,7 @@ Signed by ${data.name}, T2 Reviewer
 	$effect(() => {
 		if (currentProject.name) {
 			generateFullJustification()
+			fullTimeRange()
 		}
 	})
 	$effect(() => {
@@ -534,45 +545,68 @@ Signed by ${data.name}, T2 Reviewer
 								</div>
 
 								<div class="w-full space-y-4 flex flex-col justify-between">
-									<div class="w-full grid grid-rows-2 gap-3">
-										<div
-											class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-										>
-											<label
-												for="git-commits"
-												class="text-[11px] font-medium text-zinc-400"
-												>Git Commits</label
+									<div class="w-full grid grid-rows-2 gap-y-3">
+										<div class="w-full grid grid-cols-2 gap-3">
+											<div
+												class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
 											>
-											<Input
-												id="git-commits"
-												type="number"
-												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
-												placeholder="0"
-												bind:value={gitCommits}
-												oninput={generateFullJustification}
-											/>
-										</div>
+												<label
+													for="git-commits"
+													class="text-[11px] font-medium text-zinc-400"
+													>Git Commits</label
+												>
+												<Input
+													id="git-commits"
+													type="number"
+													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+													placeholder="0"
+													bind:value={gitCommits}
+													oninput={generateFullJustification}
+												/>
+											</div>
 
+											<div
+												class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
+											>
+												<label
+													for="override-hours"
+													class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
+												>
+													<span>Deduct Hours</span>
+													<span class="text-[9px] text-zinc-600 font-normal"
+														>Optional</span
+													>
+												</label>
+												<Input
+													id="override-hours"
+													type="number"
+													min="0"
+													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+													placeholder="0"
+													bind:value={subtraction}
+													oninput={generateFullJustification}
+												/>
+											</div>
+										</div>
 										<div
 											class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
 										>
 											<label
-												for="override-hours"
+												for="time-range"
 												class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
 											>
-												<span>Deduct Hours</span>
+												<span>Hackatime Time-range</span>
 												<span class="text-[9px] text-zinc-600 font-normal"
-													>Optional</span
+													>Time-range</span
 												>
 											</label>
 											<Input
-												id="override-hours"
-												type="number"
+												id="time-range"
 												min="0"
-												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
-												placeholder="0"
-												bind:value={subtraction}
-												oninput={generateFullJustification}
+												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-xs rounded-md"
+												placeholder="Date Range"
+												value={range}
+												readonly
 											/>
 										</div>
 									</div>
