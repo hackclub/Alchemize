@@ -14,6 +14,11 @@
 	import { invalidateAll } from "$app/navigation"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
+	import {
+		buildBillyUrl,
+		buildJoeFraudUrl,
+		HACKATIME_REVIEW_START_DATE,
+	} from "$lib/reviewTools"
 	import { tick } from "svelte"
 	import {
 		BarController,
@@ -121,8 +126,8 @@
 		currentHackatimeAnalysis = data
 		await tick()
 		renderBar()
-		generateFullJustification(data.dayMap)
-		fullTimeRange(data.dayMap)
+		generateFullJustification()
+		fullTimeRange()
 	}
 
 	const setCurrentProject = (nextProject: AdminProjectAccess) => {
@@ -156,60 +161,216 @@
 		fetchHackatimeAnalysis(currentProject.id + "")
 		console.log("Current project set to log:", currentProject.log)
 	}
-	const calculateDelta = (log: Log[]): number => {
+	const calculateDelta = (log: Log[], includePushed = false): number => {
 		let delta = 0
 		for (const entry of log) {
-			if (entry.status === 1 && !entry.submmitedToHQ) {
+			if (entry.status === 1 && (includePushed || !entry.submmitedToHQ)) {
 				delta += entry.deltaTime
 			}
 		}
 		return Math.floor(delta / 60)
 	}
-	const generateUserLogs = (log: Log[]): string => {
-		let logs = ""
+	// The push-to-HQ action appends a synthetic "Currency Awarded" log entry —
+	// skip it when rebuilding the review history.
+	const isSyntheticPushEntry = (entry: Log): boolean =>
+		entry.deltaTime === 0 &&
+		entry.message.length === 1 &&
+		entry.message[0]?.userExternal === "Currency Awarded"
+	const cleanReviewerName = (name?: string): string =>
+		(name ?? "unknown").replace(/^APPROVED\s+/i, "")
+	const buildReviewLog = (log: Log[], includePushed: boolean): string => {
+		const blocks: string[] = []
+		let reviewNumber = 0
 		for (const entry of log) {
-			if (entry.status === 1 && !entry.submmitedToHQ) {
-				let approvedBy = "T1 Reviewer: " + entry.message.at(-1)?.reviewerName
-				let userLogs = ``
-				for (const message of entry.message) {
-					if (message.reviewerName === "user") {
-						userLogs += `User written logs: ${message.userExternal} \n`
-					} else {
-						userLogs += `Reviewer notes: ${message.userExternal} \n`
-					}
+			if (entry.status !== 1) continue
+			if (!includePushed && entry.submmitedToHQ) continue
+			if (isSyntheticPushEntry(entry)) continue
+			reviewNumber++
+			const lastMessage = entry.message.at(-1)
+			const lines: string[] = [
+				`--- Review ${reviewNumber} · delta ${Math.floor(entry.deltaTime / 60)}h · ${entry.timestamp?.slice(0, 10) || "unknown date"} ---`,
+			]
+			entry.message.forEach((msg, index) => {
+				const text = (msg.userExternal ?? "").trim()
+				if (!text) return
+				if (msg.reviewerName === "user") {
+					lines.push(`User devlog: ${text}`)
+				} else if (index !== entry.message.length - 1) {
+					// The final reviewer message is shown once below as the approval feedback
+					lines.push(
+						`Reviewer note (${cleanReviewerName(msg.reviewerName)}): ${text}`
+					)
 				}
-				let deltaTime = `Delta: ${Math.floor(entry.deltaTime / 60)} hours \n`
-				let finalFeedback = `Approval Feedback: ${entry.message.at(-1)?.userExternal || "No feedback provided"} \n`
-				let finalEnry = `${userLogs}${deltaTime}\n${finalFeedback} \nApproved by: ${approvedBy} \n\n`
-				logs += finalEnry
-			}
+			})
+			lines.push(
+				`Approval feedback: ${lastMessage?.userExternal?.trim() || "No feedback provided"}`
+			)
+			lines.push(
+				`Approved by T1 reviewer: ${cleanReviewerName(lastMessage?.reviewerName)}`
+			)
+			blocks.push(lines.join("\n"))
 		}
-		return logs
+		return blocks.length > 0
+			? blocks.join("\n\n")
+			: "No approved review entries found."
 	}
 
 	let template = $state("")
 	let range = $state("")
 	let loader = $state(false)
-	const generateFullJustification = (dayMap = {}) => {
-		template = `The user tracked ${currentProject.hours} hours on ${currentProject.hackatime} hackatime project
-Time ranged observed from ${Object.keys(dayMap).at(0)} to ${Object.keys(dayMap).at(-1)}
-${currentProject.update || currentProject.log.length > 1 ? `This project is an update to an existing project` : `This is the first submission of this project`}
-Delta:${calculateDelta(currentProject.log)} hours, Adjusted to:${calculateDelta(currentProject.log) - subtraction} Subtract ${subtraction} hours \n
-${projectDescription}
-${currentProject.update || currentProject.log.length > 1 ? `Changelog: ${changelogs}` : ``}
-There are ${gitCommits} git commits and approximately ${gitCommits > 0 ? Math.floor((gitCommits / currentProject.hours) * 10) / 10 : 0} commits/hr
-${subtraction > 0 ? `The reason for overriding hours is: ${reasonForOverride}` : ``}
-User written logs:
-${generateUserLogs(currentProject.log)}
-Signed by ${data.name}, T2 Reviewer
- `
+	const secsToHours = (secs: number): number => Math.round(secs / 360) / 10
+	const hackatimeDays = () => Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
+	const reviewRange = () => {
+		const days = hackatimeDays()
+		return {
+			start: days.at(0) ?? HACKATIME_REVIEW_START_DATE,
+			end: days.at(-1) ?? new Date().toISOString().slice(0, 10),
+		}
+	}
+	const generateFullJustification = (opts?: { includePushed?: boolean }) => {
+		const includePushed = opts?.includePushed === true
+		const analysis = currentHackatimeAnalysis
+		const { start, end } = reviewRange()
+		const delta = calculateDelta(currentProject.log, includePushed)
+		const awarded = Math.max(delta - subtraction, 0)
+		const isUpdate =
+			Boolean(currentProject.update) || currentProject.log.length > 1
+
+		const sections: string[] = []
+		sections.push(
+			[
+				`[SUMMARY]`,
+				`- Project: ${currentProject.name} (${currentProject.type} · ${currentProject.category})`,
+				`- Submission: ${isUpdate ? "update to an existing project" : "first submission of this project"}`,
+				`- Total tracked on Alchemize: ${currentProject.hours}h on Hackatime project "${currentProject.hackatime}"`,
+				``,
+				`Reviewer summary:`,
+				projectDescription || "—",
+			].join("\n")
+		)
+		sections.push(
+			[
+				`[HOURS]`,
+				`- Delta approved this review: ${delta}h`,
+				`- Hours deducted: ${subtraction > 0 ? `Yes — ${subtraction}h` : "No"}`,
+				`- Hours awarded: ${awarded}h`,
+				...(subtraction > 0
+					? [`- Deduction reason: ${reasonForOverride || "—"}`]
+					: []),
+			].join("\n")
+		)
+		const trustLabel = analysis?.trustFactor?.trustLevel
+			? `${analysis.trustFactor.trustLevel}${analysis.trustFactor.trustValue !== null ? ` (${analysis.trustFactor.trustValue})` : ""}`
+			: "unknown"
+		const hackatimeLines = [
+			`[HACKATIME]`,
+			`- Hackatime project(s): ${currentProject.hackatime}`,
+			`- Hackatime user ID: ${analysis?.hackatimeUserId ?? "unknown"}`,
+			`- Trust factor: ${trustLabel}`,
+			`- Reviewed range: ${start} to ${end}`,
+		]
+		if (analysis?.aiSec !== undefined) {
+			hackatimeLines.push(
+				`- Category breakdown: coding ${secsToHours(analysis.codingSec)}h · AI ${secsToHours(analysis.aiSec)}h · building ${secsToHours(analysis.buildingSec)}h · timelapsing ${secsToHours(analysis.timelapsingSec)}h · other ${secsToHours(analysis.others)}h`
+			)
+		}
+		sections.push(hackatimeLines.join("\n"))
+		sections.push(
+			[
+				`[GIT]`,
+				`- Repository: ${currentProject.code || "—"}`,
+				`- Commits: ${gitCommits}${gitCommits > 0 && currentProject.hours > 0 ? ` (≈${Math.floor((gitCommits / currentProject.hours) * 10) / 10} commits/hr)` : ""}`,
+			].join("\n")
+		)
+		if (isUpdate && changelogs) {
+			sections.push(`[CHANGELOG]\n${changelogs}`)
+		}
+		sections.push(
+			`[REVIEW LOG]\n${buildReviewLog(currentProject.log, includePushed)}`
+		)
+		const linkLines = [
+			`[LINKS]`,
+			`- Demo: ${currentProject.demo || "—"}`,
+			`- Repo: ${currentProject.code || "—"}`,
+		]
+		if (analysis?.hackatimeUserId) {
+			linkLines.push(
+				`- Billy: ${buildBillyUrl(analysis.hackatimeUserId, start, end)}`
+			)
+			linkLines.push(
+				`- Joe.fraud: ${buildJoeFraudUrl(analysis.hackatimeUserId, start, end)}`
+			)
+		}
+		sections.push(linkLines.join("\n"))
+		sections.push(
+			[
+				`[SIGN-OFF]`,
+				`- Signed by ${data.name}, T2 Reviewer (Alchemize)`,
+				`- Generated at: ${new Date().toISOString()}`,
+				...(includePushed
+					? [`- Note: regenerated after this project was pushed to HQ`]
+					: []),
+			].join("\n")
+		)
+		template = sections.join("\n\n")
 	}
 
-	const fullTimeRange = (dayMap = {}) => {
+	const fullTimeRange = () => {
+		const days = hackatimeDays()
+		if (days.length === 0) {
+			range = ""
+			return
+		}
 		range =
-			new Date(Object.keys(dayMap).at(0) || "").toDateString() +
+			new Date(days.at(0) || "").toDateString() +
 			" to " +
-			new Date(Object.keys(dayMap).at(-1) || "").toDateString()
+			new Date(days.at(-1) || "").toDateString()
+	}
+
+	let reviewToolUrls = $derived.by(() => {
+		const hackatimeUserId = currentHackatimeAnalysis?.hackatimeUserId
+		if (!hackatimeUserId) return null
+		const days = Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
+		const start = days.at(0) ?? HACKATIME_REVIEW_START_DATE
+		const end = days.at(-1) ?? new Date().toISOString().slice(0, 10)
+		return {
+			billy: buildBillyUrl(hackatimeUserId, start, end),
+			joe: buildJoeFraudUrl(hackatimeUserId, start, end),
+		}
+	})
+	const trustBadgeClass = (level: string | null | undefined): string => {
+		const normalized = (level ?? "").toLowerCase()
+		if (["green", "trusted", "high", "verified"].includes(normalized))
+			return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+		if (["yellow", "suspected", "medium"].includes(normalized))
+			return "bg-amber-500/10 text-amber-400 border-amber-500/20"
+		if (["red", "convicted", "low", "banned"].includes(normalized))
+			return "bg-rose-500/10 text-rose-400 border-rose-500/20"
+		return "bg-zinc-800 text-zinc-400 border-zinc-700"
+	}
+	const copyToClipboard = async (text: string, label: string) => {
+		try {
+			await navigator.clipboard.writeText(text)
+			toast.success(`${label} copied to clipboard`)
+		} catch {
+			toast.error("Failed to copy to clipboard")
+		}
+	}
+	const loadStoredJustification = async () => {
+		const response = await fetch("/admin/review2/justification", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ projectId: currentProject.id }),
+		})
+		if (!response.ok) {
+			toast.info("No stored justification found for this project")
+			return
+		}
+		const stored = await response.json()
+		template = stored.justification
+		justificationOpen = true
 	}
 
 	let changelogs = $state("")
@@ -468,6 +629,44 @@ Signed by ${data.name}, T2 Reviewer
 								<span class="text-zinc-700">•</span>
 								<span>{currentProject.category}</span>
 							</p>
+							{#if currentHackatimeAnalysis?.hackatimeProject}
+								<div class="flex items-center gap-1.5 flex-wrap pt-1">
+									{#if currentHackatimeAnalysis?.hackatimeUserId}
+										<button
+											type="button"
+											title="Copy Hackatime user ID"
+											onclick={() =>
+												copyToClipboard(
+													currentHackatimeAnalysis.hackatimeUserId ?? "",
+													"Hackatime ID"
+												)}
+											class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-300 rounded font-mono border border-zinc-700 hover:bg-zinc-700 transition cursor-pointer"
+										>
+											Hackatime ID: {currentHackatimeAnalysis.hackatimeUserId} ⧉
+										</button>
+										<span
+											class={cn(
+												"text-[11px] px-1.5 py-0.5 rounded border font-medium",
+												trustBadgeClass(
+													currentHackatimeAnalysis?.trustFactor?.trustLevel
+												)
+											)}
+										>
+											Trust: {currentHackatimeAnalysis?.trustFactor?.trustLevel ??
+												"unknown"}{currentHackatimeAnalysis?.trustFactor
+												?.trustValue != null
+												? ` (${currentHackatimeAnalysis.trustFactor.trustValue})`
+												: ""}
+										</span>
+									{:else}
+										<span
+											class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-500 rounded border border-zinc-700"
+										>
+											No Hackatime user ID found
+										</span>
+									{/if}
+								</div>
+							{/if}
 						</div>
 
 						<div
@@ -501,6 +700,22 @@ Signed by ${data.name}, T2 Reviewer
 								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
 								>Introspect</a
 							>
+							{#if reviewToolUrls}
+								<a
+									href={reviewToolUrls.billy}
+									target="_blank"
+									rel="noreferrer noopener"
+									class="text-[11px] font-medium px-2.5 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-md transition"
+									>Billy ↗</a
+								>
+								<a
+									href={reviewToolUrls.joe}
+									target="_blank"
+									rel="noreferrer noopener"
+									class="text-[11px] font-medium px-2.5 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-md transition"
+									>Joe.fraud ↗</a
+								>
+							{/if}
 						</div>
 					</header>
 
@@ -525,7 +740,7 @@ Signed by ${data.name}, T2 Reviewer
 											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 h-full overflow-auto"
 											placeholder="Describe in detail, everything technical. What the project does, how many commits, any hours deducted, why deduction of hours, how is the readme, any AI time logged, etc."
 											bind:value={projectDescription}
-											oninput={generateFullJustification}
+											oninput={() => generateFullJustification()}
 										/>
 									</div>
 
@@ -561,7 +776,7 @@ Signed by ${data.name}, T2 Reviewer
 													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
 													placeholder="0"
 													bind:value={gitCommits}
-													oninput={generateFullJustification}
+													oninput={() => generateFullJustification()}
 												/>
 											</div>
 
@@ -584,7 +799,7 @@ Signed by ${data.name}, T2 Reviewer
 													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
 													placeholder="0"
 													bind:value={subtraction}
-													oninput={generateFullJustification}
+													oninput={() => generateFullJustification()}
 												/>
 											</div>
 										</div>
@@ -623,7 +838,7 @@ Signed by ${data.name}, T2 Reviewer
 												class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
 												placeholder="What distinct changes were made?..."
 												bind:value={changelogs}
-												oninput={generateFullJustification}
+												oninput={() => generateFullJustification()}
 												disabled={currentProject.update ||
 													currentProject.log.length > 1}
 											/>
@@ -641,7 +856,7 @@ Signed by ${data.name}, T2 Reviewer
 													class="resize-none h-16 bg-zinc-950/40 border-amber-900/30 focus:border-amber-800 text-xs rounded-lg p-2"
 													placeholder="Provide context regarding modifications..."
 													bind:value={reasonForOverride}
-													oninput={generateFullJustification}
+													oninput={() => generateFullJustification()}
 												/>
 											</div>
 										{/if}
@@ -793,8 +1008,10 @@ Signed by ${data.name}, T2 Reviewer
 						{#if pending}
 							<Button
 								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
-								onclick={() => (justificationOpen = true)}
-								oninput={generateFullJustification}
+								onclick={() => {
+									generateFullJustification()
+									justificationOpen = true
+								}}
 							>
 								Preview Justification
 							</Button>
@@ -816,6 +1033,22 @@ Signed by ${data.name}, T2 Reviewer
 									></div>
 								{/if}
 								Push to Airtable
+							</Button>
+						{:else}
+							<Button
+								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								onclick={loadStoredJustification}
+							>
+								Stored Justification
+							</Button>
+							<Button
+								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								onclick={() => {
+									generateFullJustification({ includePushed: true })
+									justificationOpen = true
+								}}
+							>
+								Regenerate Justification
 							</Button>
 						{/if}
 					</footer>
@@ -868,6 +1101,22 @@ Signed by ${data.name}, T2 Reviewer
 					class="resize-none overflow-y-auto h-full w-full bg-zinc-900/50 border-zinc-800 text-zinc-300 font-mono text-xs custom-scrollbar p-3 rounded-lg"
 					bind:value={template}
 				/>
+			</div>
+			<div class="flex justify-end gap-2 shrink-0">
+				{#if !pending}
+					<Button
+						class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-4 py-2 text-xs font-medium transition rounded-lg"
+						onclick={() => generateFullJustification({ includePushed: true })}
+					>
+						Regenerate
+					</Button>
+				{/if}
+				<Button
+					class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-medium transition rounded-lg"
+					onclick={() => copyToClipboard(template, "Justification")}
+				>
+					Copy to clipboard
+				</Button>
 			</div>
 		</Dialog.Content>
 	</Dialog.Root>
