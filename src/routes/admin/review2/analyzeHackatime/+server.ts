@@ -132,6 +132,27 @@ if (!project.ok) {
     if (!project.ok || !projectData) {
         return error(404, "Project not found")
     }
+    // Resolve the creator's Hackatime user id + trust factor from their Slack ID.
+    // Non-fatal: review tooling links simply won't render if this lookup fails.
+    const identityPromise = (async (): Promise<{ hackatimeUserId: string | null, trustFactor: { trustLevel: string | null, trustValue: number | null } | null }> => {
+        const slackId = projectData.fields.slackId
+        if (!slackId) return { hackatimeUserId: null, trustFactor: null }
+        try {
+            const statsResponse = await fetch(`https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(slackId)}/stats`)
+            if (!statsResponse.ok) return { hackatimeUserId: null, trustFactor: null }
+            const stats = await statsResponse.json()
+            const rawTrust = stats?.trust_factor ?? stats?.data?.trust_factor
+            return {
+                hackatimeUserId: stats?.data?.user_id != null ? String(stats.data.user_id) : null,
+                trustFactor: rawTrust ? {
+                    trustLevel: rawTrust.trust_level ?? null,
+                    trustValue: rawTrust.trust_value ?? null
+                } : null
+            }
+        } catch {
+            return { hackatimeUserId: null, trustFactor: null }
+        }
+    })()
     const fetchUserTokens = await fetch(`https://hackatime.hackclub.com/api/v1/authenticated/api_keys`,{
         headers: {
             "Authorization": `Bearer ${projectData.fields.hackatimeToken}`
@@ -161,8 +182,11 @@ if (!project.ok) {
     const codingSec = countSecondsByCategory(filteredHeartbeats, coding)
     const byFile = calculateTimePerFile(filteredHeartbeats)
     const dayMap = secsPerDay(filteredHeartbeats)
+    const { hackatimeUserId, trustFactor } = await identityPromise
     return new Response(JSON.stringify({
         hackatimeProject: projectData.fields.hackatime,
+        hackatimeUserId,
+        trustFactor,
         aiSec,
         buildingSec,
         timelapsingSec,

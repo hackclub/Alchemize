@@ -186,6 +186,11 @@ interface FileBreakdown {
 }
 export interface HackatimeAnalysis {
 	hackatimeProject: string
+	hackatimeUserId?: string | null
+	trustFactor?: {
+		trustLevel: string | null
+		trustValue: number | null
+	} | null
 	aiSec: number
 	timelapsingSec: number
 	buildingSec: number

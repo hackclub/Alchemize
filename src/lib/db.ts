@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and, gte, asc } from 'drizzle-orm'
+import { eq, and, gte, asc, desc } from 'drizzle-orm'
 import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp } from "drizzle-orm/pg-core";
 import type { UserCurrency, Log } from './types'
 import dotenv from 'dotenv';
@@ -489,6 +489,7 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
         id: projectTable.id,
         Name: projectTable.Name,
         hackatime: projectTable.hackatime,
+        slackId: projectTable.slackId,
         hackatimeToken: userTable.hackatime,
 
     }).from(projectTable).where(eq(projectTable.id, parseInt(projectId))).leftJoin(userTable, eq(projectTable.owner, userTable.email));
@@ -941,6 +942,31 @@ export const addToJustifications = async (justificationData: {
         status: 201,
         json: async () => ({ id: newJustification[0].id + "", fields: newJustification[0] } as airtableReplication),
         text: async () => JSON.stringify({ id: newJustification[0].id + "", fields: newJustification[0] } as airtableReplication),
+    } as DBResponse;
+}
+export const getLatestJustificationByProjectId = async (projectId: string): Promise<DBResponse> => {
+    // Only non-sensitive columns — never select the encrypted PII fields on this table
+    const rows = await db.select({
+        id: justifications.id,
+        name: justifications.name,
+        projectId: justifications.projectId,
+        overrideHoursSpent: justifications.overrideHoursSpent,
+        justification: justifications.justification,
+    }).from(justifications).where(eq(justifications.projectId, projectId)).orderBy(desc(justifications.id)).limit(1);
+    if (rows.length === 0) {
+        return {
+            ok: false,
+            status: 404,
+            json: async () => ({ message: "No justification found for this project" }),
+            text: async () => JSON.stringify({ message: "No justification found for this project" }),
+        } as DBResponse;
+    }
+    const records = rows.map(row => ({ id: row.id + "", fields: row }));
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ records }),
+        text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
 export const getAdminByEmail = async (email: string): Promise<DBResponse> => {
