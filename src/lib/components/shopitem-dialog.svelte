@@ -2,7 +2,7 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import * as Dialog from "$lib/components/ui/dialog"
 	import { cn } from "$lib/lib/utils"
-	import type { UserCurrency } from "$lib/types"
+	import { formatAqua, hundredthsToUnits } from "$lib/currency"
 
 	let qty = $state(1)
 	let grantAmount = $state(0)
@@ -10,7 +10,7 @@
 	type ShopItem = {
 		name: string
 		description: string
-		price: UserCurrency
+		priceHundredths: number
 		image: string
 	}
 
@@ -20,16 +20,16 @@
 		item = {
 			name: "",
 			description: "",
-			price: { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 },
+			priceHundredths: 0,
 			image: "",
 		},
-		currency,
+		balanceHundredths,
 		onConfirm = (qty: number) => {},
 	}: {
 		open: boolean
 		allItems: ShopItem[]
 		item: ShopItem
-		currency: UserCurrency
+		balanceHundredths: number
 		onConfirm: (qty: number) => void
 	} = $props()
 
@@ -40,83 +40,22 @@
 			item.description.toLowerCase().includes("credits")
 	)
 
-	const currencyNames: Record<keyof UserCurrency, string> = {
-		redstone: "Redstone",
-		glowstone: "Glowstone",
-		aqua_regia: "Aqua Regia",
-		potion_mix: "Potion Mix",
+	const activeTheme = {
+		border: "border-blue-950/40 focus-within:border-blue-500",
+		text: "text-blue-400",
+		bg: "bg-blue-500/10",
 	}
 
-	const currencyTheme = {
-		redstone: {
-			border: "border-red-950/40 focus-within:border-red-500",
-			text: "text-red-400",
-			bg: "bg-red-500/10",
-		},
-		glowstone: {
-			border: "border-yellow-950/40 focus-within:border-yellow-500",
-			text: "text-yellow-400",
-			bg: "bg-yellow-500/10",
-		},
-		aqua_regia: {
-			border: "border-blue-950/40 focus-within:border-blue-500",
-			text: "text-blue-400",
-			bg: "bg-blue-500/10",
-		},
-		potion_mix: {
-			border: "border-rose-950/40 focus-within:border-rose-500",
-			text: "text-rose-400",
-			bg: "bg-rose-500/10",
-		},
-	}
+	let totalCost = $derived((item.priceHundredths ?? 0) * qty)
 
-	const renderCurrency = (
-		currency: UserCurrency
-	): [string, keyof UserCurrency] => {
-		if (currency.redstone > 0)
-			return [`${currency.redstone} Redstone`, "redstone"]
-		if (currency.glowstone > 0)
-			return [`${currency.glowstone} Glowstone`, "glowstone"]
-		if (currency.aqua_regia > 0)
-			return [`${currency.aqua_regia} Aqua Regia`, "aqua_regia"]
-		if (currency.potion_mix > 0)
-			return [`${currency.potion_mix} Potion Mix`, "potion_mix"]
-		return ["0 Currency", "potion_mix"]
-	}
-
-	let currencyToShow = $derived(renderCurrency(item.price))
-	let currentCurrencyKey = $derived(currencyToShow[1])
-	let activeTheme = $derived(currencyTheme[currentCurrencyKey])
-
-	let basePriceValue = $derived(item.price[currentCurrencyKey] ?? 0)
-	let totalCost = $derived(basePriceValue * qty)
-
-	function getEstimatedHours(
-		currencyType: keyof UserCurrency,
-		amount: number
-	): number {
-		if (amount <= 0) return 0
-		let hours = currencyType === "potion_mix" ? amount / 4.5 : amount
-		return Math.ceil(hours)
-	}
+	// 1 Aqua Regia = 1 hour of work
 	let totalEstimatedHours = $derived(
-		getEstimatedHours(currentCurrencyKey, totalCost)
+		totalCost > 0 ? Math.ceil(hundredthsToUnits(totalCost)) : 0
 	)
 
-	const isDisabled = (
-		userHas: UserCurrency,
-		itemPrice: UserCurrency,
-		currentQty: number
-	) => {
-		return (
-			userHas.redstone < currentQty * itemPrice.redstone ||
-			userHas.glowstone < currentQty * itemPrice.glowstone ||
-			userHas.aqua_regia < currentQty * itemPrice.aqua_regia ||
-			userHas.potion_mix < currentQty * itemPrice.potion_mix ||
-			currentQty < 1
-		)
-	}
-	let disabled = $derived(isDisabled(currency, item.price, qty))
+	let disabled = $derived(
+		(balanceHundredths ?? 0) < (item.priceHundredths ?? 0) * qty || qty < 1
+	)
 
 	let grantUnitValue = $derived.by(() => {
 		const grantText = `${item.name} ${item.description}`
@@ -185,14 +124,11 @@
 					>
 						<div class="flex justify-between items-center text-sm font-medium">
 							<span class="text-muted-foreground">Unit Price:</span>
-							<span class={activeTheme.text}>{currencyToShow[0]}</span>
+							<span class={activeTheme.text}>{formatAqua(item.priceHundredths)}</span>
 						</div>
 						<div class="flex justify-between items-center text-sm font-medium">
 							<span class="text-muted-foreground">Your Balance:</span>
-							<span class=""
-								>{currency[currentCurrencyKey]}
-								{currencyNames[currentCurrencyKey]}</span
-							>
+							<span class="">{formatAqua(balanceHundredths)}</span>
 						</div>
 
 						{#if totalEstimatedHours > 0}
@@ -283,8 +219,7 @@
 								? 'text-muted-foreground'
 								: activeTheme.text}"
 						>
-							{totalCost}
-							{currencyNames[currentCurrencyKey]}
+							{formatAqua(totalCost)}
 						</span>
 					</div>
 

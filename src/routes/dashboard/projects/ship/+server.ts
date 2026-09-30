@@ -238,9 +238,24 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	}
 	const currentTime = Date.now()
 	const updatedLog = updateLog(previousLogs, deltaTime, changelog)
-	const [response, botResponse] = await Promise.all([
-		patchProjectForShip(recordId, updatedLog, `pending_${currentTime}`),
-		fetch("https://notifications.alchemize.hackclub.com/ship", {
+	const response = await patchProjectForShip(recordId, projectData.fields.log, updatedLog, `pending_${currentTime}`)
+	if (!response.ok) {
+		console.error(`Failed to update project ${recordId}:`, {
+			status: response.status,
+			statusText: await response.text(),
+			timestamp: new Date().toISOString(),
+			slackId: userData.slack_id,
+			projectName: projectData.fields.Name,
+			projectLink: projectData.fields.code,
+		})
+		// 409 = the log changed since it was read (e.g. a review landed); ask the user to retry
+		if (response.status === 409) {
+			return new Response("Your project was just updated by a reviewer, please refresh and ship again", { status: 409 })
+		}
+		return new Response("Failed to ship Project", { status: 500 })
+	}
+	// Notify only after the write has committed
+	const botResponse = await fetch("https://notifications.alchemize.hackclub.com/ship", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -251,19 +266,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 				project_name: projectData.fields.Name,
 				project_link: projectData.fields.code,
 			}),
-		}),
-	])
-	if (!response.ok) {
-		console.error(`Failed to update project ${recordId}:`, {
-			status: response.status,
-			statusText: await response.text(),
-			timestamp: new Date().toISOString(),
-			slackId: userData.slack_id,
-			projectName: projectData.fields.Name,
-			projectLink: projectData.fields.code,
 		})
-		return new Response("Failed to ship Project", { status: 500 })
-	}
 
 	if (!botResponse.ok) {
 		console.warn(`Failed to send notification to bot for record ${recordId}:`, {

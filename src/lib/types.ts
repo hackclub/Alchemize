@@ -98,13 +98,7 @@ export interface Item {
 	name: string
 	description: string
 	cdnImage: string
-	itemPrice: UserCurrency
-}
-export interface UserCurrency {
-	redstone: number
-	glowstone: number
-	aqua_regia: number
-	potion_mix: number
+	priceHundredths: number // Aqua Regia, in hundredths of a unit (see $lib/currency)
 }
 export interface AirtableReferRecord {
 	id: string
@@ -138,12 +132,12 @@ export interface AirtableUser {
 		userId: string
 		email: string
 		hackatime: string
-		currency: string
+		balanceHundredths: number
 	}
 }
 export interface User {
 	email: string
-	currency: string
+	balanceHundredths: number
 }
 export interface UserAuthToken {
 	id: string

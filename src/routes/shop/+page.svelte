@@ -2,70 +2,27 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import { ShoppingBag } from "lucide-svelte"
 	import { cn } from "$lib/lib/utils"
+	import { formatAqua } from "$lib/currency"
 
 	let { data } = $props()
-
-	interface Price {
-		redstone: number
-		glowstone: number
-		aqua_regia: number
-		potion_mix: number
-	}
 
 	type ShopItem = {
 		itemID: string
 		name: string
 		description: string
-		price: Price
+		priceHundredths: number
 		image: string
-		primaryCurrency: keyof Price | "none"
 	}
-
-	function getPrimaryCurrency(price: Price): keyof Price | "none" {
-		if (price.redstone > 0) return "redstone"
-		if (price.glowstone > 0) return "glowstone"
-		if (price.aqua_regia > 0) return "aqua_regia"
-		if (price.potion_mix > 0) return "potion_mix"
-		return "none"
-	}
-
-	const currencyTheme = {
-		redstone: {
-			shadow: "shadow-md shadow-red-700",
-		},
-
-		glowstone: {
-			shadow: "shadow-md shadow-yellow-600",
-		},
-
-		aqua_regia: {
-			shadow: "shadow-md shadow-blue-700",
-		},
-
-		potion_mix: {
-			shadow: "shadow-md shadow-rose-700",
-		},
-
-		none: {
-			shadow: "shadow-md shadow-primary",
-		},
-	} as const
 
 	const shopItems: ShopItem[] = data.items
 		.map((item: any) => ({
 			itemID: item.itemID,
 			name: item.name,
 			description: item.description,
-			price: item.itemPrice,
+			priceHundredths: item.priceHundredths ?? 0,
 			image: item.cdnImage,
-			primaryCurrency: getPrimaryCurrency(item.itemPrice),
 		}))
-		.sort((a: any, b: any) => {
-			const getPrice = (item: ShopItem) =>
-				item.primaryCurrency === "none" ? 0 : item.price[item.primaryCurrency]
-
-			return getPrice(a) - getPrice(b)
-		})
+		.sort((a: ShopItem, b: ShopItem) => a.priceHundredths - b.priceHundredths)
 </script>
 
 <svelte:head>
@@ -97,12 +54,10 @@
 		class="relative z-10 flex-1 min-h-0 overflow-y-auto pr-2 pt-4 pb-6 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 content-start"
 	>
 		{#each shopItems as item}
-			{@const theme = currencyTheme[item.primaryCurrency]}
-
 			<div
 				class={cn(
 					"relative z-10 w-full flex flex-col bg-card border-2 rounded p-3 h-full gap-3 backdrop-blur-sm transition-all",
-					theme.shadow
+					"shadow-md shadow-blue-700"
 				)}
 			>
 				<div
@@ -131,6 +86,10 @@
 					</div>
 
 					<div class="pt-2 border-t border-border w-full mt-auto space-y-2">
+						<p class="text-xs font-body text-card-foreground text-right">
+							{formatAqua(item.priceHundredths)}
+						</p>
+
 						<Button variant="secondary" class={"w-full"}>
 							<a href="/" class="hover:text-primary"> Login to Purchase </a>
 						</Button>

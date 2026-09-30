@@ -40,6 +40,8 @@ export async function submitProjectToAirtable(data: Submission) {
 				Authorization: `Bearer ${TOKEN}`,
 				"Content-Type": "application/json"
 			},
+			// The T2 ship holds project/user row locks while this runs, so never wait indefinitely
+			signal: AbortSignal.timeout(15_000),
 			body: JSON.stringify({
 				fields: {
 					"Code URL": data.codeUrl,

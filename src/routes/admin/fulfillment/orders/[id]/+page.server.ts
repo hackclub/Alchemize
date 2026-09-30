@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
             fulfiller: orderDetails.fields.fulfiller,
             email: orderDetails.fields.ordererEmail,
             dateCreated: orderDetails.fields.dateCreated,
-            price: orderDetails.fields.itemPrice,
+            priceHundredths: orderDetails.fields.priceHundredths,
             img: orderDetails.fields.cdnImage,
             ageNow,
             firstName: decryptedFirstName,

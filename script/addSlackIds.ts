@@ -26,7 +26,8 @@ export const userTable = pgTable("users", {
     email: varchar({ length: 455 }).notNull(),
     hackatime: varchar({ length: 1000 }),
     slackId: varchar({ length: 255 }),
-    currency: varchar({ length: 2000 }).notNull(),
+    currency: varchar({ length: 2000 }).notNull().default("{}"),
+    balanceHundredths: integer().notNull().default(0),
 });
 
 const pool = new pg.Pool({

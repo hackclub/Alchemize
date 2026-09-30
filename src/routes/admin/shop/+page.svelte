@@ -8,38 +8,20 @@
 	import { toast } from "svelte-sonner"
 	import { Plus } from "@lucide/svelte"
 	import { invalidateAll } from "$app/navigation"
+	import { formatAqua } from "$lib/currency"
 	let { data } = $props()
-	interface UserCurrency {
-		redstone: number
-		glowstone: number
-		aqua_regia: number
-		potion_mix: number
-	}
-
-	type ShopItem = {
-		itemID: string
-		name: string
-		description: string
-		price: UserCurrency
-		image: string
-	}
 	interface Item {
 		itemID: string
 		name: string
 		description: string
-		price: {
-			redstone: number
-			glowstone: number
-			aqua_regia: number
-			potion_mix: number
-		}
+		priceHundredths: number
 		image: string
 	}
 	let isDialogOpen = $state(false)
 	let selectedItem = $state<Item>({
 		name: "",
 		description: "",
-		price: { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 },
+		priceHundredths: 0,
 		image: "",
 		itemID: "",
 	})
@@ -47,11 +29,11 @@
 	let searchQuery = $state("")
 
 	let shopItems = $derived(
-		data?.items?.map((item: any) => ({
+		data?.items?.map((item): Item => ({
 			itemID: item.itemID,
 			name: item.name,
 			description: item.description,
-			price: item.itemPrice,
+			priceHundredths: item.priceHundredths,
 			image: item.cdnImage,
 		})) ?? []
 	)
@@ -64,19 +46,6 @@
 		)
 	)
 
-	const renderCurrency = (currency: UserCurrency) => {
-		if (currency.redstone > 0) {
-			return `${currency.redstone} Redstone`
-		} else if (currency.glowstone > 0) {
-			return `${currency.glowstone} Glowstone`
-		} else if (currency.aqua_regia > 0) {
-			return `${currency.aqua_regia} Aqua Regia`
-		} else if (currency.potion_mix > 0) {
-			return `${currency.potion_mix} Potion Mix`
-		} else {
-			return "0 Currency"
-		}
-	}
 	let openCreateItem = $state(false)
 	let openEditItem = $state(false)
 	const invalidater = async () => {
@@ -186,7 +155,7 @@
 								>Cost:</span
 							>
 							<span class="text-primary font-bold tracking-wider">
-								{renderCurrency(item.price)}
+								{formatAqua(item.priceHundredths)}
 							</span>
 						</div>
 

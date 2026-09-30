@@ -4,15 +4,30 @@ import {ADMIN_JWT_SECRET, BOT_AUTH} from "$env/static/private"
 import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
 import { patchProjectForShip, getProjectById } from "$lib/db"
-import { updated } from "$app/state"
-function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): Log[] {
+// T1 "Deduct hours" arrives in hours (null when the input is left empty); log deltas are stored in minutes.
+// Returns the minutes to deduct from the last log entry, or an error message.
+function parseDeductionMinutes(decreaseTime: unknown, lastLog: Log | undefined): number | string {
+    const hours = decreaseTime ?? 0
+    if (typeof hours !== "number" || !Number.isFinite(hours) || hours < 0) {
+        return "Deducted hours must be a non-negative number"
+    }
+    if (!lastLog) {
+        return "Project has no log to review"
+    }
+    const minutes = Math.round(hours * 60)
+    if (minutes > lastLog.deltaTime) {
+        return `Cannot deduct ${hours}h, this review's delta is only ${(lastLog.deltaTime / 60).toFixed(2)}h`
+    }
+    return minutes
+}
+function updateLog(log: Log[], deductMinutes: number, userExternal: string, name: string, internalNote: string, justification: string): Log[] {
 
     if (log.length === 0) {
         throw new Error("Log is empty")
     }
     const lastLog = log[log.length - 1]
 
-        const newDeltaTime = lastLog.deltaTime - deltaTime
+        const newDeltaTime = lastLog.deltaTime - deductMinutes
         return [...log.slice(0, -1), {
             ...lastLog,
             status: 2,
@@ -52,10 +67,25 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
     }
     const log = projectData.fields.log
     const name = decoded.name
-    const updatedLog = updateLog(JSON.parse(log), -decreaseTime, userExternal, name, internalNote, justification)
-    const [response, botResponse] = await Promise.all([
-        patchProjectForShip(recordId, updatedLog, "rejected"),
-        fetch("https://notifications.alchemize.hackclub.com/review-reject", {
+    const parsedLog = JSON.parse(log) as Log[]
+    const deductMinutes = parseDeductionMinutes(decreaseTime, parsedLog.at(-1))
+    if (typeof deductMinutes === "string") {
+        return error(400, deductMinutes)
+    }
+    const updatedLog = updateLog(parsedLog, deductMinutes, userExternal, name, internalNote, justification)
+    const response = await patchProjectForShip(recordId, log, updatedLog, "rejected")
+    if (!response.ok) {
+        const errorData = await response.json()
+        console.error("Failed to update project log:", {
+            status: response.status,
+            error: errorData,
+            timestamp: new Date().toISOString()
+        })
+        // 409 = the log changed since it was read (e.g. a T2 award landed); the client must refresh
+        return error(response.status === 409 ? 409 : 500, response.status === 409 ? errorData.message : "Failed to update project log")
+    }
+    // Notify only after the write has committed
+    const botResponse = await fetch("https://notifications.alchemize.hackclub.com/review-reject", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -65,16 +95,6 @@ export const POST: RequestHandler = async ({ request,cookies }) => {
             { "user_id": projectData.fields.slackId, "project_name": projectData.fields.Name, "project_link": projectData.fields.code ?? "", "reviewer_id": decoded.slackId, "feedback": userExternal }
             )
         })
-    ])
-    if (!response.ok) {
-        const errorData = await response.json()
-        console.error("Failed to update project log:", {
-            status: response.status,
-            error: errorData,
-            timestamp: new Date().toISOString()
-        })
-        return error(500, "Failed to update project log")
-    }
      
         if (!botResponse.ok) {
             console.warn(`Failed to send notification to bot for record ${recordId}:`, {

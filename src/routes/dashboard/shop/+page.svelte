@@ -3,44 +3,32 @@
 	import ShopDialog from "$lib/components/shopitem-dialog.svelte"
 	import OrdersDialog from "$lib/components/orders-dialog.svelte"
 	import { getSlackProfile } from "$lib/utils"
-	//@ts-ignore
-	import looseJson from "loose-json"
 	import { ShoppingBag } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { cn } from "$lib/lib/utils"
 	import Input from "$lib/components/ui/input/input.svelte"
 	import { Search } from "lucide-svelte"
+	import { invalidateAll } from "$app/navigation"
+	import { formatAqua, hundredthsToUnits } from "$lib/currency"
 
 	let { data } = $props()
 	const loggedIn = !!data.userRecord
 
-	let currencies = $state(
-		looseJson(
-			data.userRecord?.fields?.currency ??
-				'{"redstone":0,"glowstone":0,"aqua_regia":0,"potion_mix":0}'
-		) as UserCurrency
+	let balanceHundredths = $derived(
+		data.userRecord?.fields?.balanceHundredths ?? 0
 	)
-
-	interface UserCurrency {
-		redstone: number
-		glowstone: number
-		aqua_regia: number
-		potion_mix: number
-	}
 
 	type ShopItem = {
 		itemID: string
 		name: string
 		description: string
-		price: UserCurrency
+		priceHundredths: number
 		image: string
 		grayedOut?: boolean
-		primaryCurrency: keyof UserCurrency | "none"
 	}
 
-	type SortOption = "none" | "affordable" | keyof UserCurrency
+	type SortOption = "none" | "affordable" | "price"
 
-	let activeCurrencies = $state<Set<keyof UserCurrency>>(new Set())
 	let affordableOnly = $state(false)
 	let activeSort = $state<SortOption>("none")
 	let isDialogOpen = $state(false)
@@ -50,114 +38,42 @@
 	let selectedItem = $state<ShopItem>({
 		name: "",
 		description: "",
-		price: { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 },
+		priceHundredths: 0,
 		image: "",
 		itemID: "",
-		primaryCurrency: "none",
 	})
 
-	function toggleCurrency(currency: keyof UserCurrency) {
-		if (activeCurrencies.has(currency)) {
-			activeCurrencies.delete(currency)
-		} else {
-			activeCurrencies.add(currency)
-		}
-		activeCurrencies = new Set(activeCurrencies)
-	}
-
-	function getPrimaryCurrency(
-		price: UserCurrency
-	): keyof UserCurrency | "none" {
-		if (price.redstone > 0) return "redstone"
-		if (price.glowstone > 0) return "glowstone"
-		if (price.aqua_regia > 0) return "aqua_regia"
-		if (price.potion_mix > 0) return "potion_mix"
-		return "none"
-	}
-
-	function getItemPriceValue(item: ShopItem): number {
-		if (item.primaryCurrency === "none") return 0
-		return item.price[item.primaryCurrency] ?? 0
-	}
-
-	const currencyTheme = {
-		redstone: {
-			shadow: "shadow-red border-red-900",
-		},
-
-		glowstone: {
-			shadow: "shadow-gls border-yellow-900",
-		},
-
-		aqua_regia: {
-			shadow: "shadow-aqr border-blue-900",
-		},
-
-		potion_mix: {
-			shadow: "shadow-pmix border-rose-900",
-		},
-
-		none: {
-			shadow: "shadow-neo border",
-		},
-	}
-	function isGrayedOut(userHas: UserCurrency, itemPrice: UserCurrency) {
-		return (
-			userHas.redstone < itemPrice.redstone ||
-			userHas.glowstone < itemPrice.glowstone ||
-			userHas.aqua_regia < itemPrice.aqua_regia ||
-			userHas.potion_mix < itemPrice.potion_mix
-		)
-	}
-
-	function getEstimatedHours(
-		currency: keyof UserCurrency | "none",
-		amount: number
-	): number {
-		if (currency === "none" || amount <= 0) return 0
-		let hours = amount
-		if (currency === "potion_mix") hours = amount / 4.5
-		return Math.ceil(hours)
+	// 1 Aqua Regia = 1 hour of work
+	function getEstimatedHours(priceHundredths: number): number {
+		if (priceHundredths <= 0) return 0
+		return Math.ceil(hundredthsToUnits(priceHundredths))
 	}
 
 	const shopItems = $derived.by(() => {
 		const rawItems =
 			data?.items?.map((item: any) => {
-				const primaryCurrency = getPrimaryCurrency(item.itemPrice)
-				const currencyAmount =
-					primaryCurrency !== "none"
-						? (item.itemPrice[primaryCurrency] ?? 0)
-						: 0
+				const priceHundredths: number = item.priceHundredths ?? 0
 
 				return {
 					itemID: item.itemID,
 					name: item.name,
 					description: item.description,
-					price: item.itemPrice,
+					priceHundredths,
 					image: item.cdnImage,
-					grayedOut: isGrayedOut(currencies, item.itemPrice),
-					primaryCurrency: primaryCurrency,
-					estimatedHours: getEstimatedHours(primaryCurrency, currencyAmount),
+					grayedOut: balanceHundredths < priceHundredths,
+					estimatedHours: getEstimatedHours(priceHundredths),
 				}
 			}) ?? []
 
 		let filtered = [...rawItems]
 		if (affordableOnly) filtered = filtered.filter(item => !item.grayedOut)
 
-		if (activeCurrencies.size > 0) {
-			filtered = filtered.filter(
-				item =>
-					item.primaryCurrency !== "none" &&
-					activeCurrencies.has(item.primaryCurrency)
-			)
-		}
-
 		if (activeSort === "none") {
-			filtered.sort((a, b) => getItemPriceValue(a) - getItemPriceValue(b))
+			filtered.sort((a, b) => a.priceHundredths - b.priceHundredths)
 		} else if (activeSort === "affordable") {
 			filtered.sort((a, b) => Number(a.grayedOut) - Number(b.grayedOut))
 		} else {
-			filtered.sort((a, b) => b.price[activeSort] - a.price[activeSort])
+			filtered.sort((a, b) => b.priceHundredths - a.priceHundredths)
 		}
 
 		return filtered
@@ -169,11 +85,6 @@
 	}
 
 	function handleConfirmPurchase(qty: number) {
-		currencies.potion_mix -= qty * selectedItem.price.potion_mix
-		currencies.redstone -= qty * selectedItem.price.redstone
-		currencies.glowstone -= qty * selectedItem.price.glowstone
-		currencies.aqua_regia -= qty * selectedItem.price.aqua_regia
-
 		fetch("/dashboard/shop/order", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -184,15 +95,8 @@
 			} else {
 				toast.error("Purchase failed")
 			}
+			invalidateAll()
 		})
-	}
-
-	const renderCurrency = (currency: UserCurrency) => {
-		if (currency.redstone > 0) return `${currency.redstone} Redstone`
-		if (currency.glowstone > 0) return `${currency.glowstone} Glowstone`
-		if (currency.aqua_regia > 0) return `${currency.aqua_regia} Aqua Regia`
-		if (currency.potion_mix > 0) return `${currency.potion_mix} Potion Mix`
-		return "Free"
 	}
 
 	let finalItems = $derived(
@@ -239,76 +143,17 @@
 		</div>
 
 		{#if loggedIn}
-			<div
-				class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full font-note font-bold"
-			>
-				<Button
-					onclick={() => toggleCurrency("redstone")}
-					class={cn(
-						"justify-between rounded-md border-2 px-3 py-2 shadow-sm shadow-red-900/20 transition-all hover:border-red-700 hover:bg-red-800/20 dark:border-red-300/50 dark:hover:border-red-300 dark:hover:bg-red-300/15",
-						activeCurrencies.has("redstone")
-							? "border-red-700 bg-red-700/80 text-white hover:bg-red-700/50 dark:border-red-300 dark:bg-red-700/80"
-							: "border-red-700/50 bg-red-800/10 text-red-800 dark:bg-red-300/10 dark:text-red-300"
-					)}
+			<div class="flex w-full font-note font-bold">
+				<div
+					class="flex items-center justify-between gap-4 rounded-md border-2 px-3 py-2 shadow-sm shadow-blue-900/20 border-blue-700/50 bg-blue-800/10 text-blue-800 dark:border-blue-300/50 dark:bg-blue-300/10 dark:text-blue-300"
 				>
 					<span class="text-[10px] sm:text-xs uppercase tracking-wider">
-						Redstone
+						Balance
 					</span>
 					<span class="font-black text-xs sm:text-sm">
-						{currencies.redstone}
+						{formatAqua(balanceHundredths)}
 					</span>
-				</Button>
-
-				<Button
-					onclick={() => toggleCurrency("glowstone")}
-					class={cn(
-						"justify-between rounded-md border-2 px-3 py-2 shadow-sm shadow-amber-900/20 transition-all hover:border-amber-700 hover:bg-amber-800/20 dark:border-amber-300/50 dark:hover:border-amber-300 dark:hover:bg-amber-300/15",
-						activeCurrencies.has("glowstone")
-							? "border-amber-700 bg-amber-800/80 text-white hover:bg-amber-800/50 dark:border-amber-300 dark:bg-amber-800/80"
-							: "border-amber-700/50 bg-amber-800/10 text-amber-800 dark:bg-amber-300/10 dark:text-amber-300"
-					)}
-				>
-					<span class="text-[10px] sm:text-xs uppercase tracking-wider">
-						Glowstone
-					</span>
-					<span class="font-black text-xs sm:text-sm">
-						{currencies.glowstone}
-					</span>
-				</Button>
-
-				<Button
-					onclick={() => toggleCurrency("aqua_regia")}
-					class={cn(
-						"justify-between rounded-md border-2 px-3 py-2 shadow-sm shadow-blue-900/20 transition-all hover:border-blue-700 hover:bg-blue-800/20 dark:border-blue-300/50 dark:hover:border-blue-300 dark:hover:bg-blue-300/15",
-						activeCurrencies.has("aqua_regia")
-							? "border-blue-700 bg-blue-700/80 text-white hover:bg-blue-700/50 dark:border-blue-300 dark:bg-blue-700/80"
-							: "border-blue-700/50 bg-blue-800/10 text-blue-800 dark:bg-blue-300/10 dark:text-blue-300"
-					)}
-				>
-					<span class="text-[10px] sm:text-xs uppercase tracking-wider">
-						Aqua Regia
-					</span>
-					<span class="font-black text-xs sm:text-sm">
-						{currencies.aqua_regia}
-					</span>
-				</Button>
-
-				<Button
-					onclick={() => toggleCurrency("potion_mix")}
-					class={cn(
-						"justify-between rounded-md border-2 px-3 py-2 shadow-sm shadow-rose-900/20 transition-all hover:border-rose-700 hover:bg-rose-800/20 dark:border-rose-300/50 dark:hover:border-rose-300 dark:hover:bg-rose-300/15",
-						activeCurrencies.has("potion_mix")
-							? "border-rose-700 bg-rose-700/80 text-white hover:bg-rose-700/50 dark:border-rose-300 dark:bg-rose-700/80"
-							: "border-rose-700/50 bg-rose-800/10 text-rose-800 dark:bg-rose-300/10 dark:text-rose-300"
-					)}
-				>
-					<span class="text-[10px] sm:text-xs uppercase tracking-wider">
-						Potion Mix
-					</span>
-					<span class="font-black text-xs sm:text-sm">
-						{currencies.potion_mix}
-					</span>
-				</Button>
+				</div>
 			</div>
 		{/if}
 	</header>
@@ -345,10 +190,7 @@
 					>
 						<option value="none">Default</option>
 						<option value="affordable">Affordable First</option>
-						<option value="redstone">Highest Redstone Cost</option>
-						<option value="glowstone">Highest Glowstone Cost</option>
-						<option value="aqua_regia">Highest Aqua Regia Cost</option>
-						<option value="potion_mix">Highest Potion Mix Cost</option>
+						<option value="price">Highest Cost</option>
 					</select>
 				</div>
 			</div>
@@ -373,12 +215,10 @@
 		class="relative z-10 flex-1 min-h-0 overflow-y-auto pr-2 pt-4 pb-6 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 content-start"
 	>
 		{#each finalItems as item}
-			{@const theme = currencyTheme[item.primaryCurrency]}
-
 			<div
 				class={cn(
 					"relative z-10 w-full flex flex-col bg-card border-2 rounded rounded-tl-3xl rounded-br-3xl p-3 h-full gap-3 backdrop-blur-sm transition-all",
-					theme.shadow
+					"shadow-aqr border-blue-900"
 				)}
 			>
 				<div
@@ -413,7 +253,7 @@
 							</p>
 
 							<p class={cn("text-xs font-body text-card-foreground")}>
-								{renderCurrency(item.price)}
+								{formatAqua(item.priceHundredths)}
 							</p>
 						</div>
 
@@ -431,7 +271,7 @@
 							{:else if item.grayedOut}
 								Locked...
 							{:else}
-								Buy ~ {renderCurrency(item.price)}
+								Buy ~ {formatAqua(item.priceHundredths)}
 							{/if}
 						</Button>
 					</div>
@@ -446,7 +286,7 @@
 		allItems={shopItems}
 		bind:open={isDialogOpen}
 		item={selectedItem}
-		currency={currencies}
+		{balanceHundredths}
 		onConfirm={handleConfirmPurchase}
 	/>
 
@@ -454,16 +294,7 @@
 {/if}
 
 <style>
-	.shadow-red {
-		box-shadow: 4px 4px 0px var(--color-red-700);
-	}
 	.shadow-aqr {
 		box-shadow: 4px 4px 0px var(--color-blue-600);
-	}
-	.shadow-gls {
-		box-shadow: 4px 4px 0px var(--color-yellow-600);
-	}
-	.shadow-pmix {
-		box-shadow: 4px 4px 0px var(--color-rose-400);
 	}
 </style>
