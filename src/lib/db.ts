@@ -304,7 +304,12 @@ export const atomicShipProjectAndAward = async (
                 throw new TransactionAbort(404, "Project owner not found");
             }
 
-            const { newLog, amountHundredths, remarks } = await ship({ log: JSON.parse(log || "[]") as Log[], owner, theme: Theme });
+            const lockedLog = JSON.parse(log || "[]") as Log[];
+            const { newLog, amountHundredths, remarks } = await ship({ log: lockedLog, owner, theme: Theme });
+            const violation = findPushedEntryViolation(lockedLog, newLog);
+            if (violation) {
+                throw new TransactionAbort(500, `Refusing award: ${violation}`);
+            }
             if (!Number.isSafeInteger(amountHundredths) || amountHundredths < 0) {
                 throw new TransactionAbort(500, "Invalid award amount");
             }
@@ -660,38 +665,60 @@ export const getProjectById = async (projectId: string): Promise<DBResponse> => 
         text: async () => JSON.stringify({ id: project[0].id + "", fields: project[0] } as airtableReplication),
     } as DBResponse;
 };
-export const patchProjectForShip = async (projectId: string, log: Log[], status: string): Promise<DBResponse> => {
-    const updatePayload = {
-        log: JSON.stringify(log),
-        status: status
-    };
+// Log entries already sent to HQ have been paid for. No rewrite may drop them, unmark them or change their
+// status/time, otherwise they would become eligible for another T2 award. Returns a reason, or null if safe.
+const findPushedEntryViolation = (current: Log[], next: Log[]): string | null => {
+    for (let i = 0; i < current.length; i++) {
+        const before = current[i]
+        if (!before?.submmitedToHQ) continue
+        const after = next[i]
+        if (!after || after.submmitedToHQ !== true || after.status !== before.status || after.deltaTime !== before.deltaTime) {
+            return `log entry ${i} was already submitted to HQ and cannot be modified`
+        }
+    }
+    return null
+}
+
+// Whole-log replacement as a compare-and-swap: `expectedLog` must be the exact raw log the caller built `log`
+// from. The row is locked, and if anyone (e.g. a T2 award) changed the log since that read, nothing is written
+// and 409 is returned so the caller re-reads instead of overwriting the newer state.
+export const patchProjectForShip = async (projectId: string, expectedLog: string, log: Log[], status: string): Promise<DBResponse> => {
     try {
-        const updatedProject = await db
-            .update(projectTable)
-            .set(updatePayload)
-            .where(eq(projectTable.id, parseInt(projectId)))
-            .returning();
-        if (updatedProject.length === 0) {
+        return await withTransaction(async (client) => {
+            const current = await client.query('SELECT log FROM projects WHERE id = $1 FOR UPDATE', [parseInt(projectId)]);
+            if (current.rows.length === 0) {
+                throw new TransactionAbort(404, "Project not found");
+            }
+            if (current.rows[0].log !== expectedLog) {
+                throw new TransactionAbort(409, "This project changed while you were working on it. Refresh and try again.");
+            }
+            const violation = findPushedEntryViolation(JSON.parse(expectedLog || "[]") as Log[], log);
+            if (violation) {
+                console.error(`Refused log rewrite for project ${projectId}: ${violation}`);
+                throw new TransactionAbort(409, "Entries already submitted to HQ cannot be changed");
+            }
+            const updated = await client.query(
+                'UPDATE projects SET log = $1, status = $2 WHERE id = $3 RETURNING id',
+                [JSON.stringify(log), status, parseInt(projectId)]
+            );
             return {
-                ok: false,
-                status: 404,
-                json: async () => ({ message: "Project not found" }),
-                text: async () => JSON.stringify({ message: "Project not found" }),
-            };
+                ok: true,
+                status: 200,
+                json: async () => ({ id: updated.rows[0].id + "" }),
+                text: async () => JSON.stringify({ id: updated.rows[0].id + "" }),
+            } as DBResponse;
+        });
+    } catch (error) {
+        const status = error instanceof TransactionAbort ? error.status : 500;
+        const message = error instanceof TransactionAbort ? error.message : "Database update failed";
+        if (!(error instanceof TransactionAbort)) {
+            console.error("Database write failed:", error);
         }
         return {
-            ok: true,
-            status: 200,
-            json: async () => ({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
-            text: async () => JSON.stringify({ id: updatedProject[0].id + "", fields: updatedProject[0] } as airtableReplication),
-        } as DBResponse;
-    } catch (error) {
-        console.error("Database write failed:", error);
-        return {
             ok: false,
-            status: 500,
-            json: async () => ({ message: "Database update failed" }),
-            text: async () => JSON.stringify({ message: "Database update failed" }),
+            status,
+            json: async () => ({ message }),
+            text: async () => JSON.stringify({ message }),
         };
     }
 };

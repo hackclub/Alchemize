@@ -80,12 +80,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     const [newLog, newDeltaTime] = updateLog(oldLog, deductMinutes, userExternal, approver, internalNote, justification)
 
 
-    const [response] = await Promise.all([
-        patchProjectForShip(recordId, newLog, "accepted"),
-
-
-
-    ])
+    const response = await patchProjectForShip(recordId, log, newLog, "accepted")
     if (!response.ok) {
         const errorData = await response.json()
         console.error("Failed to update project log:", {
@@ -93,6 +88,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             error: errorData,
             timestamp: new Date().toISOString()
         })
+        // 409 = the log changed since it was read (e.g. a T2 award landed); the reviewer must refresh
+        if (response.status === 409) {
+            return new Response(errorData.message, { status: 409 })
+        }
         return new Response("Failed to update project log", { status: 500 })
     }
 
