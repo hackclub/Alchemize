@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
-import type { Item, UserCurrency } from "$lib/types"
+import type { Item } from "$lib/types"
+import { unitsToHundredths } from "$lib/currency"
 import { deleteShopItem, fetchAllItems, upsertShopItem } from '$lib/db';
 import { redirect, error } from '@sveltejs/kit';
 import jwt from 'jsonwebtoken';
@@ -29,12 +30,15 @@ export const actions = {
         let itemID = formData.get('itemID') as string | null;
         const name = formData.get('name') as string;
         const description = formData.get('description') as string;
-        const itemPrice = parseInt(formData.get('itemPrice') as string);
+        // Price is entered in Aqua Regia (up to two decimals) and stored in hundredths
+        const priceHundredths = unitsToHundredths(Number(formData.get('itemPrice')));
         const cdnImage = formData.get('cdnImage') as string;
-        const currencyType = formData.get('currencyType') as string;
         const img = formData.get('img') as File | null;
-        if (!name || !description || !itemPrice || !currencyType) {
+        if (!name || !description) {
             return error(400, "Bad Request");
+        }
+        if (priceHundredths === null || priceHundredths <= 0) {
+            return error(400, "Price must be a positive amount of Aqua Regia");
         }
         if (!itemID) {
             itemID = null;
@@ -68,17 +72,10 @@ export const actions = {
             const { url } = await cdnResponse.json();
             cdnLink = url;
         }
-        let itemPriceObj = {
-            redstone: 0,
-            glowstone: 0,
-            aqua_regia: 0,
-            potion_mix: 0,
-        }
-        itemPriceObj[currencyType as keyof UserCurrency] = itemPrice;
         const upsertResponse = await upsertShopItem({
             name,
             description,
-            itemPrice: itemPriceObj,
+            priceHundredths,
             cdnImage: cdnLink,
 
         }, itemID)
@@ -163,7 +160,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         itemID: record.id,
         name: record.fields.name,
         description: record.fields.description,
-        itemPrice: record.fields.itemPrice,
+        priceHundredths: record.fields.priceHundredths,
         cdnImage: record.fields.cdnImage,
     }));
 

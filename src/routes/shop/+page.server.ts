@@ -9,7 +9,7 @@ export const load: PageServerLoad = async () => {
             itemID: record.id,
             name: record.fields.name,
             description: record.fields.description,
-            itemPrice: record.fields.itemPrice,
+            priceHundredths: record.fields.priceHundredths,
             cdnImage: record.fields.cdnImage,
         })),
     };

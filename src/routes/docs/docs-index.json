@@ -41,14 +41,9 @@
 	],
     "Stones and Shops": [
 		{
-			"name": "The Stones",
+			"name": "Aqua Regia",
 			"path": "/docs/stones-and-shops/the-stones",
 			"filePath": "/markdown/shop-and-stones/The Stones.md"
-		},
-				{
-			"name": "Mastering Alchemy",
-			"path": "/docs/stones-and-shops/mixing-stones",
-			"filePath": "/markdown/shop-and-stones/Mixing Stones.md"
 		}
 	],
     "Software": [

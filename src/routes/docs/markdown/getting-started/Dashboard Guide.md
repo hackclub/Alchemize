@@ -1,6 +1,6 @@
 # Dashboard Guide
 
-The dashboard is your home base throughout Alchemize. From here, you can manage projects, track currencies, browse rewards, and convert currencies into Potion Mix.
+The dashboard is your home base throughout Alchemize. From here, you can manage projects, check your Aqua Regia balance, and browse rewards.
 
 ---
 
@@ -70,80 +70,23 @@ After submission, your project will be reviewed and processed according to the e
 
 ---
 
-## Currency System
+## Currency
 
-Every theme in Alchemize has its own currency.
+Alchemize has a single currency: **Aqua Regia**.
 
-As you spend time building projects and logging hours through Hackatime, you earn currency associated with the theme your project belongs to.
+Every approved hour earns you **1 Aqua Regia** ($5), no matter which theme your project belongs to. Your balance is shown on the dashboard with up to two decimals, since hours are credited to the minute.
 
-For Season 1:
-
-| Theme         | Currency   |
-| ------------- | ---------- |
-| Indie Gamedev | Redstone   |
-| Endless       | Aqua Regia |
-| No Internet   | Glowstone  |
-
-The more you build, the more currency you earn.
-
-Currencies can be:
-
-* Spent directly in the shop
-* Combined with other currencies to create Potion Mix
-
-Potion Mix can then be used to unlock additional rewards.
+The more you build, the more Aqua Regia you earn.
 
 ---
 
 ## Shop
 
-The Shop is where you spend the currencies you've earned.
+The Shop is where you spend the Aqua Regia you've earned.
 
-Different rewards require different currencies depending on their category.
-
-### Aqua Regia Rewards
-
-Rewards related to the **Indie Gamedev** theme.
-
-These can be purchased using **Aqua Regia**.
-
-### Redstone Rewards
-
-Rewards related to the **Endless** theme.
-
-These can be purchased using **Redstone**.
-
-### Glowstone Rewards
-
-Rewards related to the **No Internet** theme.
-
-These can be purchased using **Glowstone**.
-
-### Potion Mix Rewards
-
-Some rewards are not tied to a specific theme.
-
-These special rewards can be purchased using **Potion Mix**, which is created by combining thematic currencies.
+Every item is priced in Aqua Regia, and there are no theme-exclusive items.
 
 The shop inventory may change between seasons, so check back regularly for new rewards.
-
----
-
-## Trade
-
-The Trade Portal allows you to combine thematic currencies and transform them into **Potion Mix**.
-
-### How It Works
-
-1. Open the **Trade** page.
-2. Enter the amount of Aqua Regia, Redstone, and/or Glowstone you want to use.
-3. Experiment with different combinations.
-4. Review the Potion Mix output.
-5. Click **Convert** to complete the trade.
-
-Using currencies from multiple themes often results in better Potion Mix conversions, encouraging participants to explore more than one theme.
-
-Once created, Potion Mix can be spent on eligible rewards in the shop.
 
 ---
 

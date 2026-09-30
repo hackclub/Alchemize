@@ -1,6 +1,7 @@
 import type { RequestHandler } from "@sveltejs/kit"
 import { BOT_AUTH, USER_JWT_SECRET } from '$env/static/private';
-import type { Item, UserCurrency } from "$lib/types"
+import type { Item } from "$lib/types"
+import { formatAqua, MAX_HUNDREDTHS } from "$lib/currency"
 import { atomicPurchaseItem, getShopItemById } from "$lib/db";
 import jwt from 'jsonwebtoken';
 import type {UserAuthToken} from "$lib/types";
@@ -11,17 +12,6 @@ import { encryptAES } from "$lib/utils.server";
 interface RequestBody {
     itemId: string;
     quantity: number;
-}
-const getCurrency = (itemPrice: UserCurrency): keyof UserCurrency => {
-    if(itemPrice.redstone>0){
-        return "redstone"
-    }else if(itemPrice.glowstone>0){
-        return "glowstone"
-    }else if(itemPrice.aqua_regia>0){
-        return "aqua_regia"
-    }else{
-        return "potion_mix"
-    }
 }
 export const POST: RequestHandler = async ({ request, cookies }) => {
     const body: RequestBody = await request.json();
@@ -43,7 +33,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         itemID: itemRecord.id,
         name: itemRecord.fields.name,
         description: itemRecord.fields.description,
-        itemPrice: itemRecord.fields.itemPrice,
+        priceHundredths: itemRecord.fields.priceHundredths,
         cdnImage: itemRecord.fields.cdnImage,
     }
     const userToken = cookies.get('user_token');
@@ -68,15 +58,20 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     if (!uid || !email) {
         return new Response("Unauthorized", { status: 401 })
     }
-    const currencyUsed = getCurrency(item.itemPrice);
-    const totalPrice = item.itemPrice[currencyUsed] * body.quantity;
+    // Price comes only from the DB; an unpriced item must never be purchasable for free
+    if (!Number.isSafeInteger(item.priceHundredths) || item.priceHundredths <= 0) {
+        return new Response("Item is not available for purchase", { status: 400 })
+    }
+    const totalPrice = item.priceHundredths * body.quantity;
+    if (!Number.isSafeInteger(totalPrice) || totalPrice > MAX_HUNDREDTHS) {
+        return new Response("Quantity too large", { status: 400 })
+    }
 
 
     
     // Atomic purchase: deducts currency and creates order in a single transaction
     const purchaseResult = await atomicPurchaseItem(
         email,
-        currencyUsed,
         totalPrice,
         body.quantity,
         item.name,
@@ -105,7 +100,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             "Authorization": `Bearer ${BOT_AUTH}`
         },
         body: JSON.stringify(
-            { "user_id": data?.slack_id, "order_id": purchaseData.orderId, "item_name": item.name, "qty": `${body.quantity}`, "cost": `${totalPrice} ${currencyUsed.charAt(0).toUpperCase() + currencyUsed.slice(1)}` }
+            { "user_id": data?.slack_id, "order_id": purchaseData.orderId, "item_name": item.name, "qty": `${body.quantity}`, "cost": formatAqua(totalPrice) }
         )
     })
     if (!botResponse.ok) {

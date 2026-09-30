@@ -159,7 +159,7 @@
 				<h3
 					class="text-lg font-bold font-display tracking-tighter text-foreground text-shadow-xs text-shadow-primary selection:bg-primary selection:text-black pointer-events-none select-none flex flex-col items-center break-all sm:break-normal"
 				>
-					Make themed projects, get themed prizes!<br />
+					Make themed projects, earn Aqua Regia!<br />
 					<span class="text-sm shadow-none font-note font-light tracking-wider">
 						With more mixing this time</span
 					>
@@ -253,7 +253,7 @@
 					<p
 						class="text-muted-foreground font-body text-sm xl:text-base 2xl:text-lg leading-relaxed"
 					>
-						Submit your project for review to earn the stones.
+						Submit your project for review to earn Aqua Regia.
 					</p>
 				</div>
 
@@ -269,14 +269,14 @@
 						<h3
 							class="text-2xl xl:text-3xl 2xl:text-4xl font-black font-display uppercase tracking-tight text-foreground"
 						>
-							3 - Trade
+							3 - Earn
 						</h3>
 					</div>
 					<p
 						class="text-muted-foreground font-body text-sm xl:text-base 2xl:text-lg leading-relaxed"
 					>
-						Trade your awesome theme based stones (redstone, glowstone and
-						aqua-regia) to get potion mix!
+						Every approved hour earns you 1 Aqua Regia ($5), no matter which
+						theme you pick.
 					</p>
 				</div>
 				<div
@@ -297,7 +297,7 @@
 					<p
 						class="text-muted-foreground font-body text-sm xl:text-base 2xl:text-lg leading-relaxed"
 					>
-						Spend your precious stones and potion mix on rewards. New items are
+						Spend your precious Aqua Regia on rewards. New items are
 						added frequently!
 					</p>
 				</div>
@@ -334,8 +334,8 @@
 					<p
 						class="flex gap-2 text-foreground text-xs xl:text-sm 2xl:text-base font-body font-medium leading-relaxed font-body"
 					>
-						Rewards: Redstone
-						<img src="/alch-redstone.png" alt="" class="h-6 object-contain" />
+						Rewards: Aqua Regia
+						<img src="/alch-aquaregia.png" alt="" class="h-6 object-contain" />
 					</p>
 				</div>
 				<div
@@ -356,8 +356,8 @@
 					<p
 						class="flex gap-2 text-foreground text-xs xl:text-sm 2xl:text-base font-body font-medium leading-relaxed font-body"
 					>
-						Rewards: Glowstone
-						<img src="/alch-glowstone.png" alt="" class="h-6 object-contain" />
+						Rewards: Aqua Regia
+						<img src="/alch-aquaregia.png" alt="" class="h-6 object-contain" />
 					</p>
 				</div>
 				<div
@@ -379,7 +379,7 @@
 					<p
 						class="flex gap-2 text-foreground text-xs xl:text-sm 2xl:text-base font-body font-medium leading-relaxed font-body"
 					>
-						Rewards: Aqua regia
+						Rewards: Aqua Regia
 						<img src="/alch-aquaregia.png" alt="" class="h-6 object-contain" />
 					</p>
 				</div>

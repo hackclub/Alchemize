@@ -25,7 +25,7 @@
 ### How does the shop work?
 
 - The shop is fully run by you guys. You can choose whatever you want and it will be added to the shop. Add your suggestions here - Shop item suggestions
-- A theme based shop where you can buy items related to the current seasons' theme.
+- Every item in the shop is priced in Aqua Regia, and anything can be bought with Aqua Regia earned on any theme.
 
 ## Rules
 
@@ -98,36 +98,8 @@ Addons are the things you do in addition to your base project, like designing as
 - You can work on theme projects (you can work on 1 theme, 2 themes or even all of them, noone is gonna stop you).
 - If you don't get any idea for the themes you can work on general projects outside the theme.
 
-There is gonna be 3 currencies for each theme
+There is only one currency: **Aqua Regia**.
 
-- Redstone
-- Glowstone
-- Aqua Regia
-
-
-You can combine any 2 of the currencies to form Elite coins, and you get a bonus on combining them. You don't need to use your brain at all, just check which currency combination gives you more bonus and combine them. And there you go, you mastered the skill of Alchemy.
-
-The mixing bonus calculation is a bit complex. The simple formula is
-Bonus = ```Smaller of (Higher Currency*Bonus Constant) or (Lower currency * Bonus Constant)```
-How would that work you may ask?
-Lets say you have 4 Redstone and 2 Glowstone, since Glowstone has higher value, it is the higher currency
-Now we calculate the Bonus
-Assuming Bonus constant is `0.5$/hr`
-We calculate (Higher currency*Bonus Constant) and (Lower Currency * Bonus Constant)
-Which is ```(2 * 0.5) and (4 * 0.5) or 1 and 2 respectively```
-Since 1 is lower,  the bonus would be 1$/hr or 1 Potion Mix
-
-Some people will ask why this system.. 
-Answer is fully written in https://github.com/TheUtkarsh8939/Alchemize/blob/main/MIXING.md and this is a mathematically simplified formula to produce the exact result
-Basically for every higher value currency you convert, you get a higher conversion rate for the lower value currency
-
-For general projects:
-
-* Potion mix is the currency
-* 1 hour = 3.5 potion mix = $3.5
-
-
-
-
-
-
+- 1 approved hour = 1 Aqua Regia = $5
+- It's the same on every theme and on general projects
+- Spend it on anything in the shop
