@@ -15,7 +15,7 @@ All project work must be tracked using:
 * Lapse
 * Hackatime
 
-No tracked time = no currency.
+No tracked time = no Aqua Regia.
 
 The tracked project should correspond to the project you're submitting. If your Hackatime says you're building a calculator while your submission is a 3D game engine, reviewers may have questions.
 
@@ -170,7 +170,7 @@ A bad description is:
 
 ## Theme Requirement
 
-Choose a theme because your project belongs there, not because the currency name sounds cooler.
+Choose a theme because your project belongs there. Every theme earns the same Aqua Regia, so there's no reason to pick one that doesn't fit.
 
 Your project should genuinely satisfy the selected theme's requirements.
 

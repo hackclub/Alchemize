@@ -1,19 +1,34 @@
-import type { Log, UserCurrency, AdminJWT, AirtableProject } from "$lib/types";
-import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
-import { themeCurrencyMaps } from "$lib/themeCurrencyMaps"
+import type { Log, AdminJWT, AirtableProject } from "$lib/types";
+import { ADMIN_JWT_SECRET } from "$env/static/private"
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit"
 import jwt from "jsonwebtoken"
-import { addLedgerEntry, getProjectById, getUserByEmail, patchProjectForShip, patchUserCurrency } from "$lib/db";
+import { getProjectById, patchProjectForShip } from "$lib/db";
 
-function updateLog(log: Log[], deltaTime: number, userExternal: string, name: string, internalNote: string, justification: string): [Log[], number] {
+// T1 "Deduct hours" arrives in hours (null when the input is left empty); log deltas are stored in minutes.
+// Returns the minutes to deduct from the last log entry, or an error message.
+function parseDeductionMinutes(decreaseTime: unknown, lastLog: Log | undefined): number | string {
+    const hours = decreaseTime ?? 0
+    if (typeof hours !== "number" || !Number.isFinite(hours) || hours < 0) {
+        return "Deducted hours must be a non-negative number"
+    }
+    if (!lastLog) {
+        return "Project has no log to review"
+    }
+    const minutes = Math.round(hours * 60)
+    if (minutes > lastLog.deltaTime) {
+        return `Cannot deduct ${hours}h, this review's delta is only ${(lastLog.deltaTime / 60).toFixed(2)}h`
+    }
+    return minutes
+}
+function updateLog(log: Log[], deductMinutes: number, userExternal: string, name: string, internalNote: string, justification: string): [Log[], number] {
 
     if (log.length === 0) {
         throw new Error("Log is empty")
     }
     const lastLog = log[log.length - 1]
 
-    const newDeltaTime = lastLog.deltaTime - deltaTime
+    const newDeltaTime = lastLog.deltaTime - deductMinutes
     return [[...log.slice(0, -1), {
         ...lastLog,
         status: 1,
@@ -58,15 +73,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         }
         const log = projectData.fields.log
     const oldLog = JSON.parse(log) as Log[]
-    const [newLog, newDeltaTime] = updateLog(oldLog, -decreaseTime, userExternal, approver, internalNote, justification)
+    const deductMinutes = parseDeductionMinutes(decreaseTime, oldLog.at(-1))
+    if (typeof deductMinutes === "string") {
+        return error(400, deductMinutes)
+    }
+    const [newLog, newDeltaTime] = updateLog(oldLog, deductMinutes, userExternal, approver, internalNote, justification)
 
 
-    const [response] = await Promise.all([
-        patchProjectForShip(recordId, newLog, "accepted"),
-
-
-
-    ])
+    const response = await patchProjectForShip(recordId, log, newLog, "accepted")
     if (!response.ok) {
         const errorData = await response.json()
         console.error("Failed to update project log:", {
@@ -74,12 +88,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             error: errorData,
             timestamp: new Date().toISOString()
         })
+        // 409 = the log changed since it was read (e.g. a T2 award landed); the reviewer must refresh
+        if (response.status === 409) {
+            return new Response(errorData.message, { status: 409 })
+        }
         return new Response("Failed to update project log", { status: 500 })
     }
 
 
 
 
-    return new Response(JSON.stringify({ message: "Project accepted and user currency updated successfully", newLog: newLog }), { status: 200 })
+    return new Response(JSON.stringify({ message: "Project accepted", newLog: newLog }), { status: 200 })
 
 }

@@ -1,10 +1,10 @@
 # Welcome to Alchemize
 
-> Turn projects into currencies. Turn currencies into rewards.
+> Turn projects into Aqua Regia. Turn Aqua Regia into rewards.
 
-Alchemize is a seasonal coding event where you build projects, earn currencies, and spend them on real rewards.
+Alchemize is a seasonal coding event where you build projects, earn **Aqua Regia**, and spend it on real rewards.
 
-Every season comes with **3 themes**. Each theme has its own currency, and the projects you build determine how much of that currency you earn. You can spend those currencies directly in the shop or combine them into a special currency called **Potion Mix**.
+Every season comes with **3 themes**. Every approved hour on any theme earns **1 Aqua Regia** ($5), which you can spend in the shop.
 
 Build more. Earn more. Unlock more.
 
@@ -15,12 +15,10 @@ Build more. Earn more. Unlock more.
 1. Pick a theme.
 2. Build something that fits it.
 3. Log your coding hours.
-4. Earn that theme's currency.
+4. Earn 1 Aqua Regia for every approved hour.
 5. Spend it in the shop.
 
-You can participate in a single theme, but experimenting with multiple themes lets you earn multiple currencies and create **Potion Mix**.
-
-Think of each theme as a different ingredient. Combining ingredients creates stronger potions.
+Every theme earns Aqua Regia at the same rate, so pick the one you enjoy most.
 
 ---
 
@@ -45,17 +43,9 @@ No two seasons are guaranteed to be the same.
 
 Everything you earn can be spent in the shop.
 
-### Theme Rewards
+### Shop Rewards
 
-Some rewards are tied to specific themes and can only be purchased using that theme's currency.
-
-For example, a reward related to game development might only be purchasable using currency earned from the **Indie Gamedev** theme.
-
-### Potion Mix Rewards
-
-Currencies from different themes can be combined into **Potion Mix**.
-
-Potion Mix can be used to purchase special rewards that aren't tied to any single theme.
+Every shop item is priced in Aqua Regia, and any item can be bought with Aqua Regia earned on any theme.
 
 ### Seasonal Bonuses
 

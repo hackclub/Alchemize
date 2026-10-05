@@ -1,5 +1,5 @@
 import type {PageServerLoad} from './$types';
-import type {AirtableUser, User, UserCurrency} from "$lib/types"
+import type {AirtableUser, User} from "$lib/types"
 import { getAllUsers } from '$lib/db';
 import { ADMIN_JWT_SECRET } from '$env/static/private';
 import { redirect } from '@sveltejs/kit';
@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 const filterPII = (userData: AirtableUser): User => {
     return {
         email: userData.fields.email,
-        currency: userData.fields.currency
+        balanceHundredths: userData.fields.balanceHundredths
     }
 }
 export const load: PageServerLoad = async ({cookies}) => {

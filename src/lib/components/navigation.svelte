@@ -6,7 +6,6 @@
 		Home,
 		Blocks,
 		ShoppingBag,
-		ArrowLeftRight,
 		Users,
 		Newspaper,
 		ShieldUser,
@@ -39,12 +38,6 @@
 		// },
 		{ href: "/docs", label: "Documentation", icon: Newspaper, side: "left" },
 		{ href: "/refer", label: "Refer", icon: Users, side: "left" },
-		{
-			href: "/dashboard/trade",
-			label: "Trade",
-			icon: ArrowLeftRight,
-			side: "left",
-		},
 		{
 			href: "/dashboard/projects",
 			label: "Projects",

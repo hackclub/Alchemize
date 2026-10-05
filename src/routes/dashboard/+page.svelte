@@ -1,6 +1,4 @@
 <script lang="ts">
-	//@ts-ignore
-	import looseJson from "loose-json"
 	const { data } = $props()
 	import { CircleQuestionMark, Moon, Sun } from "@lucide/svelte"
 	import { Button } from "$lib/components/ui/button"
@@ -32,10 +30,9 @@
 		}
 	}
 
-	import type { UserCurrency } from "$lib/types"
+	import { CURRENCY_NAME, formatAqua } from "$lib/currency"
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
 	import {
-		ArrowRightLeft,
 		Blocks,
 		ShieldUser,
 		ShoppingBasket,
@@ -57,9 +54,9 @@
 			])
 		)
 	)
-	let userCurrencies = $derived(
-		looseJson(data.user?.currency ?? "{}")
-	) as UserCurrency
+	let balanceHundredths: number = $derived(
+		Number((data.user as { balanceHundredths?: number } | undefined)?.balanceHundredths ?? 0) || 0
+	)
 
 	const renderBadge = (text: string) => {
 		switch (text?.toLowerCase()) {
@@ -158,110 +155,32 @@
 					>
 						Your Inventory
 					</h1>
-					<a href="/dashboard/trade">
-						<Button variant="primary" size="sm">
-							<ArrowRightLeft class="w-3 h-3 stroke-2" />
-							Trade Station
-						</Button>
-					</a>
 				</div>
-				<div class="gap-3 grid grid-cols-2 sm:grid-cols-4">
-					<div
-						class="flex items-center gap-2 bg-secondary/80 border border-border/60 p-2 rounded-tl-2xl rounded-br-2xl rounded-md"
-					>
-						<div class="p-1 shrink-0 rounded">
-							<img
-								src="/alch-redstone.png"
-								alt="Redstone"
-								class="w-5 h-5 object-contain"
-							/>
-						</div>
-						<div class="min-w-0">
-							<p
-								class="text-secondary-foreground text-[9px] uppercase font-bold tracking-wider truncate"
-							>
-								Redstone
-							</p>
-							<p
-								class="font-body font-black text-muted-foreground text-base leading-none mt-0.5"
-							>
-								{userCurrencies.redstone.toFixed(2) ?? 0}
-							</p>
-						</div>
-					</div>
-
-					<div
-						class="flex items-center gap-2 bg-secondary/80 border border-border/60 p-2 rounded-tl-2xl rounded-br-2xl rounded-md"
-					>
-						<div class="p-1 shrink-0 rounded">
-							<img
-								src="/alch-glowstone.png"
-								alt="Glowstone"
-								class="w-5 h-5 object-contain"
-							/>
-						</div>
-						<div class="min-w-0">
-							<p
-								class="text-secondary-foreground text-[9px] uppercase font-bold tracking-wider truncate"
-							>
-								Glowstone
-							</p>
-							<p
-								class="font-body font-black text-muted-foreground text-base leading-none mt-0.5"
-							>
-								{userCurrencies.glowstone.toFixed(2) ?? 0}
-							</p>
+					<div class="gap-3 grid grid-cols-1 sm:grid-cols-2">
+						<div
+							class="flex items-center gap-2 bg-secondary/80 border border-border/60 p-2 rounded-tl-2xl rounded-br-2xl rounded-md"
+						>
+							<div class="p-1 shrink-0 rounded">
+								<img
+									src="/alch-aquaregia.png"
+									alt={CURRENCY_NAME}
+									class="w-5 h-5 object-contain"
+								/>
+							</div>
+							<div class="min-w-0">
+								<p
+									class="text-secondary-foreground text-[9px] uppercase font-bold tracking-wider truncate"
+								>
+									Balance
+								</p>
+								<p
+									class="font-body font-black text-muted-foreground text-base leading-none mt-0.5"
+								>
+									{formatAqua(balanceHundredths)}
+								</p>
+							</div>
 						</div>
 					</div>
-
-					<div
-						class="flex items-center gap-2 bg-secondary/80 border border-border/60 p-2 rounded-tl-2xl rounded-br-2xl rounded-md"
-					>
-						<div class="p-1 shrink-0 rounded">
-							<img
-								src="/alch-aquaregia.png"
-								alt="Aqua Regia"
-								class="w-5 h-5 object-contain"
-							/>
-						</div>
-						<div class="min-w-0">
-							<p
-								class="text-secondary-foreground text-[9px] uppercase font-bold tracking-wider truncate"
-							>
-								Aqua Regia
-							</p>
-							<p
-								class="font-body font-black text-muted-foreground text-base leading-none mt-0.5"
-							>
-								{userCurrencies.aqua_regia.toFixed(2) ?? 0}
-							</p>
-						</div>
-					</div>
-
-					<div
-						class="flex items-center gap-2 bg-secondary/80 border border-border/60 p-2 rounded-tl-2xl rounded-br-2xl rounded-md"
-					>
-						<div class="p-1 shrink-0 rounded">
-							<img
-								src="/pmix_v2.png"
-								alt="Potion Mix"
-								class="w-7 h-7 object-contain"
-							/>
-						</div>
-						<div class="min-w-0">
-							<p
-								class="text-secondary-foreground text-[9px] uppercase font-bold tracking-wider truncate"
-							>
-								Potion Mix
-							</p>
-							<p
-								class="font-body font-black text-muted-foreground text-base leading-none mt-0.5"
-							>
-								{userCurrencies.potion_mix.toFixed(2) ?? 0}
-							</p>
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
 

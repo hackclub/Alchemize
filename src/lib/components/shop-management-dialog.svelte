@@ -8,18 +8,14 @@
 	import { Button } from "$lib/components/ui/button"
 	import type { AirtableProject } from "$lib/types"
 	import { countCharacters } from "$lib/utils"
+	import { CURRENCY_NAME, hundredthsToUnits } from "$lib/currency"
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
 	interface Item {
 		itemID: string
 		name: string
 		description: string
-		price: {
-			redstone: number
-			glowstone: number
-			aqua_regia: number
-			potion_mix: number
-		}
+		priceHundredths: number
 		image: string
 	}
 	let {
@@ -44,26 +40,9 @@
 	let allFieldsFilled = $derived(name && description)
 	let cdnLink = $state(shopItem?.image ?? "")
 	let useCdnLink = $state(shopItem?.image ? true : false)
-	let currency = $state(() => {
-		if (shopItem) {
-			if (shopItem?.price.redstone > 0) {
-				return "redstone"
-			} else if (shopItem?.price.glowstone > 0) {
-				return "glowstone"
-			} else if (shopItem?.price.aqua_regia > 0) {
-				return "aqua_regia"
-			} else if (shopItem?.price.potion_mix > 0) {
-				return "potion_mix"
-			} else {
-				return "redstone"
-			}
-		} else {
-			return "potion_mix"
-		}
-	})
-	let currencyVal = $state(shopItem?.price[currency()] ?? 0)
-
-	let currencyChose = $state(currency())
+	let priceUnits = $state<number | undefined>(
+		shopItem ? hundredthsToUnits(shopItem.priceHundredths) : undefined
+	)
 	$effect(() => {
 		if (files && files.length > 0) {
 			const file = files[0]
@@ -84,8 +63,7 @@
 		description = shopItem?.description ?? ""
 		cdnLink = shopItem?.image ?? ""
 		useCdnLink = !!shopItem?.image
-		currencyVal = shopItem?.price[currency()] ?? 0
-		currencyChose = currency()
+		priceUnits = shopItem ? hundredthsToUnits(shopItem.priceHundredths) : undefined
 	})
 	const onDelete = async () => {
 		invalidater?.()
@@ -259,41 +237,26 @@
 					<div class="space-y-2">
 						<div class="flex items-center justify-between">
 							<Label
-								for="currency"
+								for="price"
 								class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-								>Price</Label
+								>Price ({CURRENCY_NAME})</Label
 							>
 						</div>
 						<div class="flex items-center gap-2">
 							<Input
-								id="currency"
+								id="price"
 								name="itemPrice"
 								type="number"
+								step="0.01"
+								min="0.01"
 								required
-								placeholder="Enter the currency value."
+								placeholder="Enter the price in {CURRENCY_NAME}, e.g. 66.4"
 								class=" bg-zinc-900/50 border-primary/70 text-zinc-100 placeholder:text-zinc-600  focus-visible:border-transparent resize-none leading-relaxed"
-								bind:value={currencyVal}
+								bind:value={priceUnits}
 							/>
-							<select
-								bind:value={currencyChose}
-								name="currencyType"
-								class="flex h-8 w-full rounded-md border border-primary/70 bg-zinc-950 px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-zinc-100"
+							<span class="text-sm text-zinc-400 whitespace-nowrap"
+								>{CURRENCY_NAME}</span
 							>
-								<option value="redstone" selected={currency() === "redstone"}
-									>Redstone</option
-								>
-								<option value="glowstone" selected={currency() === "glowstone"}>
-									Glowstone</option
-								>
-								<option
-									value="aqua_regia"
-									selected={currency() === "aqua_regia"}>Aqua Regia</option
-								>
-								<option
-									value="potion_mix"
-									selected={currency() === "potion_mix"}>Potion Mix</option
-								>
-							</select>
 						</div>
 					</div>
 

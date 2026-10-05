@@ -94,7 +94,6 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
         projects: filteredHacks
     }
     let userFields = userData?.records?.[0]?.fields
-    let {hackatime, ...userFieldsWithoutHackatime} = userFields || {}
     let misconfigured = []
     if(!configs.address)
         misconfigured.push("Address")
@@ -118,7 +117,8 @@ if (!hackatimeAccessToken || hackatimeAccessToken === "") {
         eligiblity: decodedToken.ysws_eligible,
         name: slackprofile?.display_name || decodedToken.first_name,
         hackatimeVerified: hackatimeVerified === "true",
-        user: userFieldsWithoutHackatime ?? {},
+        // Least privilege: the page only needs the balance, never the raw user row (ids, hackatime token, legacy JSON)
+        user: { balanceHundredths: Number(userFields?.balanceHundredths ?? 0) },
         admin: admin,
         pfp: slackprofile?.image_512 || "",
         misconfigured: misconfigured

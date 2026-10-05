@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import type { Item, UserCurrency } from "$lib/types"
+import type { Item } from "$lib/types"
 import { getUserByEmail, fetchAllItems, getOrdersByEmail} from '$lib/db';
 import jwt from 'jsonwebtoken';
 import {USER_JWT_SECRET} from '$env/static/private';
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         itemID: record.id,
         name: record.fields.name,
         description: record.fields.description,
-        itemPrice: record.fields.itemPrice,
+        priceHundredths: record.fields.priceHundredths,
         cdnImage: record.fields.cdnImage,
     }));
     
@@ -39,7 +39,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         fields: {
             email: userRecord.fields.email,
             slackId: userRecord.fields.slackId,
-            currency: userRecord.fields.currency ,
+            balanceHundredths: userRecord.fields.balanceHundredths,
         }
     }
     return {
