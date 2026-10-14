@@ -1,10 +1,10 @@
 import { redirect, type RequestHandler } from "@sveltejs/kit"
-import { BOT_AUTH, USER_JWT_SECRET } from "$env/static/private"
+import { BOT_AUTH } from "$env/static/private"
 import { START_DATE } from "$env/static/private"
 import { hackatimeAuthUrl } from "$lib/utils"
 import type { Log } from "$lib/types"
 import { getProjectById, getUserByEmail, patchProjectForShip } from "$lib/db"
-import jwt from "jsonwebtoken"
+import { requireUserApi } from "$lib/server/auth"
 /* REQUEST BODY
 	-Hackatime Access token(Now derived from Cookies)
 	-Record ID
@@ -157,7 +157,7 @@ const isUserIdv = async (email: string): Promise<boolean> => {
 	const data = await fetchRes.json()
 	return data.result === "verified_eligible"
 }
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	//DISABLES SHIPPING AFTER 630AM IST DAY AFTER TMRW
 	if (Date.now() > 1785632400000) {
 		return new Response(
@@ -166,25 +166,16 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		)
 	}
 	//Confirm ownership by comparing email from access token with project owner email
-	const authToken = cookies.get("user_token")
-	let decoded = null
-	try {
-		if (authToken) {
-			decoded = jwt.verify(authToken, USER_JWT_SECRET)
-		}
-	} catch (error) {
-		console.error("Invalid user token:", error)
-	}
+	const decoded = requireUserApi(locals)
 
 	const { recordId, changelog } = await request.json()
-	const accessToken = cookies.get("access_token_new")
-	if (!recordId || !accessToken) {
+	if (!recordId) {
 		return new Response("Missing required fields", { status: 400 })
 	}
 	const [projectData, userDbRes, idv] = await Promise.all([
 		getProject(recordId),
-		getUserByEmail((decoded as any).email),
-		isUserIdv((decoded as any).email)
+		getUserByEmail(decoded.email),
+		isUserIdv(decoded.email)
 	])
 	if (!idv) {
 		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
@@ -223,7 +214,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 	// // 	return new Response("No new time recorded since last ship", { status: 400 })
 	// // }
 
-	const userData = decoded ? (decoded as any) : null
+	const userData = decoded
 	if (projectData.fields.owner) {
 		if (userData.email !== projectData.fields.owner) {
 			return new Response("Unauthorized: You do not own this project", {

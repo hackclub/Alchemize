@@ -1,8 +1,8 @@
 import { error } from "@sveltejs/kit"
-import jwt from "jsonwebtoken"
-import { ADMIN_JWT_SECRET, BOT_AUTH } from "$env/static/private"
+import { BOT_AUTH } from "$env/static/private"
+import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "./$types";
-import type { Log, AdminJWT, AdminProjectView, Address, AirtableProject } from "$lib/types";
+import type { Log, AdminProjectView, Address, AirtableProject } from "$lib/types";
 import { getProjectById, addToJustifications, atomicShipProjectAndAward, TransactionAbort } from "$lib/db";
 import { formatAqua, hundredthsToUnits, minutesToHundredths } from "$lib/currency"
 import { decryptAES, encryptAES } from "$lib/utils.server"
@@ -65,20 +65,8 @@ const findGithubUsernameFromCodeUrl = (codeUrl: string): string | null => {
     const match = codeUrl.match(githubRegex);
     return match ? match[1] : null;
 }
-export const POST: RequestHandler = async ({ request, cookies }) => {
-    const adminJWTToken = cookies.get("admin_jwt")
-    if (!adminJWTToken) {
-        return error(401, "Unauthorized")
-    }
-    let decoded: AdminJWT
-    try {
-        decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isT2Reviewer) {
-            return error(401, "Unauthorized/ Please Referesh the page and try again")
-        }
-    } catch (err) {
-        return error(401, "Unauthorized/ Please Referesh the page and try again")
-    }
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const decoded = requireAdminApi(locals, "t2_reviewer")
     const body = await request.json()
     const { justification, projectId } = body
     // The optional "Deduct Hours" input is sent as null when left empty

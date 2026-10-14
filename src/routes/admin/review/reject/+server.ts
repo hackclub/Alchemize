@@ -1,6 +1,6 @@
-import type { Log, Project, AdminJWT, AirtableProject } from "$lib/types"
-import jwt from "jsonwebtoken"
-import {ADMIN_JWT_SECRET, BOT_AUTH} from "$env/static/private"
+import type { Log, Project, AirtableProject } from "$lib/types"
+import {BOT_AUTH} from "$env/static/private"
+import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
 import { patchProjectForShip, getProjectById } from "$lib/db"
@@ -39,20 +39,8 @@ function updateLog(log: Log[], deductMinutes: number, userExternal: string, name
    
 
 }
-export const POST: RequestHandler = async ({ request,cookies }) => {
-    const adminJWTToken = cookies.get("admin_jwt")
-    if (!adminJWTToken) {
-        return error(401, "Unauthorized")
-    }
-    let decoded: AdminJWT
-    try {
-         decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isReviewer ) {
-            return error(401, "Unauthorized")
-        }
-    } catch (err) {
-        return error(401, "Unauthorized")
-    }
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const decoded = requireAdminApi(locals, "reviewer")
     const {recordId, userExternal, internalNote, justification, decreaseTime} = await request.json()
     if (!recordId || !userExternal  || !justification ) {
         return error(400, "Missing required fields")

@@ -1,23 +1,9 @@
 import type { PageServerLoad } from './$types';
 import type { Item } from "$lib/types"
 import { getUserByEmail, fetchAllItems, getOrdersByEmail} from '$lib/db';
-import jwt from 'jsonwebtoken';
-import {USER_JWT_SECRET} from '$env/static/private';
-export const load: PageServerLoad = async ({ cookies }) => {
-    
-    const at = cookies.get('access_token_new');
-    const userToken = cookies.get('user_token');
-    
-    let data: any = null;
-    if (userToken) {
-        try {
-            data = jwt.verify(userToken, USER_JWT_SECRET);
-        }
-        catch (err) {
-            console.error("Error verifying JWT:", err);
-        }
-    }
-    const email = data?.email;
+import { requireUserPage } from '$lib/server/auth';
+export const load: PageServerLoad = async ({ locals }) => {
+    const email = requireUserPage(locals).email;
     const [userResponse, ordersResponse, itemsResponse] = await Promise.all([getUserByEmail(email), getOrdersByEmail(email), fetchAllItems()]);
     if (!itemsResponse.ok) {
         throw new Error("Failed to fetch items from the database");

@@ -9,14 +9,13 @@ import {
 	updateProject,
 	getUserByEmail,
 } from "$lib/db"
-import { USER_JWT_SECRET } from "$env/static/private"
 import type {
 	AirtableProject,
 	AirtableProjectWithPII,
 	UserAuthToken,
 } from "$lib/types"
 import { redirect } from "@sveltejs/kit"
-import jwt from "jsonwebtoken"
+import { requireUserApi, requireUserPage } from "$lib/server/auth"
 async function uploadScreenshot(file?: File): Promise<string> {
 	if (!file || file.size === 0) return ""
 
@@ -55,28 +54,7 @@ async function uploadScreenshot(file?: File): Promise<string> {
 }
 export const actions = {
 	create: async event => {
-		const accessToken = event.cookies.get("access_token_new")
-		const user_token = event.cookies.get("user_token")
-		let data = {} as UserAuthToken
-		if (!accessToken || !user_token) {
-			throw new Error(
-				"No user token found. Please login again and try submitting the project."
-			)
-		}
-		try {
-			if (user_token) {
-				data = jwt.verify(user_token, USER_JWT_SECRET) as UserAuthToken
-			} else {
-				throw new Error(
-					"No user token found. Please login again and try submitting the project."
-				)
-			}
-		} catch (error) {
-			console.error("Invalid user token:", error)
-			throw new Error(
-				"Invalid user token. Please login again and try submitting the project."
-			)
-		}
+		const data = requireUserApi(event.locals)
 
 		const email = data.email
 		const slackId = data.slack_id
@@ -157,35 +135,18 @@ export const actions = {
 		}
 	},
 	update: async event => {
-		const accessToken = event.cookies.get("access_token_new")
-		const user_token = event.cookies.get("user_token")
-		let data = {} as UserAuthToken
-		try {
-			if (user_token) {
-				data = jwt.verify(user_token, USER_JWT_SECRET) as UserAuthToken
-			} else {
-				return {
-					success: false,
-					error: {
-						title: "Unauthorized",
-						code: "NO_USER_TOKEN",
-						message:
-							"No user token found. Please login again and try submitting the project.",
-					},
-				}
-			}
-		} catch (error) {
-			console.error("Invalid user token:", error)
+		if (!event.locals.user) {
 			return {
 				success: false,
 				error: {
 					title: "Unauthorized",
 					code: "INVALID_USER_TOKEN",
 					message:
-						"Invalid user token. Please login again and try submitting the project.",
+						"Your session has expired. Please login again and try submitting the project.",
 				},
 			}
 		}
+		const data = event.locals.user
 		const email = data.email
 		const formData = await event.request.formData()
 		const projectName = formData.get("name") as string
@@ -262,27 +223,8 @@ export const actions = {
 		}
 	},
 } satisfies Actions
-export const load: PageServerLoad = async ({ cookies }) => {
-	const accessToken =
-		cookies.get("access_token_new") ?? cookies.get("access_token")
-	const user_token = cookies.get("user_token")
-	let decoded = null
-	try {
-		if (user_token) {
-			decoded = jwt.verify(user_token, USER_JWT_SECRET)
-		}
-	} catch (error) {
-		console.error("Invalid user token:", error)
-	}
-	if (!accessToken) {
-		return { error: "No access token found" }
-	}
-	const email = decoded ? (decoded as any).email : null
-	if (!accessToken) {
-		return {
-			projects: [],
-		}
-	}
+export const load: PageServerLoad = async ({ locals }) => {
+	const email = requireUserPage(locals).email
 	const userResponse = await getUserByEmail(email)
 	if (!userResponse.ok) {
 		console.error("Database error:", await userResponse.text())

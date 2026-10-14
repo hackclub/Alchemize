@@ -1,26 +1,19 @@
 import type { RequestHandler } from "@sveltejs/kit"
-import { BOT_AUTH, USER_JWT_SECRET } from '$env/static/private';
+import { BOT_AUTH } from '$env/static/private';
 import type { Item } from "$lib/types"
 import { formatAqua, MAX_HUNDREDTHS } from "$lib/currency"
 import { atomicPurchaseItem, getShopItemById } from "$lib/db";
-import jwt from 'jsonwebtoken';
-import type {UserAuthToken} from "$lib/types";
-import { getDataFromAccessToken } from "$lib/utils";
-import crypto from "crypto";
-import { encryptAES } from "$lib/utils.server";
+import { requireUserApi } from "$lib/server/auth";
 
 interface RequestBody {
     itemId: string;
     quantity: number;
 }
-export const POST: RequestHandler = async ({ request, cookies }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const data = requireUserApi(locals);
     const body: RequestBody = await request.json();
     if (typeof body.quantity !== "number" || !Number.isInteger(body.quantity) || body.quantity <= 0) {
         return new Response("Quantity must be a positive integer", { status: 400 })
-    }
-    const accessToken = cookies.get('access_token_new');
-    if (!accessToken) {
-        return new Response("Unauthorized", { status: 401 })
     }
     const [itemResponse] = await Promise.all([getShopItemById(body.itemId)]);
     if (!itemResponse.ok) {
@@ -35,23 +28,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         description: itemRecord.fields.description,
         priceHundredths: itemRecord.fields.priceHundredths,
         cdnImage: itemRecord.fields.cdnImage,
-    }
-    const userToken = cookies.get('user_token');
-    if (!item) {
-        return new Response("Item not found", { status: 404 })
-    }
-    const at = cookies.get('access_token_new');
-    if (!at) {
-        return new Response("Unauthorized", { status: 401 })
-    }
-    let data: UserAuthToken | null = null;
-    if (userToken) {
-        try {
-            data = jwt.verify(userToken, USER_JWT_SECRET) as UserAuthToken;
-        }
-        catch (err) {
-            console.error("Error verifying JWT:", err);
-        }
     }
     const uid = data?.id;
     const email = data?.email;

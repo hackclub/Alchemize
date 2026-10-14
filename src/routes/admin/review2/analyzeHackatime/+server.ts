@@ -1,8 +1,6 @@
 import type { RequestHandler } from "@sveltejs/kit"
-import type { AdminJWT } from "$lib/types"
 import {error} from "@sveltejs/kit"
-import jwt from "jsonwebtoken"
-import { ADMIN_JWT_SECRET } from "$env/static/private"
+import { requireAdminApi } from "$lib/server/auth"
 import { getProjectWithHackatime } from "$lib/db"
 import type { Heartbeats } from "$lib/types"
 interface FileBreakdown {
@@ -109,20 +107,9 @@ const secsPerDay = (heartbeats: Heartbeats[], maxGapSecs: number = 120): Record<
     }
     return dayMap;
 }
-export const POST: RequestHandler = async ({ cookies, request }) => {
+export const POST: RequestHandler = async ({ locals, request }) => {
+    requireAdminApi(locals, "t2_reviewer")
     const {projectId} = await request.json()
-    const adminJWTToken = cookies.get("admin_jwt")
-    if (!adminJWTToken) {
-        return error(401, "Unauthorized")
-    }
-    try {
-        const decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isT2Reviewer) {
-            return error(401, "Unauthorized")
-        }
-    }  catch (err) {
-        return error(401, "Unauthorized")
-    }
     const project = await getProjectWithHackatime(projectId);
 if (!project.ok) {
     return error(404, "Project not found")

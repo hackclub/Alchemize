@@ -1,23 +1,10 @@
 import { error } from "@sveltejs/kit"
-import jwt from "jsonwebtoken"
-import { ADMIN_JWT_SECRET } from "$env/static/private"
+import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "@sveltejs/kit"
-import type { AdminJWT } from "$lib/types"
 import { getLatestJustificationByProjectId } from "$lib/db"
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
-    const adminJWTToken = cookies.get("admin_jwt")
-    if (!adminJWTToken) {
-        return error(401, "Unauthorized")
-    }
-    try {
-        const decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isT2Reviewer) {
-            return error(401, "Unauthorized")
-        }
-    } catch (err) {
-        return error(401, "Unauthorized")
-    }
+export const POST: RequestHandler = async ({ request, locals }) => {
+    requireAdminApi(locals, "t2_reviewer")
     const { projectId } = await request.json()
     if (!projectId) {
         return error(400, "Missing projectId")

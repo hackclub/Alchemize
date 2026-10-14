@@ -1,11 +1,11 @@
 import type { PageServerLoad } from './$types';
-import { START_DATE, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
+import { START_DATE, SLACK_BOT_TOKEN } from '$env/static/private';
 import { getProjectsByOwner, getUserByEmail, checkConfigByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
 import { hackatimeAuthUrl, authUrl } from '$lib/utils';
 import { filterLogs } from '$lib/utils.server';
 import { redirect } from '@sveltejs/kit';
-import jwt from "jsonwebtoken"
+import { requireUserPage } from '$lib/server/auth';
 
 let slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN);
 
@@ -21,23 +21,9 @@ const getSlackProfile = async (slackId: string) => {
     return result.user?.profile || null;
 }
 
-export const load: PageServerLoad = async ({ cookies }) => {
-    const at = cookies.get('access_token_new');
+export const load: PageServerLoad = async ({ cookies, locals }) => {
     const hackatimeVerified = cookies.get('hackatime_verified');
-    const userToken = cookies.get("user_token")
-    let decodedToken: any = null
-
-    try {
-        if (userToken) {
-            const decoded: any = jwt.verify(userToken, USER_JWT_SECRET);
-            decodedToken = decoded
-        } else {
-            throw redirect(302, authUrl);
-        }
-    } catch (error) {
-        console.error("Error decoding user token:", error);
-        throw redirect(302, authUrl);
-    }
+    const decodedToken = requireUserPage(locals)
 
     
 
@@ -51,20 +37,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
     ])
 
 
-    if (!at) {
-        return {
-            projects: [],
-            hacks: [],
-            email: decodedToken.email,
-            eligiblity: decodedToken.ysws_eligible,
-            name: slackprofile?.display_name || decodedToken.first_name,
-            hackatimeVerified: hackatimeVerified === "true",
-            user: {},
-            admin: !!cookies.get("admin_access_token"),
-            pfp: slackprofile?.image_512 || "",
-            misconfigured: []
-        }
-    }
     const configs = await configResponse.json();
     const projectsData = typeof projectsResponse.json === 'function' ? await projectsResponse.json() : projectsResponse;
     const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;

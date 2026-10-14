@@ -1,12 +1,11 @@
 
-import { USERID_ENCRYPTION_KEY, BASE_URL, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
+import { USERID_ENCRYPTION_KEY, BASE_URL, SLACK_BOT_TOKEN } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import { WebClient } from "@slack/web-api"
 import type { AirtableReferRecord, Refers } from '$lib/types';
 import { getAllRefers } from '$lib/db';
 import { redirect } from '@sveltejs/kit';
 import { authUrl } from '$lib/utils';
-import jwt from 'jsonwebtoken';
 
 
 
@@ -69,18 +68,8 @@ const getReferedCountsByReferer = async (allRefers: AirtableReferRecord[]): Prom
 
     return slackCounts;
 }
-export const load: PageServerLoad = async ({ url, cookies }) => {
-    const at = cookies.get('access_token_new');
-    const userToken = cookies.get('user_token');
-    let data: any = null;
-    if (userToken) {
-        try {
-            data = jwt.verify(userToken, USER_JWT_SECRET);
-        }
-        catch (err) {
-            console.error("Error verifying JWT:", err);
-        }
-    }
+export const load: PageServerLoad = async ({ locals }) => {
+    const data = locals.user;
     if (!data?.id || !data?.slack_id) {
         throw redirect(302, authUrl);
     }

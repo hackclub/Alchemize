@@ -1,25 +1,8 @@
-import type { AdminJWT } from "$lib/types";
-import { ADMIN_JWT_SECRET } from "$env/static/private";
-import jwt from "jsonwebtoken";
 import { markOrderAsFulfilled } from "$lib/db";
-//WIP :P
-export const POST = async ({ request, cookies }) => {
-    const adminToken = cookies.get('admin_jwt');
+import { requireAdminApi } from "$lib/server/auth";
+export const POST = async ({ request, locals }) => {
+    const decoded = requireAdminApi(locals, "fulfiller");
     const { orderId } = await request.json();
-    if (!adminToken) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
-    try {
-        var decoded = jwt.verify(adminToken, ADMIN_JWT_SECRET) as AdminJWT;
-        if (!decoded) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-        }
-        if (!decoded.isFulfiller) {
-            return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
-        }
-    } catch (error) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-    }
     const result = await markOrderAsFulfilled(orderId, decoded.slackId);
     if (result.ok) {
         return new Response(JSON.stringify({ message: 'Order marked as fulfilled' }), { status: 200 });

@@ -1,10 +1,8 @@
 import type { RequestHandler } from "./$types"
 import { deleteProject, getProjectById } from "$lib/db"
-import jwt from "jsonwebtoken";
-import { USER_JWT_SECRET } from "$env/static/private";
-import { error } from "@sveltejs/kit";
+import { requireUserApi } from "$lib/server/auth";
 
-export const DELETE: RequestHandler = async ({ request, cookies }) => {
+export const DELETE: RequestHandler = async ({ request, locals }) => {
     // // TEMP DISABLED
     // return new Response(JSON.stringify({ message: "Project deletion is temporarily disabled" }), { status: 503 });
     
@@ -12,18 +10,7 @@ export const DELETE: RequestHandler = async ({ request, cookies }) => {
     if (!recordId ) {
         return new Response(JSON.stringify({ message: "Record ID and email are required" }), { status: 400 });
     }
-    const authCookies = cookies.get("user_token");
-    let email = "";
-    try{
-        if (!authCookies) {
-            return new Response(JSON.stringify({ message: "Unauthorized: No authentication token provided" }), { status: 401 });
-        }
-        const decodedToken = jwt.verify(authCookies, USER_JWT_SECRET) as { email: string };
-        email = decodedToken.email;
-    }catch (error) {
-        console.error("Error verifying JWT token:", error);
-        return new Response(JSON.stringify({ message: "Unauthorized: Invalid authentication token" }), { status: 401 });
-    }
+    const email = requireUserApi(locals).email;
     const projectResponse = await getProjectById(recordId);
     if (!projectResponse.ok) {
         return new Response(JSON.stringify({ message: "Failed to fetch project" }), { status: 500 });

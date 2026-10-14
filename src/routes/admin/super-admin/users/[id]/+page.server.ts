@@ -1,9 +1,8 @@
 import { getAdminByEmail } from '$lib/db'
 import type { PageServerLoad } from './$types'
-import jwt from "jsonwebtoken"
-import { ADMIN_JWT_SECRET, SLACK_BOT_TOKEN } from "$env/static/private"
-import { redirect } from "@sveltejs/kit"
+import { SLACK_BOT_TOKEN } from "$env/static/private"
 import { WebClient } from "@slack/web-api"
+import { requireAdminPage } from "$lib/server/auth"
 import { hasRole } from "$lib/roles"
 
 const slackClient = new WebClient(SLACK_BOT_TOKEN)
@@ -16,19 +15,8 @@ async function getUserName(userId: string) {
         return "Unknown User"
     }
 }
-export const load: PageServerLoad = async ({ params, cookies }) => {
-    const adminAccessToken = cookies.get("admin_access_token")
-    const adminJwt = cookies.get("admin_jwt")
-    if (!adminAccessToken || !adminJwt) {
-        throw redirect(303, "/admin/login")
-    }
-    
-    let decoded = jwt.verify(adminJwt, ADMIN_JWT_SECRET );
-    //@ts-ignore
-    if (!decoded || !decoded.name || !decoded.isSuperAdmin) {
-        throw redirect(303, "/admin/login")
-    }
-
+export const load: PageServerLoad = async ({ params, locals }) => {
+    requireAdminPage(locals, "super_admin")
 
         let email = params.id
     let adminRes = await getAdminByEmail(email)

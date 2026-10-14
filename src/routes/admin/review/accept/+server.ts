@@ -1,9 +1,8 @@
-import type { Log, AdminJWT, AirtableProject } from "$lib/types";
-import { ADMIN_JWT_SECRET } from "$env/static/private"
+import type { Log, AirtableProject } from "$lib/types";
 import type { RequestHandler } from "./$types";
 import { error } from "@sveltejs/kit"
-import jwt from "jsonwebtoken"
 import { getProjectById, patchProjectForShip } from "$lib/db";
+import { requireAdminApi } from "$lib/server/auth";
 
 // T1 "Deduct hours" arrives in hours (null when the input is left empty); log deltas are stored in minutes.
 // Returns the minutes to deduct from the last log entry, or an error message.
@@ -43,20 +42,8 @@ function updateLog(log: Log[], deductMinutes: number, userExternal: string, name
 
 //@ts-ignore
 
-export const POST: RequestHandler = async ({ request, cookies }) => {
-    const adminJWTToken = cookies.get("admin_jwt")
-    if (!adminJWTToken) {
-        return error(401, "Unauthorized")
-    }
-    let decoded: AdminJWT
-    try {
-        decoded = jwt.verify(adminJWTToken, ADMIN_JWT_SECRET) as AdminJWT
-        if (!decoded.isReviewer) {
-            return error(401, "Unauthorized")
-        }
-    } catch (err) {
-        return error(401, "Unauthorized")
-    }
+export const POST: RequestHandler = async ({ request, locals }) => {
+    const decoded = requireAdminApi(locals, "reviewer")
     const approver = decoded.name
 
     const { recordId, userExternal, internalNote, justification, decreaseTime } = await request.json()

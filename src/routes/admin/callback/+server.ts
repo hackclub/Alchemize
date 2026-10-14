@@ -99,8 +99,10 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         isT2Reviewer: roles.has("t2_reviewer"),
         isShopManager: roles.has("shop_manager"),
     }
-    const jwtToken = jwt.sign(payload, ADMIN_JWT_SECRET, { expiresIn: "6h" })
-    cookies.set("admin_access_token", tokenBody.access_token, {
+    const jwtToken = jwt.sign(payload, ADMIN_JWT_SECRET, { algorithm: "HS256", expiresIn: "6h" })
+    // Only a presence flag (used to show the admin link on the dashboard); the real Hack Club Auth
+    // access token is never needed after login, so it is not kept in a cookie
+    cookies.set("admin_access_token", "1", {
         httpOnly: true,
         secure: true,
         sameSite: "lax",

@@ -6,6 +6,7 @@ import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
 import type { AirtableUser } from "$lib/types"
 import { encryptAES } from "$lib/utils.server"
+import { signUserToken, USER_SESSION_MAX_AGE_SECONDS } from "$lib/server/auth"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
 import { createNewUser, getUserByEmail, createReferRecord, addUserToAuthTable } from "$lib/db"
@@ -32,14 +33,11 @@ Code FLOW:
 */
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	// All Cookies Used
-	// airtable_user_record_id: Stores the Airtable record ID of the user, used for database operations
 	// user_token: JWT containing user information, used for authentication and authorization in the app
-	// access_token_new: The access token from Hack Club OAuth, used for making authenticated requests to Hack Club API
+	//   (verified once per request in hooks.server.ts, valid for 30 days)
 	// hackatime_verified:  flag indicating the user has a verified Hackatime account, read server-side only
 	// slack_id: The user's Slack ID from Hack Club, used for Slack integration features in the app
-	// Hackatime Token stored for 1 year
-	// User Token stored for 4 months
-	// Hack Club Auth tokens stored for 6 months (refresh tokens not used, so access tokens are long-lived)
+	// The Hack Club Auth access token is only used during this request and never stored
 
 
 	const code = url.searchParams.get("code")
@@ -172,28 +170,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		ysws_eligible: yswsEligible,
 		version: 3,
 	}
-	const jwtToken = jwt.sign(userToken, env.USER_JWT_SECRET, { expiresIn: "120d" })
+	const jwtToken = signUserToken(userToken)
 	cookies.set("user_token", jwtToken, {
 		httpOnly: true,
 		secure: true,
 		sameSite: "lax",
-		maxAge: 60 * 60 * 24 * 120, // 120 days
+		maxAge: USER_SESSION_MAX_AGE_SECONDS,
 		path: "/",
-	})
-	cookies.set("airtable_user_record_id", "21212", {
-		httpOnly: true,
-		secure: true,
-		sameSite: "lax",
-		maxAge: 60 * 60 * 24 * 365, // 1 year
-		path: "/",
-	})
-	cookies.set("access_token_new", "redact", {
-		httpOnly: true,
-		secure: true,
-		sameSite: "lax",
-		maxAge: 60 * 60 * 24 * 180, // 6 months
-		path: "/",
-
 	})
 	cookies.set("slack_id", slackId, {
 		httpOnly: true,
