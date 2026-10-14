@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and, gte, asc, desc } from 'drizzle-orm'
+import { eq, and, gte, asc, desc, ne, notLike, or } from 'drizzle-orm'
 import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp } from "drizzle-orm/pg-core";
 import type { Log } from './types'
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua } from './currency'
+import { sharesHackatimeProject } from './server/projectLog'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -571,12 +572,40 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
         text: async () => JSON.stringify({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
     } as DBResponse;
 }
+// Read for edit checks: only the owner's own project, only the fields the edit rules need
+export const getProjectForEdit = async (projectId: string, owner: string) => {
+    const id = parseInt(projectId)
+    if (!Number.isSafeInteger(id)) return null
+    const rows = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        status: projectTable.status,
+        log: projectTable.log,
+        hackatime: projectTable.hackatime,
+    }).from(projectTable).where(and(eq(projectTable.id, id), eq(projectTable.owner, owner)))
+    return rows[0] ?? null
+}
+// A user's other projects that already use any of the given Hackatime project names.
+// Each Hackatime project may back only one Alchemize project, or the same hours would be paid twice.
+export const findHackatimeConflicts = async (owner: string, hackatime: string, excludeProjectId?: number) => {
+    const projects = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        hackatime: projectTable.hackatime,
+        log: projectTable.log,
+    }).from(projectTable).where(eq(projectTable.owner, owner))
+    return projects.filter(project => project.id !== excludeProjectId && sharesHackatimeProject(project.hackatime, hackatime))
+}
+// Edits are refused while a project is in review (pending_* or T1-accepted awaiting T2), so what the
+// reviewers approved is what gets paid and sent to Unified. The Hackatime project cannot change once the
+// project has been shipped: detaching it would let another project claim the same hours again.
 export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
     const allowedFields = ['Name', 'description', 'type', 'demo', 'code', 'hackatime', 'update', 'screenshot', 'Theme', 'screenshot2'];
 
     const updatePayload = Object.fromEntries(
         Object.entries(projectData)
-            .filter(([key, value]) => allowedFields.includes(key) && value !== undefined && value !== "")
+            // formData.get() returns null for absent fields; those are "not changing", like ""
+            .filter(([key, value]) => allowedFields.includes(key) && value !== undefined && value !== null && value !== "")
     );
 
     if (Object.keys(updatePayload).length === 0) {
@@ -589,18 +618,22 @@ export const updateProject = async (projectId: string, projectData: any, email: 
     }
 
     try {
+        const editable = and(notLike(projectTable.status, "pending%"), ne(projectTable.status, "accepted"))
+        const hackatimeUnchangedOrUnshipped = typeof updatePayload.hackatime === "string"
+            ? or(eq(projectTable.log, ""), eq(projectTable.hackatime, updatePayload.hackatime))
+            : undefined
         const updatedProject = await db
             .update(projectTable)
             .set(updatePayload)
-            .where(and(eq(projectTable.id, parseInt(projectId)), eq(projectTable.owner, email)))
-            .returning();
+            .where(and(eq(projectTable.id, parseInt(projectId)), eq(projectTable.owner, email), editable, hackatimeUnchangedOrUnshipped))
+            .returning({ id: projectTable.id });
 
         if (updatedProject.length === 0) {
             return {
                 ok: false,
-                status: 404,
-                json: async () => ({ message: "Project not found/project not yours" }),
-                text: async () => JSON.stringify({ message: "Project not found/project not yours" }),
+                status: 409,
+                json: async () => ({ message: "Project not found, not yours, or locked for review" }),
+                text: async () => JSON.stringify({ message: "Project not found, not yours, or locked for review" }),
             };
         }
 

@@ -8,6 +8,8 @@
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import { Newspaper } from "lucide-svelte"
+	import { readErrorMessage } from "$lib/http"
+	import { safeHref } from "$lib/urls"
 
 	let { data } = $props()
 	let detailsOpen = $state(false)
@@ -127,7 +129,10 @@
 		}
 		const response = await fetch("/admin/review/reject", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
 			body: JSON.stringify({
 				recordId: proj.id,
 				log: JSON.stringify(proj.log),
@@ -141,7 +146,9 @@
 			}),
 		})
 		if (!response.ok) {
-			toast.error("Failed to reject project. Please refresh.")
+			toast.error(
+				await readErrorMessage(response, "Failed to reject project. Please refresh.")
+			)
 			rejectLoader = false
 			return
 		}
@@ -170,7 +177,10 @@
 		}
 		const response = await fetch("/admin/review/accept", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
 			body: JSON.stringify({
 				recordId: proj.id,
 				log: JSON.stringify(proj.log),
@@ -186,7 +196,9 @@
 			}),
 		})
 		if (!response.ok) {
-			toast.error("Failed to accept project. Please refresh.")
+			toast.error(
+				await readErrorMessage(response, "Failed to accept project. Please refresh.")
+			)
 			acceptLoader = false
 			return
 		}
@@ -403,20 +415,23 @@
 
 						<div class="flex items-center gap-2">
 							<a
-								href={project.demo}
+								href={safeHref(project.demo)}
 								target="_blank"
+								rel="noreferrer noopener"
 								class="px-3 py-1.5 text-xs font-medium bg-card border border-border text-foreground hover:bg-muted hover:text-primary-foreground rounded-lg transition"
 								>Demo</a
 							>
 							<a
-								href={project.code}
+								href={safeHref(project.code)}
 								target="_blank"
+								rel="noreferrer noopener"
 								class="px-3 py-1.5 text-xs font-medium bg-card border border-border text-foreground hover:bg-muted hover:text-primary-foreground rounded-lg transition"
 								>Repository</a
 							>
 							<a
-								href={project.readme}
+								href={safeHref(project.readme)}
 								target="_blank"
+								rel="noreferrer noopener"
 								class="px-3 py-1.5 text-xs font-medium bg-card border border-border text-foreground hover:bg-muted hover:text-primary-foreground rounded-lg transition"
 								>Readme</a
 							>

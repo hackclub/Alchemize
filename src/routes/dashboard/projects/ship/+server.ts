@@ -3,13 +3,17 @@ import { BOT_AUTH } from "$env/static/private"
 import { START_DATE } from "$env/static/private"
 import { hackatimeAuthUrl } from "$lib/utils"
 import type { Log } from "$lib/types"
-import { getProjectById, getUserByEmail, patchProjectForShip } from "$lib/db"
+import { findHackatimeConflicts, getProjectById, getUserByEmail, patchProjectForShip } from "$lib/db"
 import { requireUserApi } from "$lib/server/auth"
+import { applyShip, calculateShipDelta } from "$lib/server/projectLog"
+import { isHttpUrl } from "$lib/urls"
 /* REQUEST BODY
-	-Hackatime Access token(Now derived from Cookies)
 	-Record ID
-	-Hackclub Access Token (for fetching slackID and verifying ownership, Now derived from Cookies)
+	-Changelog
+	(the user is identified from the session cookie, the Hackatime token from the DB)
 */
+
+const MAX_CHANGELOG_LENGTH = 2000
 
 function parseLog(logJson: string): Log[] {
 	try {
@@ -19,18 +23,6 @@ function parseLog(logJson: string): Log[] {
 		// throw new Error("Failed to parse log data")
 		return [] as Log[]
 	}
-}
-async function getProject(recordId: string) {
-	const response = await getProjectById(recordId)
-	if (!response.ok) {
-		console.error(`Failed to fetch project ${recordId}:`, response.status)
-		throw new Error(`Airtable error: ${response.status}`)
-	}
-	const data = await response.json()
-	if (!data.fields) {
-		throw new Error("Invalid project structure")
-	}
-	return data
 }
 async function getHackatimeProject(
 	accessToken: string,
@@ -47,113 +39,19 @@ async function getHackatimeProject(
 	)
 	if (!hackatimes.ok) {
 		console.error("Failed to fetch Hackatime projects:", hackatimes.status)
-		throw new Error(`Hackatime API error: ${hackatimes.status}`)
+		return null
 	}
 	const hackatimeData = await hackatimes.json()
 	if (!Array.isArray(hackatimeData.projects)) {
-		throw new Error("Invalid Hackatime response structure")
+		return null
 	}
-	const project = hackatimeData.projects.find(
+	return hackatimeData.projects.find(
 		(hack: any) => hack.name === hackatimeProjectName
-	)
-	if (!project) {
-		console.warn(`Project "${hackatimeProjectName}" not found in Hackatime`)
-		throw new Error(`Project not found: ${hackatimeProjectName}`)
-	}
-	return project
-}
-function updateLog(log: Log[], deltaTime: number, changelog: string): Log[] {
-	//4 cases:
-	//1. If the log is empty, create a new log with status pending
-	//2. If the last log is approved, create a new log with status pending
-	//3. If the last log is rejected, convert that log to pending with the new timestamp and message and add delta time to the exisiting delta time
-	//4. If the last log is pending, update the timestamp, message and add delta time to the existing delta time
-	if (log.length === 0) {
-		return [
-			{
-				status: 0,
-				timestamp: new Date().toISOString(),
-				deltaTime,
-				message: [
-					{
-						userExternal: changelog,
-						internalNote: "",
-						justification: "",
-						timestamp: new Date().toISOString(),
-						reviewerName: "user",
-					},
-				],
-				submmitedToHQ: false,
-				fraudApproved: false,
-				fraudApprovedBy: undefined,
-				fraudJustification: undefined,
-				fraudTimestamp: undefined,
-			},
-		]
-	}
-	const lastLog = log[log.length - 1]
-	if (lastLog.status === 1) {
-		return [
-			...log,
-			{
-				status: 0,
-				timestamp: new Date().toISOString(),
-				deltaTime,
-				message: [
-					{
-						userExternal: changelog,
-						internalNote: "",
-						justification: "",
-						timestamp: new Date().toISOString(),
-						reviewerName: "user",
-					},
-				],
-				submmitedToHQ: false,
-				fraudApproved: false,
-				fraudApprovedBy: undefined,
-				fraudJustification: undefined,
-				fraudTimestamp: undefined,
-			},
-		]
-	} else if (lastLog.status === 0 || lastLog.status === 2) {
-		const newDeltaTime = lastLog.deltaTime + deltaTime
-		return [
-			...log.slice(0, -1),
-			{
-				...lastLog,
-				status: 0,
-				timestamp: new Date().toISOString(),
-				deltaTime: newDeltaTime,
-				message: [
-					...lastLog.message,
-					{
-						userExternal: changelog,
-						internalNote: "",
-						justification: "",
-						timestamp: new Date().toISOString(),
-						reviewerName: "user",
-					},
-				],
-				submmitedToHQ: false,
-				fraudApproved: false,
-				fraudApprovedBy: undefined,
-				fraudJustification: undefined,
-				fraudTimestamp: undefined,
-			},
-		]
-	} else {
-		return log
-	}
-}
-function calculateRecordedTime(log: Log[]): number {
-	let totalTime = 0
-	for (const entry of log) {
-		totalTime += entry.deltaTime
-	}
-	return totalTime
+	) ?? null
 }
 const isUserIdv = async (email: string): Promise<boolean> => {
-	const fetchRes = await fetch(`https://auth.hackclub.com/api/external/check?email=${email}`)
+	// Encoded: an email like "jane+alchemize@gmail.com" otherwise arrives as "jane alchemize@gmail.com"
+	const fetchRes = await fetch(`https://auth.hackclub.com/api/external/check?email=${encodeURIComponent(email)}`)
 	const data = await fetchRes.json()
 	return data.result === "verified_eligible"
 }
@@ -165,25 +63,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			{ status: 403 }
 		)
 	}
-	//Confirm ownership by comparing email from access token with project owner email
-	const decoded = requireUserApi(locals)
+	const userData = requireUserApi(locals)
 
 	const { recordId, changelog } = await request.json()
-	if (!recordId) {
+	if (!recordId || !Number.isSafeInteger(Number(recordId))) {
 		return new Response("Missing required fields", { status: 400 })
 	}
-	const [projectData, userDbRes, idv] = await Promise.all([
-		getProject(recordId),
-		getUserByEmail(decoded.email),
-		isUserIdv(decoded.email)
-	])
-	if (!idv) {
-		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
+	if (typeof changelog !== "string" || changelog.trim() === "") {
+		return new Response("Please describe what changed in this ship", { status: 400 })
 	}
-	let htToken = (await userDbRes.json())?.records?.[0]?.fields?.hackatime
-	if (!htToken || htToken === "") {
-		throw redirect(303, hackatimeAuthUrl)
+	if (changelog.length > MAX_CHANGELOG_LENGTH) {
+		return new Response(`The changelog must be at most ${MAX_CHANGELOG_LENGTH} characters`, { status: 400 })
 	}
+
+	// Ownership first: nothing about someone else's project (or their account) is checked or revealed
+	const projectResponse = await getProjectById(String(recordId))
+	if (!projectResponse.ok) {
+		return new Response("Project not found", { status: 404 })
+	}
+	const projectData = await projectResponse.json()
+	if (!projectData.fields?.owner || projectData.fields.owner !== userData.email) {
+		return new Response("Project not found", { status: 404 })
+	}
+
 	//Check if the project's all fields are filled, if not return 400
 	if (
 		!projectData.fields.Name ||
@@ -198,6 +100,31 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	) {
 		return new Response("All project fields are required", { status: 400 })
 	}
+	if (!isHttpUrl(projectData.fields.code) || !isHttpUrl(projectData.fields.demo)) {
+		return new Response("The demo and repository links must be http(s) URLs, please edit the project", { status: 400 })
+	}
+	// One Hackatime project backs one Alchemize project. If several projects share one (created before
+	// this rule existed), only the oldest of them may keep shipping.
+	const conflicts = await findHackatimeConflicts(userData.email, projectData.fields.hackatime, projectData.fields.id)
+	const olderConflict = conflicts.filter(project => project.id < projectData.fields.id).sort((a, b) => a.id - b.id)[0]
+	if (olderConflict) {
+		return new Response(
+			`This Hackatime project is already linked to your project "${olderConflict.Name}". Each Hackatime project can only be submitted under one Alchemize project, ask in #alchemize-help if this is a mistake.`,
+			{ status: 400 }
+		)
+	}
+
+	const [userDbRes, idv] = await Promise.all([
+		getUserByEmail(userData.email),
+		isUserIdv(userData.email)
+	])
+	if (!idv) {
+		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
+	}
+	let htToken = (await userDbRes.json())?.records?.[0]?.fields?.hackatime
+	if (!htToken || htToken === "") {
+		throw redirect(303, hackatimeAuthUrl)
+	}
 	if (projectData.fields.address === "null" || !projectData.fields.address) {
 		return new Response("Your Address is missing, please add it on auth.hackclub.com", { status: 400 })
 	}
@@ -205,31 +132,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		htToken,
 		projectData.fields.hackatime
 	)
-	const previousLogs = parseLog(projectData.fields.log || "[]")
-	const recordedTime = calculateRecordedTime(previousLogs)
-	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
-	const deltaTime = hackatimeTime - recordedTime
-	//DISABLED to prevent users from getting blocked by simple updates
-	// // if (deltaTime <= 0) {
-	// // 	return new Response("No new time recorded since last ship", { status: 400 })
-	// // }
-
-	const userData = decoded
-	if (projectData.fields.owner) {
-		if (userData.email !== projectData.fields.owner) {
-			return new Response("Unauthorized: You do not own this project", {
-				status: 403,
-			})
-		}
-	} else {
-		console.error(`Missing/Malformed owner email for project ${recordId}.`)
-		throw new Response("Project owner information is missing or malformed", {
-			status: 500,
-		})
+	if (!hackatimeProject) {
+		return new Response(`Couldn't find the Hackatime project "${projectData.fields.hackatime}" on your Hackatime account`, { status: 400 })
 	}
+	const previousLogs = parseLog(projectData.fields.log || "[]")
+	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
+	const deltaTime = calculateShipDelta(hackatimeTime, previousLogs)
+	// A zero delta is allowed (shipping an update without new time); a negative one means Hackatime now
+	// shows less than was already recorded, which reviewers could neither approve nor reject
+	if (deltaTime < 0) {
+		return new Response("Hackatime shows less time on this project than was already recorded, please ask in #alchemize-help", { status: 400 })
+	}
+
 	const currentTime = Date.now()
-	const updatedLog = updateLog(previousLogs, deltaTime, changelog)
-	const response = await patchProjectForShip(recordId, projectData.fields.log, updatedLog, `pending_${currentTime}`)
+	const updatedLog = applyShip(previousLogs, deltaTime, changelog.trim())
+	const response = await patchProjectForShip(String(recordId), projectData.fields.log, updatedLog, `pending_${currentTime}`)
 	if (!response.ok) {
 		console.error(`Failed to update project ${recordId}:`, {
 			status: response.status,

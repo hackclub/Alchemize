@@ -2,63 +2,23 @@ import { error } from "@sveltejs/kit"
 import { BOT_AUTH } from "$env/static/private"
 import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "./$types";
-import type { Log, AdminProjectView, Address, AirtableProject } from "$lib/types";
+import type { Log, AdminProjectView, Address } from "$lib/types";
 import { getProjectById, addToJustifications, atomicShipProjectAndAward, TransactionAbort } from "$lib/db";
+import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
 import { formatAqua, hundredthsToUnits, minutesToHundredths } from "$lib/currency"
 import { decryptAES, encryptAES } from "$lib/utils.server"
 import { submitProjectToAirtable } from "$lib/airtable"
 import crypto from "crypto"
-const wasEverApproved = (project: AirtableProject) => {
-    //Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
-    const logs = JSON.parse(project.fields.log || "[]") as Log[]
-    return logs.some(log => log.status === 1)
-}
-const areAllPushedToHQ = (log: Log[]): boolean => {
-    return log.every(entry => entry.submmitedToHQ || entry.status !== 1)
-}
-const checkIfAllApprovedLogsArePushed = (log: Log[]): boolean => {
-    if (log.length === 0) {
-        return true
+// Hack Club Auth returns a list of addresses; ship to the one marked primary, not just the first
+const pickShippingAddress = (decryptedAddresses: string): Address | null => {
+    if (decryptedAddresses === "" || decryptedAddresses === "null") return null
+    try {
+        const addresses = JSON.parse(decryptedAddresses) as Address[]
+        if (!Array.isArray(addresses) || addresses.length === 0) return null
+        return addresses.find(address => address.primary) ?? addresses[0]
+    } catch {
+        return null
     }
-    const approvedLogs = log.filter(entry => entry.status === 1)
-    return approvedLogs.every(entry => entry.submmitedToHQ)
-}
-const checkSubmittedToHQ = (log: Log[], justification: string, reviewerName: string): Log[] => {
-    let newLog = log.map(entry => {
-        if (entry.status === 1 && !entry.submmitedToHQ) {
-            return { ...entry, submmitedToHQ: true }
-        }
-        return entry
-    })
-    newLog = [...newLog, {
-        status: 1,
-        timestamp: new Date().toISOString(),
-        deltaTime: 0,
-        message: [{ userExternal: "Currency Awarded", internalNote: "Project sent to Unified", justification: justification, timestamp: new Date().toISOString(), reviewerName: "T2 " + reviewerName }],
-        submmitedToHQ: true
-    }]
-    return newLog
-}
-const parseAddress = (address: string) => {
-    if (address === "") return {
-        line_1: "",
-        city: "",
-        state: "",
-        country: "",
-        postal_code: ""
-    } as Address
-
-    return JSON.parse(address)[0] as Address
-}
-// Minutes approved by T1 that have not been sent to Unified yet
-const calculateNewMinutes = (log: Log[]) => {
-    let minsSpent = 0
-    log.forEach(entry => {
-        if (entry.status === 1 && !entry.submmitedToHQ) {
-            minsSpent += entry.deltaTime
-        }
-    })
-    return minsSpent
 }
 const findGithubUsernameFromCodeUrl = (codeUrl: string): string | null => {
     const githubRegex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)/;
@@ -86,27 +46,32 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         return error(500, "Failed to fetch project")
     }
     const project = await projectResponse.json() as AdminProjectView
-    const log = JSON.parse(project.fields.log) as Log[]
-    if (!wasEverApproved(project) || areAllPushedToHQ(log)) {
+    if (isOwnProject(decoded, project.fields)) {
+        return error(403, "You can't review or pay out your own project")
+    }
+    const log = JSON.parse(project.fields.log || "[]") as Log[]
+    if (!hasUnpushedApprovedEntries(log)) {
         return error(400, "Project has not been approved or all logs are submitted to HQ")
     }
-    if (checkIfAllApprovedLogsArePushed(log)) {
-        return error(400, "All approved logs are already submitted to HQ")
-    }
-    const decrytedAddress = decryptAES(project.fields.address, project.fields.iv)
-
-    const address = parseAddress(decrytedAddress || "")
+    const address = pickShippingAddress(decryptAES(project.fields.address, project.fields.iv))
     const iv = crypto.randomBytes(16)
     const decryptedBirthdate = decryptAES(project.fields.birthdate, project.fields.iv)
     const decryptedFirstName = decryptAES(project.fields.firstName, project.fields.iv)
     const decryptedLastName = decryptAES(project.fields.lastName, project.fields.iv)
+    // Unified needs a real address, birthday and name; refuse instead of submitting blanks
+    if (!address || !address.line_1 || !address.city || !address.country) {
+        return error(400, "The owner has no complete address on Hack Club Auth. Ask them to add one there and log in to Alchemize again")
+    }
+    if (decryptedBirthdate === "" || decryptedBirthdate === "null" || decryptedFirstName === "") {
+        return error(400, "The owner's birthday or name is missing on Hack Club Auth. Ask them to add it there and log in to Alchemize again")
+    }
 
     // Everything that moves currency happens under the project + owner row locks: the log is re-read and
     // re-validated there, Unified is contacted there, and the award is only committed if all of it succeeds.
     // 1 approved hour = 1 Aqua Regia, credited to the hundredth; Unified receives the same number of hours.
     let awardedHundredths = 0
     const shipResult = await atomicShipProjectAndAward(projectIdNum, async (locked) => {
-        if (areAllPushedToHQ(locked.log) || checkIfAllApprovedLogsArePushed(locked.log)) {
+        if (!hasUnpushedApprovedEntries(locked.log)) {
             throw new TransactionAbort(400, "All approved logs are already submitted to HQ")
         }
         const approvedMinutes = calculateNewMinutes(locked.log)
@@ -148,7 +113,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         }
 
         return {
-            newLog: checkSubmittedToHQ(locked.log, justification, decoded.name),
+            newLog: applyT2Award(locked.log, justification, decoded.name),
             amountHundredths: awardedHundredths,
             remarks: `Added ${formatAqua(awardedHundredths)} for project approval`
         }
@@ -189,7 +154,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
                 "Authorization": `Bearer ${BOT_AUTH}`
             },
             body: JSON.stringify(
-                { "user_id": project.fields.slackId, "project_name": project.fields.Name, "project_link": project.fields.code, "reviewer_id": "U0B18V07GQ3", "feedback": log.at(-1)?.message.at(-1)?.userExternal || "", "currencies": formatAqua(awardedHundredths) }
+                { "user_id": project.fields.slackId, "project_name": project.fields.Name, "project_link": project.fields.code, "reviewer_id": decoded.slackId, "feedback": log.at(-1)?.message.at(-1)?.userExternal || "", "currencies": formatAqua(awardedHundredths) }
             )
         })
     ])

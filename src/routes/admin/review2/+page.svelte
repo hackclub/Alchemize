@@ -12,6 +12,8 @@
 	} from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
+	import { readErrorMessage } from "$lib/http"
+	import { safeHref } from "$lib/urls"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
 	import {
@@ -402,6 +404,7 @@
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Accept: "application/json",
 			},
 			body: JSON.stringify({
 				projectId: id,
@@ -419,7 +422,7 @@
 			currentProject = {} as AdminProject
 		} else {
 			toast.error(
-				(await response.text()) || "Failed to push project to Airtable"
+				await readErrorMessage(response, "Failed to push project to Airtable")
 			)
 			loader = false
 		}
@@ -478,6 +481,7 @@
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				Accept: "application/json",
 			},
 			body: JSON.stringify({
 				recordId: id,
@@ -496,7 +500,7 @@
 			toast.info("Project rejected but notification not sent")
 			loader = false
 		} else {
-			toast.error((await response.text()) || "Failed to reject project")
+			toast.error(await readErrorMessage(response, "Failed to reject project"))
 			loader = false
 		}
 	}
@@ -681,21 +685,27 @@
 							</Button>
 							<div class="h-3 w-[1px] bg-zinc-800 mx-0.5"></div>
 							<a
-								href={currentProject.demo}
+								href={safeHref(currentProject.demo)}
 								target="_blank"
 								rel="noreferrer noopener"
 								class="text-[11px] font-medium px-2.5 py-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-md transition"
 								>Demo</a
 							>
 							<a
-								href={currentProject.code}
+								href={safeHref(currentProject.code)}
 								target="_blank"
 								rel="noreferrer noopener"
 								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
 								>Repo</a
 							>
 							<a
-								href="https://introspect.sahil.ink?repo_url={currentProject.code}&demo_url={currentProject.demo}&slack_id={currentProject.submittedBy}&hours={currentProject.hours}&project_name={currentProject.name}"
+								href={`https://introspect.sahil.ink?${new URLSearchParams({
+									repo_url: currentProject.code ?? "",
+									demo_url: currentProject.demo ?? "",
+									slack_id: currentProject.submittedBy ?? "",
+									hours: String(currentProject.hours ?? ""),
+									project_name: currentProject.name ?? "",
+								})}`}
 								target="_blank"
 								rel="noreferrer noopener"
 								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"

@@ -13,7 +13,10 @@ export type Orders = {
 export type Log = {
 	status: 0 | 1 | 2 //0 = Pending, 1 = Approved, 2 = Rejected
 	timestamp: string
-	deltaTime: number //in minutes
+	deltaTime: number //in minutes, after reviewer deductions
+	// Minutes reviewers deducted from this entry. Kept so a later ship cannot claim them again
+	// (absent on entries reviewed before this field existed)
+	deductedMinutes?: number
 	message: message[]
 	submmitedToHQ: boolean
 	fraudApproved: boolean

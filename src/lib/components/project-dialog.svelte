@@ -373,6 +373,16 @@
 								if (result.type === "success") {
 									invalidater?.()
 									open = false
+								} else if (result.type === "failure") {
+									toast.error(
+										(result.data?.message as string | undefined) ??
+											"Could not save the project, please try again."
+									)
+								} else if (result.type === "error") {
+									toast.error(
+										result.error?.message ??
+											"Could not save the project, please try again."
+									)
 								}
 							}
 						}}

@@ -8,13 +8,16 @@ import {
 	createProject,
 	updateProject,
 	getUserByEmail,
+	getProjectForEdit,
+	findHackatimeConflicts,
 } from "$lib/db"
+import { isHttpUrl } from "$lib/urls"
 import type {
 	AirtableProject,
 	AirtableProjectWithPII,
 	UserAuthToken,
 } from "$lib/types"
-import { redirect } from "@sveltejs/kit"
+import { fail, redirect } from "@sveltejs/kit"
 import { requireUserApi, requireUserPage } from "$lib/server/auth"
 async function uploadScreenshot(file?: File): Promise<string> {
 	if (!file || file.size === 0) return ""
@@ -52,6 +55,17 @@ async function uploadScreenshot(file?: File): Promise<string> {
 
 	return (await response.json()).url
 }
+// Checks shared by create and update; returns an error message for the user, or null
+const validateProjectLinks = (demo: string | null, code: string | null): string | null => {
+	if ((demo && !isHttpUrl(demo)) || (code && !isHttpUrl(code))) {
+		return "The demo and repository links must be http(s) URLs"
+	}
+	return null
+}
+const hackatimeConflictMessage = (conflicts: { Name: string }[]) =>
+	`That Hackatime project is already linked to your project "${conflicts[0].Name}". Each Hackatime project can only be submitted under one Alchemize project.`
+const isInReview = (status: string) => status.startsWith("pending") || status === "accepted"
+
 export const actions = {
 	create: async event => {
 		const data = requireUserApi(event.locals)
@@ -67,15 +81,17 @@ export const actions = {
 		const oldProject = formData.get("projectUpdate") as string
 		const hackatimeProject = formData.get("hackatime") as string
 		const theme = formData.get("theme") as string
-		const tempFormData = new FormData()
-		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		const screenshot2 = formData.get("screenshot-2") as File
-		if (
-			(projectUrl && !URL.canParse(projectUrl)) ||
-			(projectCode && !URL.canParse(projectCode))
-		) {
-			throw new Error("Invalid project URL or code repository URL")
+		const linkError = validateProjectLinks(projectUrl, projectCode)
+		if (linkError) {
+			return fail(400, { message: linkError })
+		}
+		if (hackatimeProject) {
+			const conflicts = await findHackatimeConflicts(email, hackatimeProject)
+			if (conflicts.length > 0) {
+				return fail(400, { message: hackatimeConflictMessage(conflicts) })
+			}
 		}
 		const [url, url2] = await Promise.all([
 			uploadScreenshot(screenshot),
@@ -105,48 +121,17 @@ export const actions = {
 			iv: "redact",
 		})
 
-		// Error handling
 		if (!response.ok) {
-			const errorData = await response.json()
-			const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-			const errorText =
-				errorData.error?.message ||
-				"An error occurred while creating the project"
-
 			console.error("Project creation failed:", {
 				status: response.status,
-				errorCode,
-				errorText,
 				timestamp: new Date().toISOString(),
 			})
-
-			return {
-				success: false,
-				error: {
-					title: "Project creation failed",
-					code: errorCode,
-					message: `${errorText}. Please notify TheUtkarsh8939 on slack`,
-				},
-			}
-		} else {
-			return {
-				success: true,
-			}
+			return fail(500, { message: "Project creation failed. Please notify TheUtkarsh8939 on Slack" })
 		}
+		return { success: true }
 	},
 	update: async event => {
-		if (!event.locals.user) {
-			return {
-				success: false,
-				error: {
-					title: "Unauthorized",
-					code: "INVALID_USER_TOKEN",
-					message:
-						"Your session has expired. Please login again and try submitting the project.",
-				},
-			}
-		}
-		const data = event.locals.user
+		const data = requireUserApi(event.locals)
 		const email = data.email
 		const formData = await event.request.formData()
 		const projectName = formData.get("name") as string
@@ -158,25 +143,36 @@ export const actions = {
 		const hackatimeProject = formData.get("hackatime") as string
 		const theme = formData.get("theme") as string
 		const recordId = formData.get("recordId") as string
-		const tempFormData = new FormData()
-		const tempFormData2 = new FormData()
 		const screenshot = formData.get("screenshot") as File
 		const screenshot2 = formData.get("screenshot-2") as File
 
-		if (
-			(projectUrl && !URL.canParse(projectUrl)) ||
-			(projectCode && !URL.canParse(projectCode))
-		) {
-			throw new Error("Invalid project URL or code repository URL")
+		const linkError = validateProjectLinks(projectUrl, projectCode)
+		if (linkError) {
+			return fail(400, { message: linkError })
+		}
+		// All checks run before uploading, so a refused edit never uploads screenshots
+		const current = await getProjectForEdit(recordId, email)
+		if (!current) {
+			return fail(404, { message: "Project not found" })
+		}
+		if (isInReview(current.status)) {
+			return fail(409, { message: "This project is being reviewed, so it can't be edited right now. You can edit it again once the review is done." })
+		}
+		if (hackatimeProject && hackatimeProject !== current.hackatime) {
+			if (current.log !== "") {
+				return fail(400, { message: "The Hackatime project can't be changed after the project has been shipped." })
+			}
+			const conflicts = await findHackatimeConflicts(email, hackatimeProject, current.id)
+			if (conflicts.length > 0) {
+				return fail(400, { message: hackatimeConflictMessage(conflicts) })
+			}
 		}
 
 		const [url, url2] = await Promise.all([
 			uploadScreenshot(screenshot),
 			uploadScreenshot(screenshot2),
 		])
-		console.log(url2, "Screenshot 2 URL")
-		console.log("Theme:", theme)
-		var response = await updateProject(
+		const response = await updateProject(
 			recordId,
 			{
 				Name: projectName,
@@ -193,34 +189,15 @@ export const actions = {
 			email
 		)
 
-		// Error handling
 		if (!response.ok) {
-			const errorData = await response.json()
-			const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
-			const errorText =
-				errorData.error?.message ||
-				"An error occurred while updating the project"
-
-			console.error("Project update failed:", {
-				status: response.status,
-				errorCode,
-				errorText,
-				timestamp: new Date().toISOString(),
-			})
-
-			return {
-				success: false,
-				error: {
-					title: "Project update failed",
-					code: errorCode,
-					message: `${errorText}. Please notify TheUtkarsh8939 on slack`,
-				},
-			}
-		} else {
-			return {
-				success: true,
-			}
+			// 409: the project entered review (or was shipped) between the checks above and the write
+			const message = response.status === 409
+				? "This project changed while you were editing it (it may have been shipped). Please refresh and try again."
+				: "Project update failed. Please notify TheUtkarsh8939 on Slack"
+			console.error("Project update failed:", { status: response.status, timestamp: new Date().toISOString() })
+			return fail(response.status === 409 ? 409 : 500, { message })
 		}
+		return { success: true }
 	},
 } satisfies Actions
 export const load: PageServerLoad = async ({ locals }) => {
