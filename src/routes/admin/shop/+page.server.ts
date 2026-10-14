@@ -27,10 +27,6 @@ export const actions = {
             itemID = null;
         }
         let cdnLink = cdnImage;
-        console.log("Received form data:", {
-            name,
-            description
-        })
         if (img) {
             const tempFormData = new FormData();
             tempFormData.append('file', img);

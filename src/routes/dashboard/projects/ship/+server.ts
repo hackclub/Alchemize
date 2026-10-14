@@ -3,7 +3,7 @@ import { BOT_AUTH } from "$env/static/private"
 import { START_DATE } from "$env/static/private"
 import { hackatimeAuthUrl } from "$lib/utils"
 import type { Log } from "$lib/types"
-import { findHackatimeConflicts, getProjectById, getUserByEmail, patchProjectForShip } from "$lib/db"
+import { findHackatimeConflicts, getHackatimeTokenByEmail, getProjectById, patchProjectForShip } from "$lib/db"
 import { requireUserApi } from "$lib/server/auth"
 import { applyShip, calculateShipDelta } from "$lib/server/projectLog"
 import { isHttpUrl } from "$lib/urls"
@@ -114,15 +114,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		)
 	}
 
-	const [userDbRes, idv] = await Promise.all([
-		getUserByEmail(userData.email),
+	const [htToken, idv] = await Promise.all([
+		getHackatimeTokenByEmail(userData.email),
 		isUserIdv(userData.email)
 	])
 	if (!idv) {
 		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
 	}
-	let htToken = (await userDbRes.json())?.records?.[0]?.fields?.hackatime
-	if (!htToken || htToken === "") {
+	if (!htToken) {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	if (projectData.fields.address === "null" || !projectData.fields.address) {

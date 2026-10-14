@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { START_DATE, SLACK_BOT_TOKEN } from '$env/static/private';
-import { getProjectsByOwner, getUserByEmail, checkConfigByEmail } from '$lib/db';
+import { getProjectsByOwner, getUserByEmail, checkConfigByEmail, getHackatimeTokenByEmail } from '$lib/db';
 import { WebClient } from "@slack/web-api"
 import { hackatimeAuthUrl, authUrl } from '$lib/utils';
 import { filterLogs } from '$lib/utils.server';
@@ -28,12 +28,13 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
     
 
 
-    let [projectsResponse, userResponse, slackprofile, configResponse] = await Promise.all([
+    let [projectsResponse, userResponse, slackprofile, configResponse, hackatimeAccessToken] = await Promise.all([
 
         getProjectsByOwner(decodedToken.email),
         getUserByEmail(decodedToken.email),
         getSlackProfile(decodedToken.slack_id),
-        checkConfigByEmail(decodedToken.email)
+        checkConfigByEmail(decodedToken.email),
+        getHackatimeTokenByEmail(decodedToken.email)
     ])
 
 
@@ -41,7 +42,6 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
     const projectsData = typeof projectsResponse.json === 'function' ? await projectsResponse.json() : projectsResponse;
     const userData = typeof userResponse.json === 'function' ? await userResponse.json() : userResponse;
     const admin = !!cookies.get("admin_access_token")
-    let hackatimeAccessToken = userData?.records?.[0]?.fields?.hackatime;
     if (userData?.records?.length === 0) {
         throw redirect(303, "/")
     }

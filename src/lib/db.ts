@@ -473,10 +473,19 @@ export const completeUnifiedSubmission = async (
 // Database Compatiblity Layer
 
 //User Functions
+// Account fields only. The Hackatime OAuth token is never part of this: callers that need it for a server-side
+// Hackatime request use getHackatimeTokenByEmail, so it can't end up in page data by spreading a user row.
 export const getUserByEmail = async (email: string): Promise<DBResponse> => {
 
     try {
-        const users = await db.select().from(userTable).where(eq(userTable.email, email));
+        const users = await db.select({
+            id: userTable.id,
+            userid: userTable.userid,
+            email: userTable.email,
+            slackId: userTable.slackId,
+            balanceHundredths: userTable.balanceHundredths,
+            hasHackatime: sql<boolean>`coalesce(${userTable.hackatime}, '') <> ''`,
+        }).from(userTable).where(eq(userTable.email, email));
         const records = users.map(user => ({ id: user.id + "", fields: user })) as airtableReplication[];
         return {
             ok: true,
@@ -561,8 +570,14 @@ export const resolveAccountForLogin = async (hackClubId: string, email: string, 
     });
 }
 
+// Server-side only: the user's Hackatime OAuth token, or null when they haven't connected Hackatime
+export const getHackatimeTokenByEmail = async (email: string): Promise<string | null> => {
+    const rows = await db.select({ hackatime: userTable.hackatime }).from(userTable).where(eq(userTable.email, email));
+    const token = rows[0]?.hackatime;
+    return token ? token : null;
+}
 export const patchUserHackatime = async (email: string, hackatimeToken: string): Promise<DBResponse> => {
-    const updatedUser = await db.update(userTable).set({ hackatime: hackatimeToken }).where(eq(userTable.email, email)).returning();
+    const updatedUser = await db.update(userTable).set({ hackatime: hackatimeToken }).where(eq(userTable.email, email)).returning({ id: userTable.id });
     if (updatedUser.length === 0) {
         return {
             ok: false,
@@ -659,17 +674,15 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+// T1 review queue: shipped projects only, and only what reviewers use (no owner email, no journals)
 export const getAllProjects = async (): Promise<DBResponse> => {
-    // Explicitly select only non-sensitive fields
     const projects = await db.select({
         id: projectTable.id,
         Name: projectTable.Name,
         type: projectTable.type,
         description: projectTable.description,
-        owner: projectTable.owner,
         log: projectTable.log,
         languages: projectTable.languages,
-        journals: projectTable.journals,
         hackatime: projectTable.hackatime,
         update: projectTable.update,
         code: projectTable.code,
@@ -678,7 +691,7 @@ export const getAllProjects = async (): Promise<DBResponse> => {
         slackId: projectTable.slackId,
         status: projectTable.status,
         screenshot: projectTable.screenshot,
-    }).from(projectTable);
+    }).from(projectTable).where(ne(projectTable.status, "unshipped"));
 
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
 
@@ -689,17 +702,15 @@ export const getAllProjects = async (): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+// T2 review queue: shipped projects only. No owner email, journals or Unified ID (the T2 page uses none of them)
 export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
-    // Explicitly select only non-sensitive fields
     const projects = await db.select({
         id: projectTable.id,
         Name: projectTable.Name,
         type: projectTable.type,
         description: projectTable.description,
-        owner: projectTable.owner,
         log: projectTable.log,
         languages: projectTable.languages,
-        journals: projectTable.journals,
         hackatime: projectTable.hackatime,
         update: projectTable.update,
         code: projectTable.code,
@@ -709,8 +720,7 @@ export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
         status: projectTable.status,
         screenshot: projectTable.screenshot,
         screenshot2: projectTable.screenshot2,
-        unifiedId: projectTable.unifiedId
-    }).from(projectTable);
+    }).from(projectTable).where(ne(projectTable.status, "unshipped"));
 
     const records = projects.map(project => ({ id: project.id + "", fields: project }));
 
@@ -976,7 +986,7 @@ export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
         itemID: ordersTable.itemID,
         qty: ordersTable.qty,
         ordererEmail: ordersTable.ordererEmail,
-        fulfiller: ordersTable.fulfiller,
+        status: ordersTable.status,
         itemName: shopItemsTable.name,
         cdnImage: shopItemsTable.cdnImage,
         // Price paid; orders from before it was recorded fall back to the item's current price
@@ -1084,12 +1094,11 @@ export const doesAdminExist = async (slackId: string): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+// Super-admin user list: email and balance only (no Hack Club Auth ids or Slack IDs)
 export const getAllUsers = async (): Promise<DBResponse> => {
     const users = await db.select({
         email: userTable.email,
         id: userTable.id,
-        userid: userTable.userid,
-        slackId: userTable.slackId,
         balanceHundredths: userTable.balanceHundredths
     }).from(userTable);
     const records = users.map(user => ({ id: user.id + "", fields: user }));

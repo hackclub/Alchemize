@@ -97,7 +97,6 @@
 				readme: nextProject.fields.code,
 				update: nextProject.fields.update,
 				hackatime: nextProject.fields.hackatime,
-				owner: nextProject.fields.owner,
 			} as Project
 			autogenChangelog = generateChangelog(project)
 		}
@@ -189,7 +188,6 @@
 				justification: autogenChangelog,
 				decreaseTime: hours,
 				theme: proj.category,
-				userEmailId: proj.owner,
 				slackId: proj.submittedBy,
 				projectName: proj.name,
 				projectLink: proj.code,

@@ -18,7 +18,6 @@
 		(a, b) => new Date(b.createdTime) - new Date(a.createdTime)
 	)
 	let orders = [...ordersUnfulfilled, ...ordersFulfilled]
-	console.log(orders)
 
 	let searchQuery = $state("")
 	let currentTab = $state("all")

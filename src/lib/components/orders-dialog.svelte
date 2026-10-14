@@ -6,7 +6,7 @@
 			cdnImage: string
 			orderItem: string
 			qty: number
-			fulfiller: string
+			status: string
 		}
 	}
 
@@ -38,7 +38,7 @@
 				class="orders flex-1 w-full flex flex-col gap-3 overflow-y-auto pr-1"
 			>
 				{#each orders as order}
-					{@const isPending = order.fields.fulfiller === ""}
+					{@const isPending = order.fields.status !== "fulfilled"}
 
 					<div class="relative group h-32 shrink-0 w-full flex flex-col">
 						<div

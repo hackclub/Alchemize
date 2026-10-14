@@ -13,5 +13,6 @@ export const load: PageServerLoad = async ({locals}) => {
     const userRespone = await getAllUsers()
     const userData = await userRespone.json()
 
-    return {userData: userData.records}
+    // The page lists emails only; never send ids or Slack IDs it doesn't use
+    return {userData: userData.records.map((record: AirtableUser) => ({ fields: filterPII(record) }))}
 }

@@ -32,14 +32,8 @@
 		Title,
 		Tooltip,
 	} from "chart.js"
-	interface AdminProjectAccess extends AirtableProject {
-		fields: AirtableProject["fields"] & {
-			unifiedId: string
-		}
-	}
-	interface AdminProject extends Project {
-		unifiedId: string
-	}
+	type AdminProjectAccess = AirtableProject
+	type AdminProject = Project
 	let detailsOpen = $state(false)
 	let currentHackatimeAnalysis = $state({} as HackatimeAnalysis)
 	let { data } = $props()
@@ -59,9 +53,7 @@
 	)
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
-		console.log("Checking if project was ever approved:", project.fields.Name)
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
-		console.log("Checking if project was ever approved:", project.fields.Name)
 		return logs.some(log => log.status === 1)
 	}
 	let currentProject = $state({} as AdminProject)
@@ -124,7 +116,6 @@
 			}),
 		})
 		const data = await response.json()
-		console.log("Hackatime analysis data:", data)
 		currentHackatimeAnalysis = data
 		await tick()
 		renderBar()
@@ -154,14 +145,11 @@
 			readme: nextProject.fields.code,
 			update: nextProject.fields.update,
 			hackatime: nextProject.fields.hackatime,
-			owner: nextProject.fields.owner,
 			screenshot2: nextProject.fields.screenshot2,
 			screenshot: nextProject.fields.screenshot,
-			unifiedId: nextProject.fields.unifiedId,
 		}
 		currentHackatimeAnalysis = {} as HackatimeAnalysis
 		fetchHackatimeAnalysis(currentProject.id + "")
-		console.log("Current project set to log:", currentProject.log)
 	}
 	const calculateDelta = (log: Log[], includePushed = false): number => {
 		let delta = 0
@@ -489,18 +477,6 @@
 		) ?? []
 	)
 
-	airtableProjects?.forEach(project => {
-		console.log(
-			"Filtered project: ",
-			project.fields.Name,
-			" | Was ever approved: ",
-			wasEverApproved(project),
-			" | All pushed to HQ: ",
-			areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]),
-			" | Pending: ",
-			pending
-		)
-	})
 
 	let sentCount = $derived(
 		airtableProjects?.filter(
@@ -557,7 +533,6 @@
 	let confirmPushOpen = $state(false)
 	let confirmRejectOpen = $state(false)
 
-	console.log(data)
 </script>
 
 <svelte:head>

@@ -6,7 +6,6 @@
 
 	const { data } = $props()
 	let linkText = data.url
-	console.log("Loaded referral page with data:", data)
 
 	let loading = $state(true)
 	let copied = $state(false)

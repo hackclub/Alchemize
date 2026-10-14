@@ -9,6 +9,12 @@ interface FileBreakdown {
         formatted: string;
     };
 }
+// File paths come from the participant's machine and usually start with their OS username, which is often their
+// real name. Reviewers only need the part inside the home directory.
+const redactHomeDirectory = (path: string): string => path
+    .replace(/^\/(?:Users|home)\/[^/]+/, "~")
+    .replace(/^\/mnt\/[a-z]\/Users\/[^/]+/i, "~")
+    .replace(/^[A-Za-z]:[\\/]Users[\\/][^\\/]+/i, "~")
 function calculateTimePerFile(
     heartbeats: Heartbeats[],
     maxGapSecs: number = 120
@@ -42,8 +48,9 @@ function calculateTimePerFile(
 
         const activeTime = Math.min(gapSec, maxGapSecs);
 
-        fileDurations[prev.entity] ??= 0;
-        fileDurations[prev.entity] += activeTime;
+        const file = redactHomeDirectory(prev.entity);
+        fileDurations[file] ??= 0;
+        fileDurations[file] += activeTime;
     }
 
     const breakdown: FileBreakdown = {};

@@ -7,7 +7,7 @@ import {
 	getProjectsByOwner,
 	createProject,
 	updateProject,
-	getUserByEmail,
+	getHackatimeTokenByEmail,
 	getProjectForEdit,
 	findHackatimeConflicts,
 } from "$lib/db"
@@ -202,17 +202,8 @@ export const actions = {
 } satisfies Actions
 export const load: PageServerLoad = async ({ locals }) => {
 	const email = requireUserPage(locals).email
-	const userResponse = await getUserByEmail(email)
-	if (!userResponse.ok) {
-		console.error("Database error:", await userResponse.text())
-		return {
-			error: "Database error",
-			projects: [],
-		}
-	}
-	const hackatimeAccessToken = (await userResponse.json())?.records?.[0]?.fields
-		?.hackatime
-	if (!hackatimeAccessToken || hackatimeAccessToken === "") {
+	const hackatimeAccessToken = await getHackatimeTokenByEmail(email)
+	if (!hackatimeAccessToken) {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	let hacks: any

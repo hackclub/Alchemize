@@ -1,7 +1,6 @@
 <script lang="ts">
 	const { data } = $props()
 	const res = data.npsResults.results
-	console.log(res)
 	let results: any[] = []
 	res.forEach((result: any) => {
 		results.push({

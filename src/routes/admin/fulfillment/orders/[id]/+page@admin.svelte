@@ -10,7 +10,6 @@
 	} from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	const { data } = $props()
-	console.log(data)
 	const order = data.orderDetails
 	const markAsFulfilled = async () => {
 		console.log("Marking as fulfilled...")
