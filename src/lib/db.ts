@@ -1,10 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and, gte, asc, desc, ne, notLike, or } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp } from "drizzle-orm/pg-core";
+import { eq, and, gte, asc, desc, ne, notLike, or, sql } from 'drizzle-orm'
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import type { Log } from './types'
-import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua } from './currency'
-import { sharesHackatimeProject } from './server/projectLog'
+import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from './currency'
+import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -149,6 +149,25 @@ export const rsvpTable = pgTable("rsvp", {
     createdAt: timestamp().defaultNow().notNull()
 
 })
+// One row per attempt to submit a project to Unified (Airtable). An attempt is "started" before Airtable is
+// called and only becomes "submitted" together with the award, so an attempt whose outcome is unknown
+// (timeout, crash, failed commit) stays "started" and blocks blind retries that would duplicate the record.
+// Created by script/migrations/2026-10-unified-submissions.sql
+export const unifiedSubmissionsTable = pgTable("unified_submissions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    projectId: integer().notNull().references(() => projectTable.id),
+    status: varchar({ length: 32 }).notNull(), // started | submitted | failed
+    approvedMinutes: integer().notNull(),
+    amountHundredths: integer().notNull(),
+    reviewerSlackId: varchar({ length: 255 }).notNull(),
+    reviewerName: varchar({ length: 255 }).notNull(),
+    airtableRecordId: varchar({ length: 255 }),
+    error: varchar({ length: 1000 }),
+    startedAt: timestamp().defaultNow().notNull(),
+    finishedAt: timestamp(),
+}, table => [
+    uniqueIndex("unified_submissions_one_in_flight").on(table.projectId).where(sql`status = 'started'`),
+])
 // Response Interface
 export interface DBResponse {
     ok: boolean;
@@ -274,50 +293,124 @@ export const atomicPurchaseItem = async (
     }
 };
 
-// Atomic T2 ship + award: locks the project and owner rows, hands the locked log to `ship` (which validates,
-// computes the award and performs the external Unified submission), then writes the new log, credits the
-// owner and records the ledger entry. If anything throws, nothing is written, and a concurrent ship of the
-// same project blocks on the row lock and then sees the logs already pushed.
-export const atomicShipProjectAndAward = async (
+export interface UnifiedSubmission {
+    id: number
+    projectId: number
+    status: "started" | "submitted" | "failed"
+    approvedMinutes: number
+    amountHundredths: number
+    reviewerSlackId: string
+    reviewerName: string
+    startedAt: Date
+}
+
+const abortResponse = (error: unknown, fallback: string): DBResponse => {
+    const status = error instanceof TransactionAbort ? error.status : 500;
+    const message = error instanceof TransactionAbort ? error.message : fallback;
+    if (!(error instanceof TransactionAbort)) {
+        console.error(`${fallback}:`, error);
+    }
+    return {
+        ok: false,
+        status,
+        json: async () => ({ message }),
+        text: async () => JSON.stringify({ message }),
+    };
+};
+
+// Unified submission, phase 1 of 3: under the project row lock, check there is approved time to send and
+// no earlier attempt with an unknown outcome, then record a "started" attempt with the award amount. The
+// lock is released before Airtable is called, so no row stays locked during the external request.
+export const beginUnifiedSubmission = async (
     projectId: number,
-    ship: (locked: { log: Log[], owner: string, theme: string }) => Promise<{
-        newLog: Log[],
-        amountHundredths: number,
-        remarks: string
-    }>
-): Promise<DBResponse> => {
+    deductedMinutes: number,
+    reviewer: { slackId: string, name: string }
+): Promise<{ ok: true, submission: UnifiedSubmission } | { ok: false, status: number, message: string, inFlight?: UnifiedSubmission }> => {
     try {
         return await withTransaction(async (client) => {
-            const projectResult = await client.query(
-                'SELECT log, owner, "Theme" FROM projects WHERE id = $1 FOR UPDATE',
-                [projectId]
-            );
+            const projectResult = await client.query('SELECT log, owner FROM projects WHERE id = $1 FOR UPDATE', [projectId]);
             if (projectResult.rows.length === 0) {
                 throw new TransactionAbort(404, "Project not found");
             }
-            const { log, owner, Theme } = projectResult.rows[0];
-            // Lock the owner before any external side effect, so a missing user fails before Unified is contacted
-            const userResult = await client.query(
-                'SELECT "slackId" FROM users WHERE email = $1 FOR UPDATE',
-                [owner]
+            const inFlight = await client.query(
+                'SELECT * FROM unified_submissions WHERE "projectId" = $1 AND status = \'started\'',
+                [projectId]
             );
+            if (inFlight.rows.length > 0) {
+                return { ok: false as const, status: 409, message: "An earlier submission of this project to Unified did not finish", inFlight: inFlight.rows[0] as UnifiedSubmission };
+            }
+            const log = JSON.parse(projectResult.rows[0].log || "[]") as Log[];
+            if (!hasUnpushedApprovedEntries(log)) {
+                throw new TransactionAbort(400, "All approved logs are already submitted to HQ");
+            }
+            const userResult = await client.query('SELECT 1 FROM users WHERE email = $1', [projectResult.rows[0].owner]);
             if (userResult.rows.length === 0) {
                 throw new TransactionAbort(404, "Project owner not found");
             }
+            const approvedMinutes = calculateNewMinutes(log);
+            if (!Number.isSafeInteger(deductedMinutes) || deductedMinutes < 0 || deductedMinutes > approvedMinutes) {
+                throw new TransactionAbort(400, `Cannot deduct ${(deductedMinutes / 60).toFixed(2)}h, only ${(approvedMinutes / 60).toFixed(2)}h are approved in this review`);
+            }
+            // 1 approved hour = 1 Aqua Regia, credited to the hundredth
+            const amountHundredths = minutesToHundredths(approvedMinutes - deductedMinutes);
+            const inserted = await client.query(
+                'INSERT INTO unified_submissions ("projectId", status, "approvedMinutes", "amountHundredths", "reviewerSlackId", "reviewerName") VALUES ($1, \'started\', $2, $3, $4, $5) RETURNING *',
+                [projectId, approvedMinutes - deductedMinutes, amountHundredths, reviewer.slackId, reviewer.name]
+            );
+            return { ok: true as const, submission: inserted.rows[0] as UnifiedSubmission };
+        });
+    } catch (error) {
+        const response = abortResponse(error, "Starting the Unified submission failed");
+        return { ok: false, status: response.status, message: (await response.json()).message };
+    }
+};
 
+// The submission definitely did not create an Airtable record (Airtable refused it, or a reviewer checked):
+// release the in-flight slot so a new attempt can start.
+export const markUnifiedSubmissionFailed = async (submissionId: number, reason: string): Promise<void> => {
+    await pool.query(
+        'UPDATE unified_submissions SET status = \'failed\', error = $2, "finishedAt" = now() WHERE id = $1 AND status = \'started\'',
+        [submissionId, reason.slice(0, 1000)]
+    );
+};
+
+// Unified submission, phase 3 of 3 (after Airtable accepted the record, or a reviewer confirmed it is there):
+// in one transaction, mark the approved entries as sent to HQ, credit the owner with the amount recorded
+// when the attempt started, write the ledger entry and close the attempt.
+export const completeUnifiedSubmission = async (
+    submissionId: number,
+    justification: string,
+    airtableRecordId: string | null
+): Promise<DBResponse> => {
+    try {
+        return await withTransaction(async (client) => {
+            const submissionResult = await client.query('SELECT * FROM unified_submissions WHERE id = $1 FOR UPDATE', [submissionId]);
+            const submission = submissionResult.rows[0] as UnifiedSubmission | undefined;
+            if (!submission || submission.status !== "started") {
+                throw new TransactionAbort(409, "This submission was already completed or cancelled. Refresh and try again.");
+            }
+            const projectResult = await client.query('SELECT log, owner FROM projects WHERE id = $1 FOR UPDATE', [submission.projectId]);
+            if (projectResult.rows.length === 0) {
+                throw new TransactionAbort(404, "Project not found");
+            }
+            const { log, owner } = projectResult.rows[0];
+            const userResult = await client.query('SELECT "slackId" FROM users WHERE email = $1 FOR UPDATE', [owner]);
+            if (userResult.rows.length === 0) {
+                throw new TransactionAbort(404, "Project owner not found");
+            }
             const lockedLog = JSON.parse(log || "[]") as Log[];
-            const { newLog, amountHundredths, remarks } = await ship({ log: lockedLog, owner, theme: Theme });
+            const newLog = applyT2Award(lockedLog, justification, submission.reviewerName);
             const violation = findPushedEntryViolation(lockedLog, newLog);
             if (violation) {
                 throw new TransactionAbort(500, `Refusing award: ${violation}`);
             }
+            const amountHundredths = submission.amountHundredths;
             if (!Number.isSafeInteger(amountHundredths) || amountHundredths < 0) {
                 throw new TransactionAbort(500, "Invalid award amount");
             }
-
             await client.query(
                 'UPDATE projects SET log = $1, status = $2 WHERE id = $3',
-                [JSON.stringify(newLog), "accepted_t2", projectId]
+                [JSON.stringify(newLog), "accepted_t2", submission.projectId]
             );
             if (amountHundredths > 0) {
                 await client.query(
@@ -330,9 +423,13 @@ export const atomicShipProjectAndAward = async (
                     sign: true,
                     amountHundredths,
                     reason: "review-accept",
-                    remarks
+                    remarks: `Added ${formatAqua(amountHundredths)} for project approval`
                 });
             }
+            await client.query(
+                'UPDATE unified_submissions SET status = \'submitted\', "airtableRecordId" = $2, "finishedAt" = now() WHERE id = $1',
+                [submissionId, airtableRecordId]
+            );
             return {
                 ok: true,
                 status: 200,
@@ -341,17 +438,7 @@ export const atomicShipProjectAndAward = async (
             };
         });
     } catch (error) {
-        const status = error instanceof TransactionAbort ? error.status : 500;
-        const message = error instanceof TransactionAbort ? error.message : "Ship and award failed";
-        if (!(error instanceof TransactionAbort)) {
-            console.error("Atomic ship and award failed:", error);
-        }
-        return {
-            ok: false,
-            status,
-            json: async () => ({ message }),
-            text: async () => JSON.stringify({ message }),
-        };
+        return abortResponse(error, "Completing the Unified submission failed");
     }
 };
 

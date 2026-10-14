@@ -396,27 +396,75 @@
 		}
 	})
 
-	const sendToDatabase = async () => {
-		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
-		const id = currentProject.id
-		currentProject = {} as AdminProject
-		const response = await fetch("/admin/review2/sendToAirtable", {
+	type InDoubtResolution = "already_in_airtable" | "not_in_airtable"
+	const pushToUnified = (
+		projectId: string,
+		justification: string,
+		deductedHours: number,
+		resolveInDoubt?: InDoubtResolution
+	) =>
+		fetch("/admin/review2/sendToAirtable", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
 			body: JSON.stringify({
-				projectId: id,
-				justification: template,
-				subtraction,
+				projectId,
+				justification,
+				subtraction: deductedHours,
+				resolveInDoubt,
 			}),
 		})
 
-		if (response.ok) {
-			toast.success(
-				"Pushed " + currentProject.name + " to Airtable successfully!"
+	// An earlier push whose outcome is unknown (timeout, crash) must be resolved by a person: pushing again
+	// blindly could create a second Unified record for the same hours
+	const askHowToResolve = (message: string): InDoubtResolution | null => {
+		if (
+			confirm(
+				`${message}\n\nOpen Airtable (YSWS Project Submission) and look for this project.\n\nPress OK if it IS already there: the award is recorded without submitting again.`
 			)
+		) {
+			return "already_in_airtable"
+		}
+		if (
+			confirm(
+				"Press OK if it is NOT in Airtable, to submit it again now. Press Cancel to do nothing."
+			)
+		) {
+			return "not_in_airtable"
+		}
+		return null
+	}
+
+	const sendToDatabase = async () => {
+		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
+		const id = currentProject.id
+		const name = currentProject.name
+		const justification = template
+		const deductedHours = subtraction
+		currentProject = {} as AdminProject
+		let response = await pushToUnified(id, justification, deductedHours)
+
+		if (response.status === 409) {
+			const body = await response
+				.clone()
+				.json()
+				.catch(() => null)
+			if (body?.code === "SUBMISSION_IN_DOUBT") {
+				const resolution = askHowToResolve(body.message)
+				if (!resolution) {
+					toast.info("Nothing was changed. Resolve it once you've checked Airtable.")
+					loader = false
+					invalidateAll()
+					return
+				}
+				response = await pushToUnified(id, justification, deductedHours, resolution)
+			}
+		}
+
+		if (response.ok) {
+			toast.success("Pushed " + name + " to Airtable successfully!")
 			loader = false
 			invalidateAll()
 			currentProject = {} as AdminProject
@@ -425,6 +473,7 @@
 				await readErrorMessage(response, "Failed to push project to Airtable")
 			)
 			loader = false
+			invalidateAll()
 		}
 	}
 	const areAllPushedToHQ = (log: Log[]): boolean => {
