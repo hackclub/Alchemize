@@ -1,12 +1,7 @@
 <script>
-	import {
-		PUBLIC_ADMIN_HACKCLUB_AUTH,
-		PUBLIC_ADMIN_HACKCLUB_REDIRECT,
-	} from "$env/static/public"
 	import Button from "$lib/components/ui/button/button.svelte"
-	const clientId = PUBLIC_ADMIN_HACKCLUB_AUTH
-	const uri = PUBLIC_ADMIN_HACKCLUB_REDIRECT
-	let authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=openid+profile+email+name+verification_status+slack_id&redirect_uri=${uri}`
+	// Server route that sets the OAuth state cookie and redirects to Hack Club Auth
+	const authUrl = "/admin/auth"
 </script>
 
 <svelte:head>

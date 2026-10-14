@@ -3,6 +3,7 @@ import {PUBLIC_HACKATIME_AUTH, PUBLIC_HACKATIME_REDIRECT} from '$env/static/publ
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { patchUserHackatime } from '$lib/db';
+import { consumeOAuthState } from '$lib/server/hackClubAuth';
 
 
 export const GET: RequestHandler = async ({ url, cookies, fetch, locals }) => {
@@ -14,6 +15,11 @@ export const GET: RequestHandler = async ({ url, cookies, fetch, locals }) => {
 	const userData = locals.user;
 	if (!userData) {
 		throw redirect(303, '/');
+	}
+	// The code must come back from a flow this browser started (/hackatime_auth), otherwise someone could get
+	// their own Hackatime account linked to the victim's Alchemize account
+	if (!consumeOAuthState(cookies, 'hackatime_oauth_state', url.searchParams.get('state'))) {
+		throw error(400, 'Invalid or expired Hackatime login, please try connecting Hackatime again');
 	}
 
 	const clientId = PUBLIC_HACKATIME_AUTH;

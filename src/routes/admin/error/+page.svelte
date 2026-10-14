@@ -2,9 +2,22 @@
 	import { page } from "$app/stores"
 	import Button from "$lib/components/ui/button/button.svelte"
 
-	$: message =
-		$page.url.searchParams.get("message") || "An unknown error occurred"
-	$: status = $page.url.searchParams.get("status") || "500"
+	// Only fixed messages are shown: the URL picks one by code, so a crafted link can't put arbitrary text on
+	// this page
+	/** @type {Record<string, { status: number, message: string }>} */
+	const ERRORS = {
+		missing_code: { status: 400, message: "The login response was missing its authorization code." },
+		invalid_state: { status: 400, message: "This login link expired or wasn't started here. Please log in again." },
+		token_exchange_failed: { status: 502, message: "Hack Club Auth didn't accept the login. Please try again." },
+		invalid_identity: { status: 401, message: "Your identity token couldn't be verified." },
+		no_slack: { status: 403, message: "Your Hack Club account has no linked Slack account." },
+		not_admin: { status: 403, message: "This Hack Club account isn't an Alchemize admin." },
+	}
+	const UNKNOWN = { status: 500, message: "An unknown error occurred" }
+
+	$: error = ERRORS[$page.url.searchParams.get("code") ?? ""] ?? UNKNOWN
+	$: message = error.message
+	$: status = error.status
 </script>
 
 <svelte:head>

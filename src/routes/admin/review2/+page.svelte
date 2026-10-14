@@ -13,6 +13,7 @@
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
 	import { readErrorMessage } from "$lib/http"
+	import { Info } from "lucide-svelte"
 	import { safeHref } from "$lib/urls"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
@@ -785,7 +786,7 @@
 											? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
 											: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
 									>
-										<i class="fa-solid fa-circle-info"></i>
+										<Info class="h-3.5 w-3.5" />
 										<span>
 											{projectDescriptionLength > 250
 												? "Justification character target met."

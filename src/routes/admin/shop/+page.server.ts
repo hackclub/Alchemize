@@ -5,6 +5,7 @@ import { deleteShopItem, fetchAllItems, upsertShopItem } from '$lib/db';
 import { error } from '@sveltejs/kit';
 import { CDN_UPLOAD_SECRET } from '$env/static/private';
 import { requireAdminApi, requireAdminPage } from '$lib/server/auth';
+import { checkImageUpload } from '$lib/server/uploads';
 export const actions = {
     upsert: async (event) => {
         requireAdminApi(event.locals, "shop_manager");
@@ -16,7 +17,11 @@ export const actions = {
         // Price is entered in Aqua Regia (up to two decimals) and stored in hundredths
         const priceHundredths = unitsToHundredths(Number(formData.get('itemPrice')));
         const cdnImage = formData.get('cdnImage') as string;
-        const img = formData.get('img') as File | null;
+        const imageCheck = await checkImageUpload(formData.get('img'), 'Item image');
+        if (!imageCheck.ok) {
+            return error(400, imageCheck.message);
+        }
+        const img = imageCheck.file;
         if (!name || !description) {
             return error(400, "Bad Request");
         }

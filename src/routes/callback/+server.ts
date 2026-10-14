@@ -6,19 +6,9 @@ import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
 import { encryptAES } from "$lib/utils.server"
 import { signUserToken, USER_SESSION_MAX_AGE_SECONDS } from "$lib/server/auth"
-import jwt from "jsonwebtoken"
-import crypto from "crypto"
-import { resolveAccountForLogin, createReferRecord, addUserToAuthTable, type LoginAccount } from "$lib/db"
-const XORdecrypt = (textInp: string) => {
-	const tb = Buffer.from(textInp, "base64")
-	const kb = Buffer.from(env.USERID_ENCRYPTION_KEY, "hex")
-	const out = Buffer.alloc(tb.length)
-
-	for (let i = 0; i < tb.length; i++) {
-		out[i] = tb[i] ^ kb[i % kb.length]
-	}
-	return out.toString("utf-8")
-}
+import { consumeOAuthState, verifyHackClubIdToken } from "$lib/server/hackClubAuth"
+import { resolveAccountForLogin, createReferRecord, addUserToAuthTable, isKnownReferrer, type LoginAccount } from "$lib/db"
+import { deriveReferralKey, parseReferralCode } from "$lib/server/referralCode"
 /*
 CLEANUP PLAN DETAILS DO NOT TOUCH:
 Code FLOW:
@@ -55,15 +45,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 
 
-	const state = url.searchParams.get("state")
-	const storedState = cookies.get("oauth_state")
-	if (!state || !storedState || state !== storedState) {
-		cookies.delete("oauth_state", { path: "/" })
+	if (!consumeOAuthState(cookies, "oauth_state", url.searchParams.get("state"))) {
 		throw error(400, "Invalid state parameter")
 	}
-	cookies.delete("oauth_state", { path: "/" })
 
-	const [tokenResponse, keysResponse] = await Promise.all([fetch("https://auth.hackclub.com/oauth/token", {
+	const tokenResponse = await fetch("https://auth.hackclub.com/oauth/token", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -75,15 +61,8 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			code,
 			grant_type: "authorization_code",
 		}),
-	}),
-	fetch("https://auth.hackclub.com/oauth/discovery/keys")])
-
-	const [tokenBody, keysBody] = await Promise.all([tokenResponse.json(), keysResponse.json()])
-	const jwk = keysBody.keys[0]
-	const publicKey = crypto.createPublicKey({
-		key: jwk,
-		format: "jwk",
 	})
+	const tokenBody = await tokenResponse.json().catch(() => null)
 	if (!tokenResponse.ok) {
 		console.error("Token exchange failed:", tokenBody)
 		throw error(
@@ -93,7 +72,14 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 	const meResponse = await getDataFromAccessToken(tokenBody.access_token)
 
-	const decodedToken: any = jwt.verify(tokenBody.id_token, publicKey, { algorithms: ["RS256"] })
+	// Signature (key chosen by kid), issuer, audience (our OAuth client) and expiry are checked before any claim is used
+	let decodedToken: any
+	try {
+		decodedToken = await verifyHackClubIdToken(tokenBody.id_token, clientId)
+	} catch (err) {
+		console.error("ID token verification failed:", err)
+		throw error(401, "Your Hack Club login couldn't be verified, please try again")
+	}
 	const email = decodedToken.email
 	const name = decodedToken.name
 	const slackId = decodedToken.slack_id
@@ -126,14 +112,14 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	newUser = account.isNew
 	const userRecordId = String(account.id)
 	if (referCookie && newUser) {
-		const decodedRefer = XORdecrypt(referCookie)
-		const [referrerId, referrerSlackId] = decodedRefer.split(" ")
-		// A bad referral code is ignored: the account already exists at this point,
-		// so failing here would only lock the new user out of their first login
-		if (decodedRefer.split(" ").length === 2 && referrerId && referrerSlackId?.startsWith("U")) {
+		const referral = parseReferralCode(referCookie, deriveReferralKey(env.USER_JWT_SECRET), env.USERID_ENCRYPTION_KEY ?? "")
+		const isSelfReferral = referral !== null && `ident!${referral.referer.split(" ")[0]}` === hackClubId
+		// Invalid, forged (legacy codes must name a real user) or self-referrals are ignored: the account already
+		// exists at this point, so failing here would only lock the new user out of their first login
+		if (referral && !isSelfReferral && (!referral.legacy || await isKnownReferrer(referral.referer))) {
 			const referRespone = await createReferRecord(
 				account.email,
-				decodedRefer,
+				referral.referer,
 				yswsEligible,
 				verification,
 				firstName
@@ -143,7 +129,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 				return error(referRespone.status, "Database error")
 			}
 		} else {
-			console.warn("Ignoring malformed referral cookie for a new user")
+			console.warn("Ignoring an invalid, unknown or self referral for a new user")
 		}
 	}
 	if (referCookie) {

@@ -4,13 +4,7 @@
 	import { page } from "$app/state"
 	import { browser } from "$app/environment"
 	import { loaderStore } from "$lib/stores/loader"
-	import { scopes } from "$lib/utils"
-	import {
-		PUBLIC_HACKATIME_AUTH,
-		PUBLIC_HACKATIME_REDIRECT,
-		PUBLIC_HACKCLUB_AUTH,
-		PUBLIC_HACKCLUB_REDIRECT,
-	} from "$env/static/public"
+	import { hackatimeAuthUrl } from "$lib/utils"
 	import type { LayoutData } from "./$types"
 	import Button from "$lib/components/ui/button/button.svelte"
 
@@ -22,8 +16,6 @@
 	const isAllowed = $derived(data?.allowed ?? false)
 	const reLogin = $derived(data?.relogin ?? false)
 	const reHackatime = $derived(data?.reHackatime ?? false)
-	const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
-	const authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKCLUB_AUTH}&response_type=code&scope=${scopes}&redirect_uri=${encodeURIComponent(PUBLIC_HACKCLUB_REDIRECT)}`
 	const excludedRoutes = ["/dashboard"]
 	let unVerified = $state(false)
 </script>

@@ -1,13 +1,8 @@
 <script>
 	let { children, data } = $props()
-	import {
-		PUBLIC_HACKCLUB_AUTH,
-		PUBLIC_HACKCLUB_REDIRECT,
-	} from "$env/static/public"
-	import { scopes } from "$lib/utils"
-	let clientId = PUBLIC_HACKCLUB_AUTH
-	let uri = PUBLIC_HACKCLUB_REDIRECT
-	let authUrl = `https://auth.hackclub.com/oauth/authorize?client_id=${clientId}&response_type=code&scope=${scopes}&redirect_uri=${uri}`
+	import { authUrl } from "$lib/utils"
+	// authUrl is /auth, which sets the OAuth state that /callback requires (a direct Hack Club Auth link without
+	// it could never complete the login)
 </script>
 
 {@render children()}
@@ -17,10 +12,10 @@
 		class="w-screen absolute top-0 h-screen bg-black flex flex-col items-center justify-center"
 	>
 		<span class="text-primary-foreground text-2xl"
-			>Please Login via HackClub</span
+			>Please Login via Hack Club</span
 		>
 		<a
-			aria-label="Login via HackClub"
+			aria-label="Login via Hack Club"
 			href={authUrl}
 			class="flex gap-5 items-center justify-center bg-[#0b0e13] color-white border-2 py-3 px-4 rounded-full border-[#ec3750] mt-5
 	"
@@ -216,7 +211,7 @@
 						/>
 					</clipPath>
 				</defs>
-			</svg>Login via HackClub</a
+			</svg>Login via Hack Club</a
 		>
 	</div>
 {/if}

@@ -12,6 +12,7 @@ import {
 	findHackatimeConflicts,
 } from "$lib/db"
 import { isHttpUrl } from "$lib/urls"
+import { checkImageUpload } from "$lib/server/uploads"
 import type {
 	AirtableProject,
 	AirtableProjectWithPII,
@@ -19,8 +20,8 @@ import type {
 } from "$lib/types"
 import { fail, redirect } from "@sveltejs/kit"
 import { requireUserApi, requireUserPage } from "$lib/server/auth"
-async function uploadScreenshot(file?: File): Promise<string> {
-	if (!file || file.size === 0) return ""
+async function uploadScreenshot(file: File | null): Promise<string> {
+	if (!file) return ""
 
 	const body = new FormData()
 	body.append("file", file)
@@ -81,8 +82,11 @@ export const actions = {
 		const oldProject = formData.get("projectUpdate") as string
 		const hackatimeProject = formData.get("hackatime") as string
 		const theme = formData.get("theme") as string
-		const screenshot = formData.get("screenshot") as File
-		const screenshot2 = formData.get("screenshot-2") as File
+		const screenshot = await checkImageUpload(formData.get("screenshot"), "Screenshot")
+		const screenshot2 = await checkImageUpload(formData.get("screenshot-2"), "Second screenshot")
+		if (!screenshot.ok || !screenshot2.ok) {
+			return fail(400, { message: !screenshot.ok ? screenshot.message : (screenshot2 as { message: string }).message })
+		}
 		const linkError = validateProjectLinks(projectUrl, projectCode)
 		if (linkError) {
 			return fail(400, { message: linkError })
@@ -94,8 +98,8 @@ export const actions = {
 			}
 		}
 		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot),
-			uploadScreenshot(screenshot2),
+			uploadScreenshot(screenshot.file),
+			uploadScreenshot(screenshot2.file),
 		])
 		const response = await createProject({
 			Name: projectName,
@@ -143,8 +147,11 @@ export const actions = {
 		const hackatimeProject = formData.get("hackatime") as string
 		const theme = formData.get("theme") as string
 		const recordId = formData.get("recordId") as string
-		const screenshot = formData.get("screenshot") as File
-		const screenshot2 = formData.get("screenshot-2") as File
+		const screenshot = await checkImageUpload(formData.get("screenshot"), "Screenshot")
+		const screenshot2 = await checkImageUpload(formData.get("screenshot-2"), "Second screenshot")
+		if (!screenshot.ok || !screenshot2.ok) {
+			return fail(400, { message: !screenshot.ok ? screenshot.message : (screenshot2 as { message: string }).message })
+		}
 
 		const linkError = validateProjectLinks(projectUrl, projectCode)
 		if (linkError) {
@@ -169,8 +176,8 @@ export const actions = {
 		}
 
 		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot),
-			uploadScreenshot(screenshot2),
+			uploadScreenshot(screenshot.file),
+			uploadScreenshot(screenshot2.file),
 		])
 		const response = await updateProject(
 			recordId,

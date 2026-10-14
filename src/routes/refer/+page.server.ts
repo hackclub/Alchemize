@@ -1,32 +1,36 @@
 
-import { USERID_ENCRYPTION_KEY, BASE_URL, SLACK_BOT_TOKEN } from '$env/static/private';
+import { BASE_URL, SLACK_BOT_TOKEN, USER_JWT_SECRET } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import { WebClient } from "@slack/web-api"
 import type { AirtableReferRecord, Refers } from '$lib/types';
 import { getAllRefers } from '$lib/db';
 import { redirect } from '@sveltejs/kit';
 import { authUrl } from '$lib/utils';
+import { createReferralCode, deriveReferralKey } from '$lib/server/referralCode';
+import pLimit from 'p-limit';
 
-
-
-const XORencrypt = (textInp: string) => {
-    const tb = Buffer.from(textInp, 'utf-8');
-    const kb = Buffer.from(USERID_ENCRYPTION_KEY, "hex");
-    const out = Buffer.alloc(tb.length)
-
-    for (let i = 0; i < tb.length; i++) {
-        out[i] = tb[i] ^ kb[i % kb.length]
-    }
-    return out.toString('base64');
-
-
-}
+const referralKey = deriveReferralKey(USER_JWT_SECRET)
 
 const slackClient = new WebClient(SLACK_BOT_TOKEN)
+// The leaderboard needs a display name per referrer on every page view. Cache them, ask Slack a few at a
+// time, and never let one unknown or deleted Slack account fail the whole page.
+const NAME_CACHE_MS = 60 * 60 * 1000
+const nameCache = new Map<string, { name: string, fetchedAt: number }>()
+const slackLimit = pLimit(4)
 async function getUserName(userId: string) {
-    const result = await slackClient.users.info({ user: userId });
-
-    return result.user?.profile?.display_name || "Unknown User";
+    const cached = nameCache.get(userId)
+    if (cached && Date.now() - cached.fetchedAt < NAME_CACHE_MS) {
+        return cached.name
+    }
+    let name = "Unknown User"
+    try {
+        const result = await slackLimit(() => slackClient.users.info({ user: userId }));
+        name = result.user?.profile?.display_name || result.user?.real_name || "Unknown User";
+    } catch (error) {
+        console.warn("Slack users.info failed for a referrer:", (error as Error).message)
+    }
+    nameCache.set(userId, { name, fetchedAt: Date.now() })
+    return name
 }
 const getMyReferals = (userId: string, allRefers: AirtableReferRecord[]): Refers[] => {
     const myReferals: Refers[] = []
@@ -73,7 +77,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     if (!data?.id || !data?.slack_id) {
         throw redirect(302, authUrl);
     }
-    const id = encodeURIComponent(XORencrypt(`${data.id.slice(6)} ${data.slack_id}`));
+    const id = encodeURIComponent(createReferralCode(data.id, data.slack_id, referralKey));
     let referalsResponse = await getAllRefers()
     if (!referalsResponse.ok) {
         throw new Error(`Failed to fetch referals data: ${await referalsResponse.text()}`);

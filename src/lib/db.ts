@@ -607,6 +607,14 @@ export const getAllRefers = async (): Promise<DBResponse> => {
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+// Whether a referer from a legacy (forgeable) referral code names a real Alchemize user
+export const isKnownReferrer = async (referer: string): Promise<boolean> => {
+    const [idWithoutPrefix, slackId] = referer.split(" ")
+    if (!idWithoutPrefix || !slackId) return false
+    const rows = await db.select({ id: userTable.id }).from(userTable)
+        .where(and(eq(userTable.userid, "ident!" + idWithoutPrefix), eq(userTable.slackId, slackId)))
+    return rows.length > 0
+}
 export const createReferRecord = async (referedEmail: string, referer: string, yswsEligible: string, verified: string, referedName: string): Promise<DBResponse> => {
     const newRefer = await db.insert(refersTable).values({ referedEmail, referer, yswsEligible, verified, referedName }).returning();
     return {

@@ -1,9 +1,3 @@
-import {
-	PUBLIC_HACKATIME_AUTH,
-	PUBLIC_HACKATIME_REDIRECT,
-	PUBLIC_HACKCLUB_AUTH,
-	PUBLIC_HACKCLUB_REDIRECT,
-} from "$env/static/public"
 import type {Address} from "./types"
 interface Data {
 	id: string
@@ -25,7 +19,8 @@ type HackatimeProject = {
 	project?: string
 	total_seconds?: number
 }
-export const hackatimeAuthUrl = `https://hackatime.hackclub.com/oauth/authorize?client_id=${PUBLIC_HACKATIME_AUTH}&redirect_uri=${encodeURIComponent(PUBLIC_HACKATIME_REDIRECT)}&response_type=code&scope=profile+read`
+// Server route that sets the OAuth state cookie and redirects to Hackatime (see src/routes/hackatime_auth)
+export const hackatimeAuthUrl = `/hackatime_auth`
 export const getDataFromAccessToken = async (
 	accessToken: string
 ): Promise<Data> => {

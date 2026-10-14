@@ -3,9 +3,9 @@ import { PUBLIC_ADMIN_HACKCLUB_AUTH, PUBLIC_ADMIN_HACKCLUB_REDIRECT } from "$env
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import jwt from "jsonwebtoken"
-import crypto from "crypto"
 import { doesAdminExist } from "$lib/db"
 import { SLACK_USER_ID_PATTERN, parseRoles } from "$lib/roles"
+import { consumeOAuthState, verifyHackClubIdToken } from "$lib/server/hackClubAuth"
 
 interface AirtableUser {
     slackId: string;
@@ -24,7 +24,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     const code = url.searchParams.get("code")
 
     if (!code) {
-        throw redirect(302, `/admin/error?message=${encodeURIComponent("Missing authorization code")}&status=400`);
+        throw redirect(302, "/admin/error?code=missing_code");
+    }
+    // Only accept a code from a login this browser started at /admin/auth
+    if (!consumeOAuthState(cookies, "admin_oauth_state", url.searchParams.get("state"))) {
+        throw redirect(303, "/admin/error?code=invalid_state");
     }
 
     const clientId = PUBLIC_ADMIN_HACKCLUB_AUTH
@@ -36,45 +40,39 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     }
 
 
-    const [tokenResponse, keysResponse] = await Promise.all([
-        fetch("https://auth.hackclub.com/oauth/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                client_id: clientId,
-                client_secret: clientSecret,
-                redirect_uri: redirectUri,
-                code,
-                grant_type: "authorization_code",
-            }),
+    const tokenResponse = await fetch("https://auth.hackclub.com/oauth/token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            code,
+            grant_type: "authorization_code",
         }),
-        fetch("https://auth.hackclub.com/oauth/discovery/keys")
-    ])
-
-    const [tokenBody, keysBody] = await Promise.all([tokenResponse.json(), keysResponse.json()])
+    })
+    const tokenBody = await tokenResponse.json().catch(() => null)
 
     if (!tokenResponse.ok) {
-        const message = tokenBody?.message ?? "Token exchange failed";
-        throw redirect(303, `/admin/error?message=${encodeURIComponent(message)}&status=${tokenResponse.status}`);
+        console.error("Admin token exchange failed:", tokenResponse.status, tokenBody?.message)
+        throw redirect(303, "/admin/error?code=token_exchange_failed");
     }
-    // Verify the ID token signature against Hack Club's JWKS before trusting any
-    // of its claims (previously it was jwt.decode'd without verification).
+    // Signature (key chosen by kid), issuer, audience (the admin OAuth client) and expiry are all checked
+    // before any claim is trusted
     let decodedToken: { slack_id: string, email: string, name: string } | null
     try {
-        const jwk = keysBody.keys[0]
-        const publicKey = crypto.createPublicKey({ key: jwk, format: "jwk" })
-        decodedToken = jwt.verify(tokenBody.id_token, publicKey, { algorithms: ["RS256"] }) as { slack_id: string, email: string, name: string }
+        decodedToken = await verifyHackClubIdToken<{ slack_id: string, email: string, name: string }>(tokenBody?.id_token, clientId)
     } catch (err) {
         console.error("Admin ID token verification failed:", err)
-        throw redirect(303, `/admin/error?message=${encodeURIComponent("Invalid identity token")}&status=401`)
+        throw redirect(303, "/admin/error?code=invalid_identity")
     }
     // Admins are matched by Slack ID, so an identity without one must never reach the lookup:
     // falling back to "" would match any admin row whose slackId was left empty
     const slackId = decodedToken?.slack_id
     if (typeof slackId !== "string" || !SLACK_USER_ID_PATTERN.test(slackId)) {
-        throw redirect(303, `/admin/error?message=${encodeURIComponent("Your Hack Club account has no linked Slack account")}&status=403`)
+        throw redirect(303, "/admin/error?code=no_slack")
     }
     const airtableRes = await doesAdminExist(slackId)
     if (!airtableRes.ok) {
@@ -84,7 +82,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
     const airtableData = await airtableRes.json()
     const userRecord = airtableData.records[0]
     if (!userRecord) {
-        throw error(403, "Forbidden")
+        throw redirect(303, "/admin/error?code=not_admin")
     }
     const fields = userRecord.fields as AirtableUser;
     const roles = parseRoles(fields.roles)
