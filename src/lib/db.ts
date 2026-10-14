@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { eq, and, gte, asc, desc, ne, notLike, or, sql } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex, check } from "drizzle-orm/pg-core";
 import type { Log } from './types'
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from './currency'
 import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
@@ -26,8 +26,10 @@ if (!DATABASE_URL) {
 // Schemas
 export const userTable = pgTable("users", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    // Hack Club Auth identity id ("sub"); the stable account key, since emails can change
     userid: varchar({ length: 255 }).notNull(),
-    email: varchar({ length: 455 }).notNull(),
+    // Unique (script/migrations/2026-10-data-integrity.sql): balances are updated WHERE email = $1
+    email: varchar({ length: 455 }).notNull().unique(),
     hackatime: varchar({ length: 1000 }),
     slackId: varchar({ length: 255 }),
     // Legacy multi-currency JSON, kept read-only until the Aqua Regia migration is verified; do not read or write it
@@ -78,16 +80,24 @@ export const ordersTable = pgTable("orders", {
     status: varchar({ length: 255 }).notNull(),
     fulfiller: varchar({ length: 255 }),
     moreData: varchar({ length: 3000 }),
-    dateCreated: varchar({ length: 255 }).notNull().default(new Date().toISOString()),
+    // Evaluated by Postgres on every insert. A JS default (new Date().toISOString()) is evaluated once, when the
+    // schema is pushed, and gave every order the same date.
+    dateCreated: varchar({ length: 255 }).notNull().default(sql`to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`),
+    // Unit price actually paid, in hundredths of Aqua Regia (NULL on orders placed before it was recorded)
+    priceHundredths: integer(),
 })
 export const adminTable = pgTable("admins", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    // Admin login matches on this, so it must be present and unique
     slackId: varchar({ length: 255 }).notNull(),
     email: varchar({ length: 455 }).notNull().unique(),
     roles: varchar({ length: 355 }).notNull(),
     name: varchar({ length: 255 }).notNull(),
     nda: varchar({ length: 255 }).notNull(),
-})
+}, table => [
+    uniqueIndex("admins_slack_id_unique").on(table.slackId).where(sql`"slackId" <> ''`),
+    check("admins_slack_id_not_empty", sql`"slackId" <> ''`),
+])
 export const justifications = pgTable("justifications", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     name: varchar({ length: 255 }).notNull().default(""),
@@ -179,12 +189,28 @@ export interface airtableReplication {
     id: string
     fields: any
 }
-const isNeon = DATABASE_URL?.includes("neon.tech");
+// TLS to Postgres. DATABASE_SSL (read at runtime) overrides the default:
+//   verify  - TLS, certificate checked against the system CAs (default for Neon)
+//   require - TLS without certificate checks (encrypted but open to MITM; only if verify can't work)
+//   disable - no TLS (default otherwise, e.g. a database on the same private Docker network)
+// sslmode=... parameters in DATABASE_URL take precedence over all of this (node-postgres behaviour).
+const resolveSsl = (url: string) => {
+    const mode = (process.env.DATABASE_SSL ?? "").trim().toLowerCase()
+    if (mode === "verify") return { rejectUnauthorized: true }
+    if (mode === "require") return { rejectUnauthorized: false }
+    if (mode === "disable") return false
+    if (mode !== "") console.warn(`Unknown DATABASE_SSL value "${mode}", using the default`)
+    if (url.includes("neon.tech")) return { rejectUnauthorized: true }
+    let host = ""
+    try { host = new URL(url).hostname } catch { /* leave empty */ }
+    if (host !== "" && !["localhost", "127.0.0.1", "::1"].includes(host)) {
+        console.warn(`Connecting to Postgres at ${host} without TLS; set DATABASE_SSL=verify if it isn't on a private network`)
+    }
+    return false
+}
 const pool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: isNeon
-        ? { rejectUnauthorized: false }
-        : false
+    ssl: resolveSsl(DATABASE_URL)
 });
 
 const db = drizzle(pool); //Database Connection
@@ -263,9 +289,11 @@ export const atomicPurchaseItem = async (
                 };
             }
             const balanceHundredths: number = deduction.rows[0].balanceHundredths;
+            // total = unit price x quantity, so this division is exact
+            const unitPriceHundredths = totalPriceHundredths / quantity;
             const orderResult = await client.query(
-                'INSERT INTO orders ("orderItem", "itemID", qty, "ordererEmail", "ordererUid", status, fulfiller, "moreData") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', moreData]
+                'INSERT INTO orders ("orderItem", "itemID", qty, "ordererEmail", "ordererUid", status, fulfiller, "moreData", "priceHundredths") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
+                [itemName, itemID, String(quantity), email, ordererUid, 'pending', '', moreData, unitPriceHundredths]
             );
             await insertLedgerEntryTx(client, {
                 email,
@@ -469,26 +497,70 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
     }
 }
 
-export const createNewUser = async (email: string, userid: string, slackId: string): Promise<DBResponse> => {
-    try {
-        const newUser = await db.insert(userTable).values({ email, userid: userid, slackId, hackatime: "" }).returning();
+// Every column that refers to a user account by email. The account key is users.email; when someone changes
+// their email on Hack Club Auth, all of these move to the new email together.
+const ACCOUNT_EMAIL_COLUMNS: [table: string, column: string][] = [
+    ["users", "email"],
+    ["projects", "owner"],
+    ["orders", "ordererEmail"],
+    ["ledger", "email"],
+    ["refers", "referedEmail"],
+    ["justifications", "email"],
+    ["user_internal_data", "email"],
+]
 
-        return {
-            ok: true,
-            status: 201,
-            json: async () => ({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", balanceHundredths: 0 } } as airtableReplication),
-            text: async () => JSON.stringify({ id: newUser[0].id + "", fields: { email, userid, slackId, hackatime: "", balanceHundredths: 0 } } as airtableReplication),
-        } as DBResponse;
-    } catch (error) {
-        console.error("Database insert failed:", error);
-        return {
-            ok: false,
-            status: 500,
-            json: async () => ({ message: "Database insert failed" }),
-            text: async () => JSON.stringify({ message: "Database insert failed" }),
-        };
-    }
+export interface LoginAccount {
+    id: number
+    // The account key to put in the session; normally the user's current Hack Club Auth email
+    email: string
+    isNew: boolean
+    hasHackatime: boolean
 }
+
+// Finds (or creates) the account for a Hack Club Auth login. Matched on the Hack Club Auth id first, so an
+// email change keeps the same account (balance, projects, orders) instead of silently creating a new, empty one.
+// Runs under a per-identity advisory lock, so two concurrent first logins can't create two rows.
+export const resolveAccountForLogin = async (hackClubId: string, email: string, slackId: string): Promise<LoginAccount> => {
+    return withTransaction(async (client) => {
+        await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['login:' + hackClubId]);
+        const bySub = await client.query('SELECT id, email, hackatime FROM users WHERE userid = $1 ORDER BY id', [hackClubId]);
+        let row: { id: number, email: string, hackatime: string | null } | undefined = bySub.rows.find(user => user.email === email);
+        if (!row && bySub.rows.length > 0) {
+            const current = bySub.rows[0];
+            const taken = await client.query('SELECT 1 FROM users WHERE email = $1', [email]);
+            if (taken.rows.length === 0) {
+                for (const [table, column] of ACCOUNT_EMAIL_COLUMNS) {
+                    await client.query(`UPDATE ${table} SET "${column}" = $1 WHERE "${column}" = $2`, [email, current.email]);
+                }
+                console.info(`Moved account ${current.id} to its new Hack Club Auth email`);
+                row = { ...current, email };
+            } else {
+                // Another row already uses the new email (e.g. created by a login before this fix): keep using the
+                // existing account and leave merging the two to an admin
+                console.warn(`Account ${current.id} changed email, but the new email already has a users row; keeping the old account key`);
+                row = current;
+            }
+        }
+        if (!row) {
+            // Rows created before userid was relied on: fall back to the email
+            const byEmail = await client.query('SELECT id, email, hackatime FROM users WHERE email = $1', [email]);
+            row = byEmail.rows[0];
+        }
+        if (row) {
+            return { id: row.id, email: row.email, isNew: false, hasHackatime: !!row.hackatime };
+        }
+        const inserted = await client.query(
+            'INSERT INTO users (email, userid, "slackId", hackatime) VALUES ($1, $2, $3, \'\') ON CONFLICT DO NOTHING RETURNING id, email',
+            [email, hackClubId, slackId]
+        );
+        if (inserted.rows.length === 0) {
+            const existing = await client.query('SELECT id, email, hackatime FROM users WHERE email = $1', [email]);
+            return { id: existing.rows[0].id, email, isNew: false, hasHackatime: !!existing.rows[0].hackatime };
+        }
+        return { id: inserted.rows[0].id, email, isNew: true, hasHackatime: false };
+    });
+}
+
 export const patchUserHackatime = async (email: string, hackatimeToken: string): Promise<DBResponse> => {
     const updatedUser = await db.update(userTable).set({ hackatime: hackatimeToken }).where(eq(userTable.email, email)).returning();
     if (updatedUser.length === 0) {
@@ -907,7 +979,8 @@ export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
         fulfiller: ordersTable.fulfiller,
         itemName: shopItemsTable.name,
         cdnImage: shopItemsTable.cdnImage,
-        priceHundredths: shopItemsTable.priceHundredths
+        // Price paid; orders from before it was recorded fall back to the item's current price
+        priceHundredths: sql<number>`coalesce(${ordersTable.priceHundredths}, ${shopItemsTable.priceHundredths})`
     }).from(ordersTable).where(eq(ordersTable.ordererEmail, email)).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID));
     const records = orders.map(order => ({ id: order.id + "", fields: order }));
     return {
@@ -1181,7 +1254,8 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
 
             itemName: shopItemsTable.name,
             itemDescription: shopItemsTable.description,
-            priceHundredths: shopItemsTable.priceHundredths,
+            // Price paid; orders from before it was recorded fall back to the item's current price
+            priceHundredths: sql<number>`coalesce(${ordersTable.priceHundredths}, ${shopItemsTable.priceHundredths})`,
             cdnImage: shopItemsTable.cdnImage,
             priority: shopItemsTable.priority,
 
@@ -1217,6 +1291,8 @@ export const addUserToAuthTable = async (email: string, address: string, birthda
         const newAuthUser = await db.insert(userInternal).values({ email, address, birthdate, firstName, lastName, iv, userId: uid }).onConflictDoUpdate({
             target: userInternal.userId,
             set: {
+                // Kept in sync with the account email: PII is joined to projects/orders on it
+                email,
                 address,
                 birthdate,
                 firstName,

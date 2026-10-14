@@ -4,12 +4,11 @@ import { hackatimeAuthUrl, getDataFromAccessToken } from "$lib/utils"
 import { error, redirect } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import type { UserAuthToken } from "$lib/types"
-import type { AirtableUser } from "$lib/types"
 import { encryptAES } from "$lib/utils.server"
 import { signUserToken, USER_SESSION_MAX_AGE_SECONDS } from "$lib/server/auth"
 import jwt from "jsonwebtoken"
 import crypto from "crypto"
-import { createNewUser, getUserByEmail, createReferRecord, addUserToAuthTable } from "$lib/db"
+import { resolveAccountForLogin, createReferRecord, addUserToAuthTable, type LoginAccount } from "$lib/db"
 const XORdecrypt = (textInp: string) => {
 	const tb = Buffer.from(textInp, "base64")
 	const kb = Buffer.from(env.USERID_ENCRYPTION_KEY, "hex")
@@ -114,27 +113,18 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const encryptedBirthdate = encryptAES(meResponse.birthday).finalString
 	const encryptedFirstName = encryptAES(name.split(" ")[0]).finalString
 	const encryptedLastName = encryptAES(name.split(" ").at(-1)).finalString
-	let userRecordId = ""
-	//Look for user in DB, if not found create new user
-	const [userResponse] = await Promise.all([getUserByEmail(email), addUserToAuthTable(email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)])
-	if (!userResponse.ok) {
-		console.error("Database error:", await userResponse.text())
-		return error(userResponse.status, "Database error")
+	// Find the account by Hack Club Auth id (falling back to email), creating it on first login.
+	// account.email is the account key used everywhere else; it follows email changes on Hack Club Auth.
+	let account: LoginAccount
+	try {
+		account = await resolveAccountForLogin(hackClubId, email, slackId)
+	} catch (err) {
+		console.error("Database error while resolving the account:", err)
+		return error(500, "Database error")
 	}
-	let userData: AirtableUser[] = (await userResponse.json()).records
-
-	if (userData.length === 0) {
-		newUser = true
-		const createResponse = await createNewUser(email, hackClubId, slackId)
-		if (!createResponse.ok) {
-			console.error("Database error:", await createResponse.text())
-			return error(createResponse.status, "Database error")
-		}
-		userRecordId = (await createResponse.json()).id
-	} else {
-
-		userRecordId = userData[0].id
-	}
+	await addUserToAuthTable(account.email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)
+	newUser = account.isNew
+	const userRecordId = String(account.id)
 	if (referCookie && newUser) {
 		const decodedRefer = XORdecrypt(referCookie)
 		const [referrerId, referrerSlackId] = decodedRefer.split(" ")
@@ -142,7 +132,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		// so failing here would only lock the new user out of their first login
 		if (decodedRefer.split(" ").length === 2 && referrerId && referrerSlackId?.startsWith("U")) {
 			const referRespone = await createReferRecord(
-				email,
+				account.email,
 				decodedRefer,
 				yswsEligible,
 				verification,
@@ -162,7 +152,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const userToken: UserAuthToken = {
 		id: hackClubId,
 		dbid: userRecordId,
-		email,
+		email: account.email,
 		verification_status: verification,
 		first_name: firstName,
 		last_name: name.split(" ").slice(1).join(" "),
@@ -185,7 +175,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		maxAge: 60 * 60 * 24 * 365, // 1 year
 		path: "/",
 	})
-	if (userData.length > 0 && userData[0].fields.hackatime) {
+	if (account.hasHackatime) {
 
 		cookies.set("hackatime_verified", "true", {
 			httpOnly: false,
