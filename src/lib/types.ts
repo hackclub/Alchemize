@@ -200,3 +200,24 @@ export interface HackatimeAnalysis {
 	dayMap: Record<string, number>
 	perFileBreakdown: FileBreakdown
 }
+// Telescreen (Robert) fraud review state of a project, as shown to T2 reviewers. Reviewer-only: never part of
+// participant-facing page data (the review note and trust score are internal).
+export interface TelescreenView {
+	state: "unsent" | "awaiting_review" | "awaiting_outcome" | "rejected_fraud" | "decided" | "withdrawn"
+	robertProjectId: string | null
+	submittedAt: string | null
+	// false when the participant shipped more time after this was sent, so the review did not see it
+	upToDate: boolean
+	trustScore: number | null
+	reviewNote: string | null
+	reviewedAt: string | null
+	outcomeStatus: "approved" | "rejected" | null
+	outcomeReason: string | null
+	outcomeBy: string | null
+	outcomeSource: "alchemize" | "telescreen" | null
+	overrideBy: string | null
+	overrideReason: string | null
+	closed: boolean
+	closeReason: string | null
+	lastError: string | null
+}

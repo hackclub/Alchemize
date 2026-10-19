@@ -9,6 +9,7 @@
 		Log,
 		AirtableProject,
 		HackatimeAnalysis,
+		TelescreenView,
 	} from "$lib/types"
 	import { toast } from "svelte-sonner"
 	import { invalidateAll } from "$app/navigation"
@@ -33,7 +34,7 @@
 		Title,
 		Tooltip,
 	} from "chart.js"
-	type AdminProjectAccess = AirtableProject
+	type AdminProjectAccess = AirtableProject & { telescreen: TelescreenView | null }
 	type AdminProject = Project
 	let detailsOpen = $state(false)
 	let currentHackatimeAnalysis = $state({} as HackatimeAnalysis)
@@ -149,8 +150,125 @@
 			screenshot2: nextProject.fields.screenshot2,
 			screenshot: nextProject.fields.screenshot,
 		}
+		currentTelescreen = nextProject.telescreen
+		decisionReason = ""
+		overrideEnabled = false
+		overrideReason = ""
 		currentHackatimeAnalysis = {} as HackatimeAnalysis
 		fetchHackatimeAnalysis(currentProject.id + "")
+	}
+
+	// Telescreen (Robert) fraud review of the selected project. The server enforces the same gate on push.
+	let currentTelescreen = $state<TelescreenView | null>(null)
+	let decisionReason = $state("")
+	let overrideEnabled = $state(false)
+	let overrideReason = $state("")
+	let telescreenBusy = $state(false)
+	type TelescreenGate = { ok: boolean, overridable: boolean, message: string }
+	const telescreenGateFor = (t: TelescreenView | null): TelescreenGate => {
+		if (!data.telescreenConfigured)
+			return { ok: false, overridable: true, message: "Telescreen isn't configured on this server" }
+		if (t?.closed && (t.closeReason === "fraud_rejected" || t.closeReason === "telescreen_rejected"))
+			return {
+				ok: false,
+				overridable: false,
+				message: "Telescreen rejected this project's last review. It needs a new ship and a new review.",
+			}
+		if (!t || t.closed || !t.robertProjectId)
+			return {
+				ok: false,
+				overridable: true,
+				message: t?.lastError && !t.closed
+					? `Not sent to Telescreen: ${t.lastError}`
+					: "Not sent to Telescreen yet",
+			}
+		if (!t.upToDate)
+			return {
+				ok: false,
+				overridable: true,
+				message: "Out of date: the participant shipped more time after this was sent to Telescreen. Send it again.",
+			}
+		switch (t.state) {
+			case "awaiting_outcome":
+				return { ok: true, overridable: false, message: "" }
+			case "decided":
+				return t.outcomeStatus === "approved"
+					? { ok: true, overridable: false, message: "" }
+					: { ok: false, overridable: false, message: "Rejected in Telescreen" }
+			case "rejected_fraud":
+				return { ok: false, overridable: false, message: "Rejected by Telescreen's fraud review" }
+			case "awaiting_review":
+				return { ok: false, overridable: true, message: "Waiting on Telescreen's fraud review" }
+			default:
+				return { ok: false, overridable: true, message: "Not waiting on a decision in Telescreen" }
+		}
+	}
+	let telescreenGate = $derived(telescreenGateFor(currentTelescreen))
+	let overrideActive = $derived(
+		data.isSuperAdmin && !telescreenGate.ok && telescreenGate.overridable && overrideEnabled
+	)
+	let canPush = $derived(
+		telescreenGate.ok || (overrideActive && overrideReason.trim().length >= 20)
+	)
+	// A review Telescreen rejected can't be resent until the participant ships again (the server refuses too)
+	const telescreenNeedsSubmit = (t: TelescreenView | null): boolean =>
+		!t ||
+		(t.closed &&
+			!(
+				(t.closeReason === "fraud_rejected" || t.closeReason === "telescreen_rejected") &&
+				t.upToDate
+			)) ||
+		(!t.closed && (t.state === "unsent" || !t.upToDate))
+	const telescreenLabel = (t: TelescreenView | null): string => {
+		if (!t) return "Not sent"
+		if (t.closed) {
+			const closed: Record<string, string> = {
+				awarded: "Paid",
+				fraud_rejected: "Fraud rejected",
+				telescreen_rejected: "Rejected in Telescreen",
+				t1_rejected: "Returned by T1",
+				t2_rejected: "Returned by T2",
+				superseded: "Superseded",
+			}
+			return closed[t.closeReason ?? ""] ?? "Closed"
+		}
+		const label = {
+			unsent: t.lastError ? "Send failed" : "Not sent",
+			awaiting_review: "Awaiting fraud review",
+			awaiting_outcome: "Passed fraud review",
+			rejected_fraud: "Fraud rejected",
+			decided: t.outcomeStatus === "approved" ? "Approved in Telescreen" : "Rejected in Telescreen",
+			withdrawn: "Withdrawn",
+		}[t.state]
+		return t.upToDate || t.state === "unsent" ? label : `${label} · out of date`
+	}
+	const telescreenBadgeClass = (t: TelescreenView | null): string => {
+		const gate = telescreenGateFor(t)
+		if (gate.ok) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+		if (!gate.overridable) return "bg-rose-500/10 text-rose-400 border-rose-500/20"
+		return "bg-amber-500/10 text-amber-400 border-amber-500/20"
+	}
+	const telescreenAction = async (action: "refresh" | "submit") => {
+		const projectId = currentProject.id
+		telescreenBusy = true
+		const response = await fetch("/admin/review2/telescreen", {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Accept: "application/json" },
+			body: JSON.stringify({ projectId, action }),
+		}).catch(() => null)
+		telescreenBusy = false
+		if (!response?.ok) {
+			toast.error(response ? await readErrorMessage(response, "Telescreen request failed") : "Telescreen request failed")
+			return
+		}
+		const result = await response.json()
+		if (currentProject.id === projectId) currentTelescreen = result.telescreen
+		if (result.ok) {
+			toast.success(action === "submit" ? "Sent to Telescreen" : "Telescreen state refreshed")
+		} else {
+			toast.error(result.message ?? "Telescreen request failed")
+		}
+		invalidateAll()
 	}
 	const calculateDelta = (log: Log[], includePushed = false): number => {
 		let delta = 0
@@ -390,6 +508,7 @@
 		projectId: string,
 		justification: string,
 		deductedHours: number,
+		telescreenDecision: { reason: string, override?: string },
 		resolveInDoubt?: InDoubtResolution
 	) =>
 		fetch("/admin/review2/sendToAirtable", {
@@ -403,6 +522,8 @@
 				justification,
 				subtraction: deductedHours,
 				resolveInDoubt,
+				decisionReason: telescreenDecision.reason,
+				telescreenOverride: telescreenDecision.override,
 			}),
 		})
 
@@ -432,8 +553,12 @@
 		const name = currentProject.name
 		const justification = template
 		const deductedHours = subtraction
+		const telescreenDecision = {
+			reason: decisionReason,
+			override: overrideActive ? overrideReason : undefined,
+		}
 		currentProject = {} as AdminProject
-		let response = await pushToUnified(id, justification, deductedHours)
+		let response = await pushToUnified(id, justification, deductedHours, telescreenDecision)
 
 		if (response.status === 409) {
 			const body = await response
@@ -448,7 +573,7 @@
 					invalidateAll()
 					return
 				}
-				response = await pushToUnified(id, justification, deductedHours, resolution)
+				response = await pushToUnified(id, justification, deductedHours, telescreenDecision, resolution)
 			}
 		}
 
@@ -514,6 +639,7 @@
 				userExternal: projectDescription,
 				justification: template,
 				slackId: slackId,
+				decisionReason,
 			}),
 		})
 
@@ -573,6 +699,14 @@
 								{project.fields.slackId}
 							</h2>
 							<div class="theme text-xs">{project.fields.Theme}</div>
+							<span
+								class={cn(
+									"text-[10px] px-1.5 py-0.5 rounded border font-medium ml-auto",
+									telescreenBadgeClass(project.telescreen)
+								)}
+							>
+								{telescreenLabel(project.telescreen)}
+							</span>
 						</div>
 					</button>
 				{/each}
@@ -761,6 +895,130 @@
 						<div
 							class="w-full h-full flex flex-col items-center overflow-y-auto custom-scrollbar"
 						>
+							<section class="w-full px-5 pt-5">
+								<div
+									class="border border-zinc-800 bg-zinc-950/30 rounded-xl p-4 space-y-3"
+								>
+									<div class="flex items-center justify-between gap-2 flex-wrap">
+										<div class="flex items-center gap-2 flex-wrap">
+											<h2
+												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
+											>
+												Telescreen
+											</h2>
+											<span
+												class={cn(
+													"text-[11px] px-1.5 py-0.5 rounded border font-medium",
+													telescreenBadgeClass(currentTelescreen)
+												)}
+											>
+												{telescreenLabel(currentTelescreen)}
+											</span>
+											{#if currentTelescreen?.trustScore != null}
+												<span
+													class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-300 rounded font-mono border border-zinc-700"
+												>
+													Trust score {currentTelescreen.trustScore}/10
+												</span>
+											{/if}
+										</div>
+										<div class="flex items-center gap-1.5">
+											<Button
+												class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[11px] px-2.5 py-1 rounded-md text-zinc-300 transition"
+												onclick={() => telescreenAction("refresh")}
+												disabled={telescreenBusy || !currentTelescreen}
+											>
+												Refresh
+											</Button>
+											{#if pending && telescreenNeedsSubmit(currentTelescreen)}
+												<Button
+													class="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-[11px] px-2.5 py-1 rounded-md transition"
+													onclick={() => telescreenAction("submit")}
+													disabled={telescreenBusy}
+												>
+													{currentTelescreen && !currentTelescreen.closed && currentTelescreen.robertProjectId
+														? "Send again"
+														: "Send to Telescreen"}
+												</Button>
+											{/if}
+										</div>
+									</div>
+									{#if currentTelescreen?.reviewNote}
+										<p
+											class="text-xs text-zinc-300 bg-zinc-900/40 border border-zinc-800 rounded-lg p-2 whitespace-pre-wrap wrap-break-word"
+										>
+											<strong
+												class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
+												>Fraud reviewer's note (internal)</strong
+											>
+											{currentTelescreen.reviewNote}
+										</p>
+									{/if}
+									{#if currentTelescreen?.outcomeStatus}
+										<p class="text-xs text-zinc-400 wrap-break-word">
+											Outcome: <span
+												class={currentTelescreen.outcomeStatus === "approved"
+													? "text-emerald-400"
+													: "text-rose-400"}>{currentTelescreen.outcomeStatus}</span
+											>
+											by {currentTelescreen.outcomeBy ?? "unknown"}{currentTelescreen.outcomeSource === "telescreen"
+												? " in Telescreen"
+												: ""}{currentTelescreen.outcomeReason
+												? `: ${currentTelescreen.outcomeReason}`
+												: ""}
+										</p>
+									{/if}
+									{#if currentTelescreen?.overrideBy}
+										<p class="text-xs text-rose-300 wrap-break-word">
+											Approved without a Telescreen verdict by {currentTelescreen.overrideBy}: {currentTelescreen.overrideReason}
+										</p>
+									{/if}
+									{#if pending && !telescreenGate.ok}
+										<p class="text-xs text-amber-400">{telescreenGate.message}</p>
+									{/if}
+									{#if currentTelescreen?.lastError}
+										<p class="text-xs text-rose-400 wrap-break-word">
+											Last Telescreen error: {currentTelescreen.lastError}
+										</p>
+									{/if}
+									<p class="text-[10px] text-zinc-600">
+										Telescreen credits the in-window Hackatime time on these projects once, when it first
+										sees a submission, so on a later review cycle its hours won't match this review's delta.
+									</p>
+									{#if pending}
+										<div class="space-y-1">
+											<label
+												for="decision-reason"
+												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
+												>Decision reason (sent to Telescreen)</label
+											>
+											<Textarea
+												id="decision-reason"
+												class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+												placeholder="Why you're approving or returning this project. Required to return it. Telescreen organizers see it, the participant doesn't."
+												bind:value={decisionReason}
+												maxlength={5000}
+											/>
+										</div>
+										{#if data.isSuperAdmin && !telescreenGate.ok && telescreenGate.overridable}
+											<div class="space-y-1.5 border border-rose-900/40 rounded-lg p-2">
+												<label class="flex items-center gap-2 text-xs text-rose-300">
+													<input type="checkbox" bind:checked={overrideEnabled} />
+													Approve without a Telescreen verdict (super admin, logged)
+												</label>
+												{#if overrideEnabled}
+													<Textarea
+														class="resize-none h-14 bg-zinc-950/40 border-rose-900/30 focus:border-rose-800 text-xs rounded-lg p-2"
+														placeholder="Why this can't wait for Telescreen (at least 20 characters)"
+														bind:value={overrideReason}
+														maxlength={2000}
+													/>
+												{/if}
+											</div>
+										{/if}
+									{/if}
+								</div>
+							</section>
 							<main
 								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800"
 							>
@@ -1054,14 +1312,16 @@
 							<Button
 								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
 								onclick={() => (confirmRejectOpen = true)}
-								disabled={projectDescriptionLength < 20 || loader}
+								disabled={projectDescriptionLength < 20 || loader || decisionReason.trim() === ""}
+								title={decisionReason.trim() === "" ? "Write a decision reason for Telescreen first" : undefined}
 							>
 								Return
 							</Button>
 							<Button
 								class="bg-emerald-600 hover:bg-emerald-500 text-primary-foreground w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
 								onclick={() => (confirmPushOpen = true)}
-								disabled={projectDescriptionLength < 250 || loader}
+								disabled={projectDescriptionLength < 250 || loader || !canPush}
+								title={!canPush ? telescreenGate.message : undefined}
 							>
 								{#if loader}
 									<div

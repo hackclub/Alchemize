@@ -4,6 +4,7 @@ import { error } from "@sveltejs/kit"
 import { getProjectById, patchProjectForShip } from "$lib/db";
 import { requireAdminApi } from "$lib/server/auth";
 import { applyT1Review, isOwnProject, parseDeductionMinutes } from "$lib/server/projectLog";
+import { ensureTelescreenSubmission } from "$lib/server/telescreen";
 
 export const POST: RequestHandler = async ({ request, locals }) => {
     const decoded = requireAdminApi(locals, "reviewer")
@@ -51,6 +52,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 
 
-    return new Response(JSON.stringify({ message: "Project accepted", newLog: newLog }), { status: 200 })
+    // Accepted projects go to Telescreen's fraud review before T2. A failure doesn't undo the accept: the T2 page
+    // shows the project as not sent and can retry
+    const telescreen = await ensureTelescreenSubmission(Number(projectData.id), approver).catch(error => {
+        console.error(`Telescreen submission for project ${recordId} failed:`, error)
+        return { ok: false as const, message: "Couldn't send the project to Telescreen" }
+    })
+    if (!telescreen.ok) {
+        console.warn(`Project ${recordId} accepted but not sent to Telescreen: ${telescreen.message}`)
+    }
+
+    return new Response(JSON.stringify({
+        message: "Project accepted",
+        newLog: newLog,
+        telescreen: telescreen.ok ? { ok: true } : { ok: false, message: telescreen.message },
+    }), { status: 200 })
 
 }

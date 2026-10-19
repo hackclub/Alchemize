@@ -4,7 +4,8 @@ import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "./$types";
 import type { Log, AdminProjectView, Address } from "$lib/types";
 import { getProjectById, addToJustifications, beginUnifiedSubmission, completeUnifiedSubmission, markUnifiedSubmissionFailed } from "$lib/db";
-import { hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
+import { calculateNewMinutes, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
+import { approveInTelescreen } from "$lib/server/telescreen";
 import { formatAqua, hundredthsToUnits } from "$lib/currency"
 import { decryptAES, encryptAES } from "$lib/utils.server"
 import { submitProjectToAirtable } from "$lib/airtable"
@@ -76,6 +77,32 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (resolveInDoubt !== undefined && resolveInDoubt !== "already_in_airtable" && resolveInDoubt !== "not_in_airtable") {
         return error(400, "Invalid resolveInDoubt value")
     }
+    // Telescreen: the T2 reviewer's reason for the decision (optional on approval), and a super admin's reason to
+    // approve without a Telescreen verdict
+    const decisionReason = body.decisionReason ?? ""
+    const telescreenOverride = body.telescreenOverride as unknown
+    if (typeof decisionReason !== "string" || decisionReason.length > 5000) {
+        return error(400, "The decision reason must be text of at most 5000 characters")
+    }
+    if (telescreenOverride !== undefined && (typeof telescreenOverride !== "string" || telescreenOverride.length > 2000)) {
+        return error(400, "The Telescreen override reason must be text of at most 2000 characters")
+    }
+    // Checked again in beginUnifiedSubmission, but refused here too: after the Telescreen approval below, a typo in
+    // "Deduct Hours" would leave the project approved in Telescreen with nothing paid
+    if (Math.round(subtraction * 60) > calculateNewMinutes(log)) {
+        return error(400, `Cannot deduct ${subtraction}h, only ${(calculateNewMinutes(log) / 60).toFixed(2)}h are approved in this review`)
+    }
+    // Last check before money moves, after every local check that could still refuse: the approval is final in
+    // Telescreen. Retrying a push after a later failure passes straight through (already approved there).
+    const telescreen = await approveInTelescreen(projectIdNum, log, decoded, decisionReason, telescreenOverride)
+    if (!telescreen.ok) {
+        return new Response(JSON.stringify({
+            code: "TELESCREEN_GATE",
+            message: telescreen.message,
+            overridable: telescreen.overridable,
+        }), { status: telescreen.status, headers: { "Content-Type": "application/json" } })
+    }
+
     const deductedMinutes = Math.round(subtraction * 60)
     const awardAndClose = async (submissionId: number, airtableRecordId: string | null) =>
         completeUnifiedSubmission(submissionId, justification, airtableRecordId)

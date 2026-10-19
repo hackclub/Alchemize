@@ -115,8 +115,14 @@ export const applyT1Review = (
 	}]
 }
 
-// T2 rejection sends the last T1-approved (or pending) entry back as rejected; anything else is unchanged
-export const applyT2Reject = (log: Log[], rejectionReason: string, now = new Date()): Log[] => {
+// T2 rejection sends the last T1-approved (or pending) entry back as rejected; anything else is unchanged.
+// `by` labels who rejected it in the reviewer-only fields (defaults to a T2 reviewer).
+export const applyT2Reject = (
+	log: Log[],
+	rejectionReason: string,
+	now = new Date(),
+	by: { internalNote: string, reviewerName: string } = { internalNote: "Rejected at T2", reviewerName: "T2 Reviewer" }
+): Log[] => {
 	const lastLog = log.at(-1)
 	if (!lastLog || (lastLog.status !== 0 && lastLog.status !== 1) || lastLog.submmitedToHQ) {
 		return log
@@ -128,13 +134,28 @@ export const applyT2Reject = (log: Log[], rejectionReason: string, now = new Dat
 		timestamp,
 		message: [...lastLog.message, {
 			userExternal: `Hiya! Your project failed T2 review, REASON: ${rejectionReason}`,
-			internalNote: "Rejected at T2",
-			justification: "Rejected at T2",
+			internalNote: by.internalNote,
+			justification: by.internalNote,
 			timestamp,
-			reviewerName: "T2 Reviewer",
+			reviewerName: by.reviewerName,
 		}],
 		submmitedToHQ: false,
 	}]
+}
+
+// When the participant last shipped time that is still waiting to be paid (pending or T1-approved, not sent to HQ).
+// A Telescreen review submitted before this moment did not see that time. null when nothing is waiting.
+export const latestUnpaidShipTime = (log: Log[]): Date | null => {
+	let latest: number | null = null
+	for (const entry of log) {
+		if ((entry.status !== 0 && entry.status !== 1) || entry.submmitedToHQ) continue
+		for (const msg of entry.message) {
+			if (msg.reviewerName !== "user") continue
+			const time = Date.parse(msg.timestamp)
+			if (Number.isFinite(time) && (latest === null || time > latest)) latest = time
+		}
+	}
+	return latest === null ? null : new Date(latest)
 }
 
 // Minutes approved by T1 that have not been sent to Unified yet
