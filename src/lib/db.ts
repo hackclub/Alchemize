@@ -549,6 +549,12 @@ export const getLatestTelescreenSubmission = async (projectId: number): Promise<
     return rows[0] ?? null;
 };
 
+// Every Telescreen review of a project, newest first (for the T2 history list)
+export const getTelescreenSubmissionsForProject = async (projectId: number): Promise<TelescreenSubmission[]> =>
+    db.select().from(telescreenSubmissionsTable)
+        .where(eq(telescreenSubmissionsTable.projectId, projectId))
+        .orderBy(desc(telescreenSubmissionsTable.id));
+
 export const findTelescreenSubmissionByRobertId = async (robertProjectId: string): Promise<TelescreenSubmission | null> => {
     const rows = await db.select().from(telescreenSubmissionsTable)
         .where(eq(telescreenSubmissionsTable.robertProjectId, robertProjectId));
