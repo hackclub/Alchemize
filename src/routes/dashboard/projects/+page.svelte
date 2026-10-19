@@ -11,6 +11,7 @@
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import type { AirtableProject } from "$lib/types"
+	import type { IdvStatus } from "$lib/idv"
 
 	let { data } = $props()
 
@@ -25,6 +26,13 @@
 
 	$effect(() => {
 		projects = data?.projects ?? []
+	})
+
+	// Identity verification status from the page load; a refused ship updates it if it changed since
+	let idvStatus: IdvStatus | undefined = $state(data?.idvStatus)
+
+	$effect(() => {
+		idvStatus = data?.idvStatus
 	})
 
 	let projectBeingUpdated: AirtableProject | null = $state(null)
@@ -117,6 +125,7 @@
 		message?: string
 		newLog?: unknown
 		newStatus?: string
+		idvStatus?: IdvStatus
 	} {
 		try {
 			const parsed = JSON.parse(body)
@@ -155,6 +164,10 @@
 			const responseData = parseShipResponse(await response.text())
 
 			if (!response.ok) {
+				// Refused for identity verification: disable the Ship button with the explanation
+				if (response.status === 403 && responseData.idvStatus) {
+					idvStatus = responseData.idvStatus
+				}
 				toast.error(
 					`${responseData.message || "Shipping failed"} (code ${response.status})`
 				)
@@ -380,6 +393,7 @@
 	mode="update"
 	project={projectBeingUpdated}
 	{availableHacks}
+	{idvStatus}
 	onship={shipProject}
 	{showRotator}
 	{invalidater}

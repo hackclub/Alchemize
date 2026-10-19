@@ -9,10 +9,11 @@
 	import type { AirtableProject } from "$lib/types"
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
-	import { Plus, Trash } from "lucide-svelte"
+	import { Plus, Trash, ShieldAlert, ExternalLink } from "lucide-svelte"
 	import type { Log } from "$lib/types"
 	import { cn } from "$lib/lib/utils"
 	import { PROJECT_TYPES, projectTypeLabel } from "$lib/projectTypes"
+	import { idvShipBlock, type IdvStatus } from "$lib/idv"
 
 	type HackatimeProject = {
 		name?: string
@@ -28,6 +29,7 @@
 		mode,
 		project = null,
 		availableHacks,
+		idvStatus,
 		onship,
 		showRotator = false,
 		invalidater,
@@ -37,6 +39,8 @@
 		mode: "create" | "update"
 		project?: AirtableProject | null
 		availableHacks: HackatimeProject[]
+		// Hack Club Auth identity verification; anything but "verified" disables shipping (the server enforces it)
+		idvStatus?: IdvStatus
 		// Resolves to whether the ship went through
 		onship: (changelog: string) => Promise<boolean>
 		showRotator?: boolean
@@ -97,7 +101,14 @@
 		return required.filter(([, present]) => !present).map(([label]) => label)
 	})
 
+	// Why this user can't ship yet (needs to verify, verification pending, ineligible), or null
+	const idvBlock = $derived(idvStatus ? idvShipBlock(idvStatus) : null)
+
 	const ship = async () => {
+		if (idvBlock) {
+			toast.error(idvBlock.message)
+			return
+		}
 		if (missingShipFields.length > 0) {
 			toast.error(`Add ${missingShipFields.join(", ")} and click Update Project before shipping.`)
 			return
@@ -338,11 +349,56 @@
 							{/if}
 						</div>
 
+						{#if idvBlock}
+							<div
+								role="status"
+								class={cn(
+									"rounded-xl bg-secondary/60 p-4 flex flex-col gap-3 shadow-[inset_3px_0_0_0]",
+									idvStatus === "ineligible" ? "shadow-rose-600" : "shadow-amber-600"
+								)}
+							>
+								<div class="flex items-center gap-2">
+									<ShieldAlert
+										class={cn(
+											"size-4 shrink-0",
+											idvStatus === "ineligible" ? "text-rose-500" : "text-amber-500"
+										)}
+									/>
+									<p
+										class="font-display text-sm font-bold uppercase tracking-wide text-foreground"
+									>
+										{idvBlock.title}
+									</p>
+								</div>
+								<p class="font-body text-sm text-foreground leading-relaxed">
+									{idvBlock.message}
+								</p>
+								{#if idvBlock.link}
+									<Button
+										href={idvBlock.link.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										variant="outline"
+										size="xs"
+										class="self-start font-display font-bold uppercase tracking-wider text-xs"
+									>
+										{idvBlock.link.label}
+										<ExternalLink class="size-3.5" />
+									</Button>
+								{/if}
+							</div>
+						{:else if idvStatus === "unavailable"}
+							<p class="font-note text-xs text-muted-foreground">
+								Couldn't check your identity verification right now. It will be checked again when you ship.
+							</p>
+						{/if}
+
 						<Button
 							variant="primary"
 							class="w-full h-10 font-display font-bold uppercase tracking-wider text-xs"
 							onclick={ship}
-							disabled={shipLoading || showRotator}
+							disabled={shipLoading || showRotator || !!idvBlock}
+							title={idvBlock?.title}
 						>
 							{#if shipLoading || showRotator}
 								<div
@@ -738,14 +794,16 @@
 										<span
 											class={cn(
 												"font-note text-[10px] font-semibold px-2 py-1 rounded-full",
-												changelogCharCount < 20
+												idvBlock || changelogCharCount < 20
 													? "border border-amber-400/30 bg-amber-500/15 text-amber-300"
 													: "border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
 											)}
 										>
-											{changelogCharCount < 20
-												? `${20 - changelogCharCount} more chars needed to ship`
-												: "Ready to ship"}
+											{idvBlock
+												? idvBlock.title
+												: changelogCharCount < 20
+													? `${20 - changelogCharCount} more chars needed to ship`
+													: "Ready to ship"}
 										</span>
 									</div>
 

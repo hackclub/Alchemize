@@ -9,6 +9,16 @@
 		total_seconds?: number
 	}
 	import { mode, toggleMode } from "mode-watcher"
+	import { IDV_SUBMIT_URL, type IdvStatus } from "$lib/idv"
+
+	const IDV_BADGES: Record<IdvStatus, { label: string, dot: string, text: string }> = {
+		verified: { label: "Eligible", dot: "bg-primary", text: "text-primary" },
+		needs_submission: { label: "Verification needed", dot: "bg-amber-500", text: "text-amber-300" },
+		pending: { label: "Verification pending", dot: "bg-amber-500", text: "text-amber-300" },
+		ineligible: { label: "Not Eligible", dot: "bg-red-700", text: "text-red-300" },
+		unavailable: { label: "Couldn't check", dot: "bg-muted-foreground", text: "text-muted-foreground" },
+	}
+	const idvBadge = $derived(IDV_BADGES[data.idvStatus as IdvStatus] ?? IDV_BADGES.unavailable)
 
 	interface Project {
 		id: string
@@ -289,19 +299,23 @@
 						YSWS Eligibility
 					</p>
 					<div class="flex items-center gap-2">
+						<span class="h-2 w-2 rounded-full {idvBadge.dot}"></span>
 						<span
-							class="h-2 w-2 rounded-full {data.eligiblity
-								? 'bg-primary'
-								: 'bg-red-700'}"
-						></span>
-						<span
-							class="font-body font-bold uppercase text-xs tracking-wider {data.eligiblity
-								? 'text-primary'
-								: 'text-red-300'}"
+							class="font-body font-bold uppercase text-xs tracking-wider {idvBadge.text}"
 						>
-							{data.eligiblity ? "Eligible" : "Not Eligible"}
+							{idvBadge.label}
 						</span>
 					</div>
+					{#if data.idvStatus === "needs_submission"}
+						<a
+							href={IDV_SUBMIT_URL}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="font-body text-xs underline underline-offset-2 text-foreground hover:text-primary"
+						>
+							Verify your identity to ship projects
+						</a>
+					{/if}
 				</div>
 			</div>
 		</div>
