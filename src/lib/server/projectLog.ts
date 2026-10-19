@@ -94,12 +94,14 @@ export const parseDeductionMinutes = (decreaseTime: unknown, lastLog: Log | unde
 	return minutes
 }
 
-// T1 decision on the last entry: lowers its delta by the deduction and remembers the deduction
+// T1 decision on the last entry: lowers its delta by the deduction and remembers the deduction.
+// An approval also records the reviewer's Slack ID (only an approval: approvedAtT1By looks at every message of an
+// entry, and rejecting an earlier cycle must not block that reviewer from paying a later approval by someone else).
 export const applyT1Review = (
 	log: Log[],
 	deductMinutes: number,
 	decision: "accept" | "reject",
-	review: { userExternal: string, internalNote: string, justification: string, reviewerName: string },
+	review: { userExternal: string, internalNote: string, justification: string, reviewerName: string, reviewerSlackId?: string },
 	now = new Date()
 ): Log[] => {
 	const lastLog = log.at(-1)
@@ -119,6 +121,7 @@ export const applyT1Review = (
 			justification: review.justification,
 			timestamp,
 			reviewerName: decision === "accept" ? `APPROVED ${review.reviewerName}` : review.reviewerName,
+			...(decision === "accept" && review.reviewerSlackId ? { reviewerSlackId: review.reviewerSlackId } : {}),
 		}],
 		submmitedToHQ: false,
 	}]
@@ -191,12 +194,21 @@ export const applyT2Award = (log: Log[], justification: string, reviewerName: st
 }
 
 // Whether this reviewer gave the T1 approval of any entry a T2 award would pay now (approved, not yet sent to
-// HQ). applyT1Review records an approval as a message with reviewerName "APPROVED <name>", so the same person
-// may not approve at T1 and award at T2: that needs two reviewers.
-export const approvedAtT1By = (log: Log[], reviewerName: string): boolean =>
+// HQ): the same person may not approve at T1 and award at T2, that needs two reviewers. An approval is a message
+// with reviewerName "APPROVED <name>" and, since this check exists, the approver's Slack ID. The ID is what counts
+// (admin names can change between T1 and T2); the name is still compared for approvals recorded without an ID.
+export const approvedAtT1By = (
+	log: Log[],
+	reviewer: { slackId?: string | null, name?: string | null }
+): boolean =>
 	log.some(entry =>
 		entry.status === 1 && !entry.submmitedToHQ &&
-		entry.message.some(msg => msg.reviewerName === `APPROVED ${reviewerName}`)
+		entry.message.some(msg =>
+			!!msg.reviewerName?.startsWith("APPROVED ") && (
+				(!!reviewer.slackId && msg.reviewerSlackId === reviewer.slackId) ||
+				(!!reviewer.name && msg.reviewerName === `APPROVED ${reviewer.name}`)
+			)
+		)
 	)
 
 // Reviewers may not review or pay out their own projects. Compared on both Slack ID and email, because

@@ -55,7 +55,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         return error(400, "Project has not been approved or all logs are submitted to HQ")
     }
     // Two reviewers between a ship and a payout: whoever approved this time at T1 may not also award it
-    if (approvedAtT1By(log, decoded.name)) {
+    if (approvedAtT1By(log, decoded)) {
         return error(403, "A different reviewer must award a project you approved at T1")
     }
     const address = pickShippingAddress(decryptAES(project.fields.address, project.fields.iv))

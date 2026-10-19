@@ -33,7 +33,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (typeof deductMinutes === "string") {
         return error(400, deductMinutes)
     }
-    const newLog = applyT1Review(oldLog, deductMinutes, "accept", { userExternal, internalNote, justification, reviewerName: approver })
+    // The Slack ID is what stops the same admin from paying this approval at T2 (names can change)
+    const newLog = applyT1Review(oldLog, deductMinutes, "accept", { userExternal, internalNote, justification, reviewerName: approver, reviewerSlackId: decoded.slackId })
 
 
     const response = await patchProjectForShip(recordId, log, newLog, "accepted")

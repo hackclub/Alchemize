@@ -113,30 +113,48 @@ test("only a pending entry can be accepted at T1; a rejection is overturned by s
 	assert.match(String(parseDeductionMinutes(0, paid.at(-1), "accept")), /already been sent to HQ/)
 })
 
-test("the T1 approver may not award the same time at T2", () => {
-	const approved = t1(ship([], 120), 0, "accept") // approved by "Reviewer" (see `review` above)
-	assert.equal(approvedAtT1By(approved, "Reviewer"), true)
-	assert.equal(approvedAtT1By(approved, "Other"), false)
-	assert.equal(approvedAtT1By(approved, "Review"), false, "the whole name must match")
-	assert.equal(approvedAtT1By(approved, "APPROVED Reviewer"), false)
-	assert.equal(approvedAtT1By(approved, ""), false)
+test("the T1 approver may not award the same time at T2 (by Slack ID, name as fallback)", () => {
+	const alice = { slackId: "U1", name: "Alice" }
+	const bob = { slackId: "U2", name: "Bob" }
+	const t1By = (log: Log[], who: { slackId: string, name: string }, decision: "accept" | "reject") =>
+		applyT1Review(log, 0, decision, { ...review, reviewerName: who.name, reviewerSlackId: who.slackId })
+	const approved = t1By(ship([], 120), alice, "accept")
+	assert.equal(approved.at(-1)!.message.at(-1)!.reviewerSlackId, "U1", "an approval records the approver's Slack ID")
+	assert.equal(approvedAtT1By(approved, alice), true)
+	assert.equal(approvedAtT1By(approved, { slackId: "U1", name: "Alice Renamed" }), true, "a renamed admin is still the approver")
+	assert.equal(approvedAtT1By(approved, bob), false)
+	assert.equal(approvedAtT1By(approved, { slackId: "U2", name: "Alice" }), true, "same name, other ID: refused (fails closed)")
+	assert.equal(approvedAtT1By(approved, { slackId: "", name: "" }), false, "empty values never match")
+	assert.equal(approvedAtT1By(approved, { slackId: "U2", name: "APPROVED Alice" }), false)
+	// Approvals recorded before the ID existed are matched by name
+	const legacy = applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Alice" })
+	assert.equal(legacy.at(-1)!.message.at(-1)!.reviewerSlackId, undefined)
+	assert.equal(approvedAtT1By(legacy, alice), true)
+	assert.equal(approvedAtT1By(legacy, { slackId: "U1", name: "Alice Renamed" }), false, "without an ID only the name can match")
+	assert.equal(approvedAtT1By(legacy, bob), false)
+	// A rejection records no ID: rejecting an earlier cycle doesn't block that reviewer once someone else approves
+	const rejectedByBob = t1By(ship([], 120), bob, "reject")
+	assert.equal(rejectedByBob.at(-1)!.message.at(-1)!.reviewerSlackId, undefined)
+	const approvedByAlice = t1By(ship(rejectedByBob, 180), alice, "accept")
+	assert.equal(approvedAtT1By(approvedByAlice, bob), false)
+	assert.equal(approvedAtT1By(approvedByAlice, alice), true)
 	// Pending or rejected entries are not payable, so they don't count
-	assert.equal(approvedAtT1By(ship([], 120), "user"), false)
-	assert.equal(approvedAtT1By(t1(ship([], 120), 0, "reject"), "Reviewer"), false)
-	assert.equal(approvedAtT1By(applyT2Reject(approved, "x"), "Reviewer"), false)
+	assert.equal(approvedAtT1By(ship([], 120), { slackId: "U0", name: "user" }), false)
+	assert.equal(approvedAtT1By(rejectedByBob, bob), false)
+	assert.equal(approvedAtT1By(applyT2Reject(approved, "x"), alice), false)
 	// Once paid, the entry is out of scope; only the time still waiting for HQ matters
 	const paid = applyT2Award(approved, "j", "T2")
-	assert.equal(approvedAtT1By(paid, "Reviewer"), false)
-	assert.equal(approvedAtT1By(paid, "T2"), false)
+	assert.equal(approvedAtT1By(paid, alice), false)
+	assert.equal(approvedAtT1By(paid, { slackId: "U9", name: "T2" }), false)
 	// A second cycle approved by someone else: that approver is blocked, the first one is free again
-	const second = applyT1Review(ship(paid, 240), 0, "accept", { ...review, reviewerName: "Second" })
-	assert.equal(approvedAtT1By(second, "Second"), true)
-	assert.equal(approvedAtT1By(second, "Reviewer"), false)
+	const second = t1By(ship(paid, 240), bob, "accept")
+	assert.equal(approvedAtT1By(second, bob), true)
+	assert.equal(approvedAtT1By(second, alice), false)
 	// A re-ship after a rejection keeps the old APPROVED message in the entry, but the entry is pending again
 	const reshipped = ship(applyT2Reject(approved, "x"), 180)
 	assert.equal(reshipped.at(-1)!.status, 0)
-	assert.equal(approvedAtT1By(reshipped, "Reviewer"), false)
-	assert.equal(approvedAtT1By(t1(reshipped, 0, "accept"), "Reviewer"), true, "approving it again at T1 blocks them again")
+	assert.equal(approvedAtT1By(reshipped, alice), false)
+	assert.equal(approvedAtT1By(t1By(reshipped, alice, "accept"), alice), true, "approving it again at T1 blocks them again")
 })
 
 test("T2 rejection marks the entry rejected and leaves paid entries alone", () => {

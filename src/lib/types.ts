@@ -31,6 +31,9 @@ export type message = {
 	justification: string
 	timestamp: string
 	reviewerName?: string
+	// Slack ID of the admin who gave a T1 approval (absent on approvals recorded before it existed and on every
+	// other message). The T2 payout check keys on it, since admin names can change. Stripped by filterLogs.
+	reviewerSlackId?: string
 }
 export interface Project {
 	owner?: string
