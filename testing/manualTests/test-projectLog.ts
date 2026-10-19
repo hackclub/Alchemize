@@ -6,6 +6,7 @@ import {
 	applyT1Review,
 	applyT2Award,
 	applyT2Reject,
+	approvedAtT1By,
 	calculateNewMinutes,
 	calculateRecordedTime,
 	calculateShipDelta,
@@ -86,6 +87,56 @@ test("entries already sent to HQ cannot be reviewed again", () => {
 	assert.match(String(parseDeductionMinutes(0, log.at(-1), "accept")), /already been sent to HQ/)
 	assert.equal(hasUnpushedApprovedEntries(log), false)
 	assert.equal(calculateNewMinutes(log), 0)
+})
+
+test("only a pending entry can be accepted at T1; a rejection is overturned by shipping again", () => {
+	// Rejected at T1: no re-accept, reject still works, and the re-ship makes it acceptable again
+	let log = t1(ship([], 120), 0, "reject")
+	assert.match(String(parseDeductionMinutes(0, log.at(-1), "accept")), /already rejected/)
+	assert.match(String(parseDeductionMinutes(null, log.at(-1), "accept")), /Only a pending review can be accepted/)
+	assert.equal(parseDeductionMinutes(0, log.at(-1), "reject"), 0, "a rejected entry can still be rejected")
+	log = ship(log, 180)
+	assert.equal(log.at(-1)!.status, 0)
+	assert.equal(parseDeductionMinutes(1, log.at(-1), "accept"), 60)
+	// Rejected at T2: same, the T1 reviewer can't quietly put it back on the T2 queue
+	log = applyT2Reject(t1(log, 0, "accept"), "not enough work")
+	assert.equal(log.at(-1)!.status, 2)
+	assert.match(String(parseDeductionMinutes(0, log.at(-1), "accept")), /already rejected/)
+	assert.equal(parseDeductionMinutes(0, log.at(-1), "reject"), 0)
+	assert.equal(parseDeductionMinutes(0, ship(log, 180).at(-1), "accept"), 0, "acceptable again once the participant ships")
+	// Already approved and waiting for T2: not approved twice, but a T1 reviewer can still reject it
+	const approved = t1(ship([], 120), 0, "accept")
+	assert.match(String(parseDeductionMinutes(0, approved.at(-1), "accept")), /already approved/)
+	assert.equal(parseDeductionMinutes(0.5, approved.at(-1), "reject"), 30)
+	// The HQ message still wins for entries already paid
+	const paid = applyT2Award(approved, "j", "T2")
+	assert.match(String(parseDeductionMinutes(0, paid.at(-1), "accept")), /already been sent to HQ/)
+})
+
+test("the T1 approver may not award the same time at T2", () => {
+	const approved = t1(ship([], 120), 0, "accept") // approved by "Reviewer" (see `review` above)
+	assert.equal(approvedAtT1By(approved, "Reviewer"), true)
+	assert.equal(approvedAtT1By(approved, "Other"), false)
+	assert.equal(approvedAtT1By(approved, "Review"), false, "the whole name must match")
+	assert.equal(approvedAtT1By(approved, "APPROVED Reviewer"), false)
+	assert.equal(approvedAtT1By(approved, ""), false)
+	// Pending or rejected entries are not payable, so they don't count
+	assert.equal(approvedAtT1By(ship([], 120), "user"), false)
+	assert.equal(approvedAtT1By(t1(ship([], 120), 0, "reject"), "Reviewer"), false)
+	assert.equal(approvedAtT1By(applyT2Reject(approved, "x"), "Reviewer"), false)
+	// Once paid, the entry is out of scope; only the time still waiting for HQ matters
+	const paid = applyT2Award(approved, "j", "T2")
+	assert.equal(approvedAtT1By(paid, "Reviewer"), false)
+	assert.equal(approvedAtT1By(paid, "T2"), false)
+	// A second cycle approved by someone else: that approver is blocked, the first one is free again
+	const second = applyT1Review(ship(paid, 240), 0, "accept", { ...review, reviewerName: "Second" })
+	assert.equal(approvedAtT1By(second, "Second"), true)
+	assert.equal(approvedAtT1By(second, "Reviewer"), false)
+	// A re-ship after a rejection keeps the old APPROVED message in the entry, but the entry is pending again
+	const reshipped = ship(applyT2Reject(approved, "x"), 180)
+	assert.equal(reshipped.at(-1)!.status, 0)
+	assert.equal(approvedAtT1By(reshipped, "Reviewer"), false)
+	assert.equal(approvedAtT1By(t1(reshipped, 0, "accept"), "Reviewer"), true, "approving it again at T1 blocks them again")
 })
 
 test("T2 rejection marks the entry rejected and leaves paid entries alone", () => {

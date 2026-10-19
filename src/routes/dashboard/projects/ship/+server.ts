@@ -46,10 +46,10 @@ const notifyShip = async (body: { user_id: string, project_name: string, project
 }
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Season window from SHIPPING_OPENS_AT / SHIPPING_CLOSES_AT (closed unless configured)
-	//const shippingWindow = getShippingWindowState({ SHIPPING_OPENS_AT: env.SHIPPING_OPENS_AT, SHIPPING_CLOSES_AT: env.SHIPPING_CLOSES_AT })
-	//if (!shippingWindow.open) {
-		//return new Response(shippingWindow.message, { status: 403 })
-	//}
+	const shippingWindow = getShippingWindowState({ SHIPPING_OPENS_AT: env.SHIPPING_OPENS_AT, SHIPPING_CLOSES_AT: env.SHIPPING_CLOSES_AT })
+	if (!shippingWindow.open) {
+		return new Response(shippingWindow.message, { status: 403 })
+	}
 	const userData = requireUserApi(locals)
 
 	const { recordId, changelog } = await request.json().catch(() => ({}))

@@ -74,6 +74,15 @@ export const parseDeductionMinutes = (decreaseTime: unknown, lastLog: Log | unde
 	if (lastLog.submmitedToHQ) {
 		return "This entry has already been sent to HQ and cannot be reviewed again"
 	}
+	// Only a pending entry can be accepted. A rejection (T1 or T2) is overturned by the participant shipping
+	// again, which folds the entry back to pending, never by a reviewer re-accepting it; and an approved entry
+	// waiting for T2 is not approved a second time (reject it, and the participant ships again)
+	if (decision === "accept" && lastLog.status === 2) {
+		return "Only a pending review can be accepted; this entry was already rejected, so the participant has to ship again first"
+	}
+	if (decision === "accept" && lastLog.status === 1) {
+		return "Only a pending review can be accepted; this entry was already approved and is waiting for T2"
+	}
 	if (decision === "accept" && lastLog.deltaTime < 0) {
 		return "This review has negative time (the Hackatime total went down), it can only be rejected"
 	}
@@ -180,6 +189,15 @@ export const applyT2Award = (log: Log[], justification: string, reviewerName: st
 		},
 	]
 }
+
+// Whether this reviewer gave the T1 approval of any entry a T2 award would pay now (approved, not yet sent to
+// HQ). applyT1Review records an approval as a message with reviewerName "APPROVED <name>", so the same person
+// may not approve at T1 and award at T2: that needs two reviewers.
+export const approvedAtT1By = (log: Log[], reviewerName: string): boolean =>
+	log.some(entry =>
+		entry.status === 1 && !entry.submmitedToHQ &&
+		entry.message.some(msg => msg.reviewerName === `APPROVED ${reviewerName}`)
+	)
 
 // Reviewers may not review or pay out their own projects. Compared on both Slack ID and email, because
 // the admins table and the users table are maintained separately.
