@@ -17,9 +17,18 @@ import { hasUnpushedApprovedEntries } from "../src/lib/server/projectLog"
 import { setWebhookUrl } from "../src/lib/server/telescreenClient"
 import type { Log } from "../src/lib/types"
 
+const USAGE = "Usage: npx tsx script/telescreen.ts set-webhook <url> | backfill [--apply] | sync [--apply]"
+
 const [command, ...rest] = process.argv.slice(2)
 const apply = rest.includes("--apply")
 const ACTOR = "Alchemize backfill"
+
+// A mistyped flag (e.g. --aply) must not silently turn an apply into a dry run
+const unexpectedArguments = (): string[] => {
+	if (command === "set-webhook") return rest.slice(1)
+	if (command === "backfill" || command === "sync") return rest.filter(arg => arg !== "--apply")
+	return []
+}
 
 const parseLog = (raw: string): Log[] => {
 	try { return JSON.parse(raw || "[]") } catch { return [] }
@@ -84,11 +93,16 @@ const sync = async () => {
 }
 
 try {
-	if (command === "set-webhook") await setWebhook(rest[0])
+	const unexpected = unexpectedArguments()
+	if (unexpected.length > 0) {
+		console.error(`Unexpected argument${unexpected.length > 1 ? "s" : ""}: ${unexpected.join(" ")}\n${USAGE}`)
+		process.exitCode = 1
+	}
+	else if (command === "set-webhook") await setWebhook(rest[0])
 	else if (command === "backfill") await backfill()
 	else if (command === "sync") await sync()
 	else {
-		console.log("Usage: npx tsx script/telescreen.ts set-webhook <url> | backfill [--apply] | sync [--apply]")
+		console.log(USAGE)
 		process.exitCode = 1
 	}
 } catch (error) {
