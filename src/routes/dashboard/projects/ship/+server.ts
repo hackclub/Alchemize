@@ -10,6 +10,8 @@ import { getShippingWindowState } from "$lib/server/shippingWindow"
 import { requireUserApi } from "$lib/server/auth"
 import { applyShip, calculateShipDelta } from "$lib/server/projectLog"
 import { isHttpUrl } from "$lib/urls"
+import { idvShipBlock } from "$lib/idv"
+import { getIdvStatus } from "$lib/server/idv"
 /* REQUEST BODY
 	-Record ID
 	-Changelog
@@ -25,22 +27,6 @@ function parseLog(logJson: string): Log[] {
 		console.error("Invalid log JSON:", error)
 		// throw new Error("Failed to parse log data")
 		return [] as Log[]
-	}
-}
-// null: Hack Club Auth couldn't be asked (down, timeout, unexpected response)
-const isUserIdv = async (email: string): Promise<boolean | null> => {
-	try {
-		// Encoded: an email like "jane+alchemize@gmail.com" otherwise arrives as "jane alchemize@gmail.com"
-		const fetchRes = await fetch(`https://auth.hackclub.com/api/external/check?email=${encodeURIComponent(email)}`)
-		if (!fetchRes.ok) {
-			console.error("Hack Club Auth eligibility check failed:", fetchRes.status)
-			return null
-		}
-		const data = await fetchRes.json()
-		return data.result === "verified_eligible"
-	} catch (error) {
-		console.error("Hack Club Auth eligibility check failed:", (error as Error).message)
-		return null
 	}
 }
 const notifyShip = async (body: { user_id: string, project_name: string, project_link: string | null }): Promise<{ ok: boolean, status?: number }> => {
@@ -87,6 +73,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return new Response("Project not found", { status: 404 })
 	}
 
+	// Only identity-verified, YSWS-eligible users may ship. Checked live (not from the session) on every ship,
+	// and before anything else about the project, so an unverified user is told what to do first.
+	const idvStatus = await getIdvStatus(userData)
+	if (idvStatus === "unavailable") {
+		return new Response("Couldn't check your identity verification right now, please try again in a few minutes", { status: 503 })
+	}
+	if (idvStatus !== "verified") {
+		const message = idvShipBlock(idvStatus)?.message ?? "Only identity-verified Hack Club members can ship, please ask in #identity-help"
+		return new Response(JSON.stringify({ message, idvStatus }), {
+			status: 403,
+			headers: { "Content-Type": "application/json" },
+		})
+	}
+
 	//Check if the project's all fields are filled, if not return 400
 	if (
 		!projectData.fields.Name ||
@@ -115,16 +115,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		)
 	}
 
-	const [htToken, idv] = await Promise.all([
-		getHackatimeTokenByEmail(userData.email),
-		isUserIdv(userData.email)
-	])
-	if (idv === null) {
-		return new Response("Couldn't check your identity verification right now, please try again in a few minutes", { status: 503 })
-	}
-	if (!idv) {
-		return new Response("Your account is not verified or you are over 18, please contact #identity-help", { status: 403 })
-	}
+	const htToken = await getHackatimeTokenByEmail(userData.email)
 	if (!htToken) {
 		// Called with fetch, so a redirect to Hackatime would only fail as a cross-origin request
 		return new Response("Please reload the dashboard and connect Hackatime again, then ship", { status: 400 })

@@ -16,6 +16,7 @@ import { isHttpUrl } from "$lib/urls"
 import { isProjectType } from "$lib/projectTypes"
 import { checkImageUpload } from "$lib/server/uploads"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
+import { getIdvStatus } from "$lib/server/idv"
 import type {
 	AirtableProject,
 	AirtableProjectWithPII,
@@ -215,15 +216,17 @@ export const actions = {
 	},
 } satisfies Actions
 export const load: PageServerLoad = async ({ locals, cookies }) => {
-	const email = requireUserPage(locals).email
+	const user = requireUserPage(locals)
+	const email = user.email
 	const hackatimeAccessToken = await getHackatimeTokenByEmail(email)
 	if (!hackatimeAccessToken) {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	if (hackatimeAccessToken) {
-		let [hackatime, projectsResponse] = await Promise.all([
+		let [hackatime, projectsResponse, idvStatus] = await Promise.all([
 			fetchHackatimeProjects(hackatimeAccessToken, env.START_DATE ?? ""),
 			getProjectsByOwner(email),
+			getIdvStatus(user),
 		])
 		if (!hackatime.ok && hackatime.reason === "unauthorized") {
 			// The stored token was revoked or expired: forget it and send the user to connect Hackatime again
@@ -266,6 +269,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		return {
 			projects: noPii,
 			hacks: filteredHacksS || [],
+			// Only the status enum, never Hack Club Auth's raw response; the ship endpoint re-checks it live
+			idvStatus,
 		}
 	}
 

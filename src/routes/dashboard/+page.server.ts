@@ -7,6 +7,7 @@ import { hackatimeAuthUrl, authUrl } from '$lib/utils';
 import { filterLogs } from '$lib/utils.server';
 import { redirect } from '@sveltejs/kit';
 import { requireUserPage } from '$lib/server/auth';
+import { getIdvStatus } from '$lib/server/idv';
 
 let slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN);
 
@@ -35,13 +36,15 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
     
 
 
-    let [projectsResponse, userResponse, slackprofile, configResponse, hackatimeAccessToken] = await Promise.all([
+    let [projectsResponse, userResponse, slackprofile, configResponse, hackatimeAccessToken, idvStatus] = await Promise.all([
 
         getProjectsByOwner(decodedToken.email),
         getUserByEmail(decodedToken.email),
         getSlackProfile(decodedToken.slack_id),
         checkConfigByEmail(decodedToken.email),
-        getHackatimeTokenByEmail(decodedToken.email)
+        getHackatimeTokenByEmail(decodedToken.email),
+        // Live, like the ship check: the session's ysws_eligible is frozen at login
+        getIdvStatus(decodedToken)
     ])
 
 
@@ -87,7 +90,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
         projects: sanitizedProjects,
         hacks: filteredHacksS || [],
         email: decodedToken.email,
-        eligiblity: decodedToken.ysws_eligible,
+        idvStatus,
         name: slackprofile?.display_name || decodedToken.first_name,
         hackatimeVerified: hackatimeVerified === "true",
         // Least privilege: the page only needs the balance, never the raw user row (ids, hackatime token, legacy JSON)
