@@ -51,6 +51,9 @@ export const RATE_LIMIT_RULES: RateLimitRule[] = [
 	// Project create/update form actions
 	{ method: "POST", path: "/dashboard/projects", limit: 30, windowMs: TEN_MINUTES },
 	{ method: "DELETE", path: "/dashboard/projects/delete", limit: 30, windowMs: TEN_MINUTES },
+	// Telescreen outcome webhook (signed; this only bounds signature checks from floods). Robert's deliveries all come
+	// from one address, so the limit is well above a busy review day
+	{ method: "POST", path: "/api/telescreen/webhook", limit: 600, windowMs: TEN_MINUTES },
 ]
 
 export const findRateLimitRule = (method: string, pathname: string): RateLimitRule | undefined =>

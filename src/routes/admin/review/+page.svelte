@@ -200,10 +200,15 @@
 			acceptLoader = false
 			return
 		}
-		const { newLog } = await response.json()
+		const { newLog, telescreen } = await response.json()
 		proj.log = newLog
 		acceptLoader = false
 		toast.success(`Accepted ${proj.name} successfully!`)
+		if (telescreen && !telescreen.ok) {
+			toast.warning(
+				`${proj.name} wasn't sent to Telescreen (${telescreen.message}). A T2 reviewer can retry it from the T2 page.`
+			)
+		}
 		projects = projects.map(p =>
 			p.id === proj.id
 				? { ...p, fields: { ...p.fields, status: "accepted" } }

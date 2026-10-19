@@ -4,7 +4,8 @@ import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
 import { patchProjectForShip, getProjectById } from "$lib/db"
-import { applyT1Review, isOwnProject, parseDeductionMinutes } from "$lib/server/projectLog"
+import { applyT1Review, hasUnpushedApprovedEntries, isOwnProject, parseDeductionMinutes } from "$lib/server/projectLog"
+import { closeTelescreenSubmission } from "$lib/server/telescreen"
 export const POST: RequestHandler = async ({ request, locals }) => {
     const decoded = requireAdminApi(locals, "reviewer")
     const {recordId, userExternal, internalNote, justification, decreaseTime} = await request.json()
@@ -40,6 +41,15 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         })
         // 409 = the log changed since it was read (e.g. a T2 award landed); the client must refresh
         return error(response.status === 409 ? 409 : 500, response.status === 409 ? errorData.message : "Failed to update project log")
+    }
+    // Nothing left for Telescreen to review: take it off Telescreen's queue. If earlier T1-approved time is still
+    // waiting for T2, the review that covers it stays open
+    if (!hasUnpushedApprovedEntries(updatedLog)) {
+        await closeTelescreenSubmission(Number(projectData.id), {
+            reason: `Returned by an Alchemize T1 reviewer: ${justification}`,
+            actor: name,
+            closeReason: "t1_rejected",
+        }).catch(error => console.error(`Closing the Telescreen submission of project ${recordId} failed:`, error))
     }
     // Notify only after the write has committed
     const botResponse = await fetch("https://notifications.alchemize.hackclub.com/review-reject", {

@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { eq, and, gte, asc, desc, ne, notLike, or, sql } from 'drizzle-orm'
-import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex, check } from "drizzle-orm/pg-core";
+import { eq, and, gte, asc, desc, ne, notLike, or, sql, isNull, isNotNull, inArray } from 'drizzle-orm'
+import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex, index, check } from "drizzle-orm/pg-core";
 import type { Log } from './types'
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from './currency'
 import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
@@ -169,6 +169,48 @@ export const unifiedSubmissionsTable = pgTable("unified_submissions", {
 }, table => [
     uniqueIndex("unified_submissions_one_in_flight").on(table.projectId).where(sql`status = 'started'`),
 ])
+// One row per Telescreen (Robert) fraud review of a project, open ("closedAt" IS NULL) until the review cycle ends.
+// No foreign key to projects on purpose: the row outlives a deleted project as the record of the review.
+// Created by script/migrations/2026-10-telescreen.sql
+export const telescreenSubmissionsTable = pgTable("telescreen_submissions", {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    projectId: integer().notNull(),
+    externalId: uuid().notNull().unique().defaultRandom(),
+    robertProjectId: uuid().unique(),
+    state: varchar({ length: 32 }).notNull().default("unsent"), // unsent | awaiting_review | awaiting_outcome | rejected_fraud | decided | withdrawn
+    submittedAt: timestamp(),
+    trustScore: integer(),
+    reviewNote: varchar({ length: 5000 }),
+    reviewedAt: timestamp(),
+    outcomeStatus: varchar({ length: 16 }), // approved | rejected
+    outcomeReason: varchar({ length: 5000 }),
+    outcomeAt: timestamp(),
+    outcomeBy: varchar({ length: 255 }),
+    outcomeSource: varchar({ length: 16 }), // alchemize | telescreen
+    overrideBy: varchar({ length: 255 }),
+    overrideReason: varchar({ length: 2000 }),
+    overrideAt: timestamp(),
+    closedAt: timestamp(),
+    closeReason: varchar({ length: 64 }),
+    lastError: varchar({ length: 1000 }),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp().defaultNow().notNull(),
+}, table => [
+    uniqueIndex("telescreen_submissions_one_open").on(table.projectId).where(sql`"closedAt" IS NULL`),
+    index("telescreen_submissions_project").on(table.projectId),
+    check("telescreen_submissions_state_check", sql`${table.state} IN ('unsent', 'awaiting_review', 'awaiting_outcome', 'rejected_fraud', 'decided', 'withdrawn')`),
+    check("telescreen_submissions_trust_score_check", sql`${table.trustScore} BETWEEN 1 AND 10`),
+    check("telescreen_submissions_outcome_status_check", sql`${table.outcomeStatus} IN ('approved', 'rejected')`),
+    check("telescreen_submissions_outcome_source_check", sql`${table.outcomeSource} IN ('alchemize', 'telescreen')`),
+])
+export const telescreenWebhookDeliveriesTable = pgTable("telescreen_webhook_deliveries", {
+    deliveryId: uuid().primaryKey(),
+    event: varchar({ length: 32 }).notNull(),
+    robertProjectId: uuid(),
+    receivedAt: timestamp().defaultNow().notNull(),
+    processedAt: timestamp(),
+})
+export type TelescreenSubmission = typeof telescreenSubmissionsTable.$inferSelect
 // Response Interface
 export interface DBResponse {
     ok: boolean;
@@ -449,6 +491,12 @@ export const completeUnifiedSubmission = async (
                 'UPDATE unified_submissions SET status = \'submitted\', "airtableRecordId" = $2, "finishedAt" = now() WHERE id = $1',
                 [submissionId, airtableRecordId]
             );
+            // The Telescreen review covered the time just paid for; the next ship must be reviewed afresh. Closed in
+            // the award's transaction so a paid cycle's approval can never gate a later one.
+            await client.query(
+                'UPDATE telescreen_submissions SET "closedAt" = now(), "closeReason" = \'awarded\', "updatedAt" = now() WHERE "projectId" = $1 AND "closedAt" IS NULL',
+                [submission.projectId]
+            );
             return {
                 ok: true,
                 status: 200,
@@ -459,6 +507,99 @@ export const completeUnifiedSubmission = async (
     } catch (error) {
         return abortResponse(error, "Completing the Unified submission failed");
     }
+};
+
+// Telescreen (Robert) fraud review. The orchestration lives in $lib/server/telescreen; these only read and write rows.
+
+export const getOpenTelescreenSubmission = async (projectId: number): Promise<TelescreenSubmission | null> => {
+    const rows = await db.select().from(telescreenSubmissionsTable)
+        .where(and(eq(telescreenSubmissionsTable.projectId, projectId), isNull(telescreenSubmissionsTable.closedAt)));
+    return rows[0] ?? null;
+};
+
+// The project's open submission, created if there is none. Two concurrent callers get the same row.
+export const openTelescreenSubmission = async (projectId: number): Promise<TelescreenSubmission> => {
+    await pool.query(
+        'INSERT INTO telescreen_submissions ("projectId") VALUES ($1) ON CONFLICT ("projectId") WHERE "closedAt" IS NULL DO NOTHING',
+        [projectId]
+    );
+    const row = await getOpenTelescreenSubmission(projectId);
+    if (!row) {
+        throw new Error(`Could not open a Telescreen submission for project ${projectId}`);
+    }
+    return row;
+};
+
+type TelescreenSubmissionPatch = Partial<Omit<TelescreenSubmission, "id" | "projectId" | "externalId" | "createdAt" | "updatedAt">>
+
+export const updateTelescreenSubmission = async (id: number, patch: TelescreenSubmissionPatch): Promise<TelescreenSubmission | null> => {
+    const rows = await db.update(telescreenSubmissionsTable)
+        .set({ ...patch, updatedAt: new Date() })
+        .where(eq(telescreenSubmissionsTable.id, id))
+        .returning();
+    return rows[0] ?? null;
+};
+
+// The open submission, or else the most recent closed one
+export const getLatestTelescreenSubmission = async (projectId: number): Promise<TelescreenSubmission | null> => {
+    const rows = await db.select().from(telescreenSubmissionsTable)
+        .where(eq(telescreenSubmissionsTable.projectId, projectId))
+        .orderBy(sql`"closedAt" IS NULL DESC`, desc(telescreenSubmissionsTable.id))
+        .limit(1);
+    return rows[0] ?? null;
+};
+
+export const findTelescreenSubmissionByRobertId = async (robertProjectId: string): Promise<TelescreenSubmission | null> => {
+    const rows = await db.select().from(telescreenSubmissionsTable)
+        .where(eq(telescreenSubmissionsTable.robertProjectId, robertProjectId));
+    return rows[0] ?? null;
+};
+
+// For the T2 queue: each project's open submission, or its most recent one when none is open
+export const getCurrentTelescreenSubmissions = async (): Promise<TelescreenSubmission[]> =>
+    db.selectDistinctOn([telescreenSubmissionsTable.projectId]).from(telescreenSubmissionsTable)
+        .orderBy(telescreenSubmissionsTable.projectId, sql`"closedAt" IS NULL DESC`, desc(telescreenSubmissionsTable.id));
+
+export const getTelescreenSubmissionsInStates = async (states: string[], open: boolean): Promise<TelescreenSubmission[]> =>
+    db.select().from(telescreenSubmissionsTable).where(and(
+        inArray(telescreenSubmissionsTable.state, states),
+        open ? isNull(telescreenSubmissionsTable.closedAt) : isNotNull(telescreenSubmissionsTable.closedAt),
+    ));
+
+// What Telescreen needs to know about a project, and nothing else: no owner email, PII or Unified ID
+export const getProjectForTelescreen = async (projectId: number) => {
+    const rows = await db.select({
+        id: projectTable.id,
+        Name: projectTable.Name,
+        code: projectTable.code,
+        demo: projectTable.demo,
+        slackId: projectTable.slackId,
+        hackatime: projectTable.hackatime,
+        log: projectTable.log,
+        status: projectTable.status,
+    }).from(projectTable).where(eq(projectTable.id, projectId));
+    return rows[0] ?? null;
+};
+
+// Shipped projects with their logs, for the Telescreen backfill script
+export const getShippedProjectLogs = async () =>
+    db.select({ id: projectTable.id, Name: projectTable.Name, log: projectTable.log, status: projectTable.status })
+        .from(projectTable).where(ne(projectTable.status, "unshipped"));
+
+// Records a webhook delivery. "processed" = already handled, skip it; "retry" = seen before but its handling did
+// not finish (Robert retries failed deliveries with the same id), so handle it again.
+export const claimTelescreenWebhookDelivery = async (deliveryId: string, event: string, robertProjectId: string | null): Promise<"new" | "retry" | "processed"> => {
+    const inserted = await pool.query(
+        'INSERT INTO telescreen_webhook_deliveries ("deliveryId", event, "robertProjectId") VALUES ($1, $2, $3) ON CONFLICT ("deliveryId") DO NOTHING RETURNING "deliveryId"',
+        [deliveryId, event.slice(0, 32), robertProjectId]
+    );
+    if (inserted.rows.length > 0) return "new";
+    const existing = await pool.query('SELECT "processedAt" FROM telescreen_webhook_deliveries WHERE "deliveryId" = $1', [deliveryId]);
+    return existing.rows[0]?.processedAt ? "processed" : "retry";
+};
+
+export const markTelescreenWebhookDeliveryProcessed = async (deliveryId: string): Promise<void> => {
+    await pool.query('UPDATE telescreen_webhook_deliveries SET "processedAt" = now() WHERE "deliveryId" = $1', [deliveryId]);
 };
 
 // Database Compatiblity Layer

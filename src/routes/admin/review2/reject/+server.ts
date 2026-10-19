@@ -5,11 +5,16 @@ import type { RequestHandler } from "@sveltejs/kit"
 import {error} from "@sveltejs/kit"
 import { patchProjectForShip, getProjectById } from "$lib/db"
 import { applyT2Reject, isOwnProject } from "$lib/server/projectLog"
+import { closeTelescreenSubmission } from "$lib/server/telescreen"
 export const POST: RequestHandler = async ({ request, locals }) => {
     const decoded = requireAdminApi(locals, "t2_reviewer")
-    const {recordId, userExternal, justification} = await request.json()
+    const {recordId, userExternal, justification, decisionReason} = await request.json()
     if (!recordId || !userExternal  || !justification) {
         return error(400, "Missing required fields")
+    }
+    // Recorded in Telescreen as the reason for the rejection (Telescreen requires one)
+    if (typeof decisionReason !== "string" || decisionReason.trim() === "" || decisionReason.length > 5000) {
+        return error(400, "Write a decision reason (at most 5000 characters) for Telescreen")
     }
     const readProject = await getProjectById(recordId)
     if (!readProject.ok) {
@@ -40,6 +45,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         })
         // 409 = the log changed since it was read (e.g. a T2 award landed); the client must refresh
         return error(response.status === 409 ? 409 : 500, response.status === 409 ? errorData.message : "Failed to update project log")
+    }
+    // The rejection stands whatever Telescreen answers; a failure is kept on the submission and retried by
+    // `script/telescreen.ts sync`
+    const telescreen = await closeTelescreenSubmission(Number(projectData.id), {
+        reason: decisionReason.trim(),
+        actor: name,
+        closeReason: "t2_rejected",
+    }).catch(error => {
+        console.error(`Closing the Telescreen submission of project ${recordId} failed:`, error)
+        return { ok: false, message: "Couldn't update Telescreen" }
+    })
+    if (!telescreen.ok) {
+        console.warn(`Project ${recordId} rejected but not updated in Telescreen: ${telescreen.message}`)
     }
     // Notify only after the write has committed
     const botResponse = await fetch("https://notifications.alchemize.hackclub.com/review-reject", {
