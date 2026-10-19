@@ -21,6 +21,20 @@ This is a website for the YSWS "Alchemize", it contains everyhing from review da
 ## How to deploy
 Just clone and run `npm install` and then `npm run dev` to start the development server. 
 
+### Database migrations
+Migrations are managed with drizzle-kit and live in `drizzle/`. They use `DATABASE_URL` (from `.env.local` / `.env`).
+
+- After changing the schema in `src/lib/db.ts`, run `npm run db:generate` and commit the new files in `drizzle/`.
+- To apply pending migrations, run `npm run db:migrate`. Run it **before** deploying code that needs them.
+
+`db:migrate` runs `script/drizzleBaseline.mjs` first. On a database created before migrations moved to drizzle-kit
+(production), that records `drizzle/0000_baseline.sql` as already applied, after checking the schema really matches.
+It does nothing on a fresh database or one already tracked.
+
+drizzle-kit is a dev dependency, so the production Docker image can't run migrations. Run them from a machine with
+the repo checked out, with `DATABASE_URL` pointing at the target database. Don't use `drizzle-kit push` on a shared
+database: it drops anything `src/lib/db.ts` doesn't declare.
+
 ### Enviornment variables
 - PUBLIC_HACKCLUB_AUTH= Duplicate of Hackclub auth for client side
 - HACKCLUB_AUTH=Hackclub auth client id
