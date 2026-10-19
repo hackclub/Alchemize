@@ -48,7 +48,9 @@ const setWebhook = async (url: string | undefined) => {
 	}
 }
 
-const backfill = async () => {
+// Both commands keep going after a failed row (one bad project must not block the rest) and report through the
+// exit code at the end, so a scripted run can tell
+const backfill = async (): Promise<boolean> => {
 	const projects = await getShippedProjectLogs()
 	let waiting = 0, sent = 0, failed = 0
 	for (const project of projects) {
@@ -71,13 +73,16 @@ const backfill = async () => {
 		}
 	}
 	console.log(`\n${waiting} project(s) waiting on T2 without an up-to-date Telescreen submission${apply ? `: ${sent} sent, ${failed} failed` : " (dry run, pass --apply to send)"}`)
+	return failed === 0
 }
 
-const sync = async () => {
+const sync = async (): Promise<boolean> => {
+	let failed = 0
 	const unsent = await getTelescreenSubmissionsInStates(["unsent"], true)
 	for (const row of unsent) {
 		if (!apply) { console.log(`would retry sending project ${row.projectId} (last error: ${row.lastError ?? "none"})`); continue }
 		const result = await ensureTelescreenSubmission(row.projectId, ACTOR)
+		if (!result.ok) failed++
 		console.log(`project ${row.projectId}: ${result.ok ? `sent (${result.submission.state})` : `FAILED: ${result.message}`}`)
 	}
 	// Closed here while Robert still has them open. Paid ones are left alone: approving them in Robert after the
@@ -87,9 +92,11 @@ const sync = async () => {
 	for (const row of stranded) {
 		if (!apply) { console.log(`would close project ${row.projectId} in Telescreen (${row.state}, closed here: ${row.closeReason})`); continue }
 		const error = await retryRobertRelease(row)
+		if (error) failed++
 		console.log(`project ${row.projectId}: ${error ? `FAILED: ${error}` : "closed in Telescreen"}`)
 	}
-	console.log(`\n${unsent.length} unsent, ${stranded.length} to close in Telescreen${apply ? "" : " (dry run, pass --apply)"}`)
+	console.log(`\n${unsent.length} unsent, ${stranded.length} to close in Telescreen${apply ? `, ${failed} failed` : " (dry run, pass --apply)"}`)
+	return failed === 0
 }
 
 try {
@@ -99,8 +106,8 @@ try {
 		process.exitCode = 1
 	}
 	else if (command === "set-webhook") await setWebhook(rest[0])
-	else if (command === "backfill") await backfill()
-	else if (command === "sync") await sync()
+	else if (command === "backfill") { if (!(await backfill())) process.exitCode = 1 }
+	else if (command === "sync") { if (!(await sync())) process.exitCode = 1 }
 	else {
 		console.log(USAGE)
 		process.exitCode = 1
