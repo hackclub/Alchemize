@@ -5,6 +5,7 @@ import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqu
 import type { Log } from './types'
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from './currency'
 import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
+import { decryptHackatimeToken, encryptHackatimeToken } from './server/hackatimeToken'
 import dotenv from 'dotenv';
 dotenv.config({ path: ['.env.local', '.env'] });
 
@@ -21,6 +22,7 @@ export const userTable = pgTable("users", {
     userid: varchar({ length: 255 }).notNull(),
     // Unique (script/migrations/2026-10-data-integrity.sql): balances are updated WHERE email = $1
     email: varchar({ length: 455 }).notNull().unique(),
+    // Hackatime OAuth token, encrypted at rest (see $lib/server/hackatimeToken); "" or NULL = not connected
     hackatime: varchar({ length: 1000 }),
     slackId: varchar({ length: 255 }),
     // Legacy multi-currency JSON, kept read-only until the Aqua Regia migration is verified; do not read or write it
@@ -708,14 +710,15 @@ export const resolveAccountForLogin = async (hackClubId: string, email: string, 
     });
 }
 
-// Server-side only: the user's Hackatime OAuth token, or null when they haven't connected Hackatime
+// Server-side only: the user's Hackatime OAuth token (decrypted), or null when they haven't connected Hackatime
 export const getHackatimeTokenByEmail = async (email: string): Promise<string | null> => {
     const rows = await db.select({ hackatime: userTable.hackatime }).from(userTable).where(eq(userTable.email, email));
-    const token = rows[0]?.hackatime;
-    return token ? token : null;
+    const stored = rows[0]?.hackatime;
+    return stored ? decryptHackatimeToken(stored) : null;
 }
+// Stores the token encrypted; "" (disconnect) is stored as is, so hasHackatime keeps reading it as "not connected"
 export const patchUserHackatime = async (email: string, hackatimeToken: string): Promise<DBResponse> => {
-    const updatedUser = await db.update(userTable).set({ hackatime: hackatimeToken }).where(eq(userTable.email, email)).returning({ id: userTable.id });
+    const updatedUser = await db.update(userTable).set({ hackatime: encryptHackatimeToken(hackatimeToken) }).where(eq(userTable.email, email)).returning({ id: userTable.id });
     if (updatedUser.length === 0) {
         return {
             ok: false,
@@ -794,6 +797,7 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
         text: async () => JSON.stringify({ records }),
     } as DBResponse;
 }
+// Server-side only (T2 Hackatime analysis): the owner's decrypted Hackatime token rides along, never return it to a page
 export const getProjectWithHackatime = async (projectId: string): Promise<DBResponse> => {
     const projects = await db.select({
         id: projectTable.id,
@@ -812,7 +816,10 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
         }
     }
 
-    const records = projects.map(project => ({ id: project.id + "", fields: project }));
+    const records = projects.map(project => ({
+        id: project.id + "",
+        fields: { ...project, hackatimeToken: project.hackatimeToken ? decryptHackatimeToken(project.hackatimeToken) : project.hackatimeToken },
+    }));
     return {
         ok: true,
         status: 200,
@@ -1405,8 +1412,15 @@ export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DB
 }
 // SUB FUNCTIONS ADMIN:- Fulfillers' functions
 
+// Fulfillment queue: only what the list renders. Who ordered (email, uid, moreData) is on the order's own page.
 export const getAllOrders = async (): Promise<DBResponse> => {
-    const orders = await db.select().from(ordersTable);
+    const orders = await db.select({
+        id: ordersTable.id,
+        orderItem: ordersTable.orderItem,
+        status: ordersTable.status,
+        fulfiller: ordersTable.fulfiller,
+        dateCreated: ordersTable.dateCreated,
+    }).from(ordersTable);
     const records = orders.map(order => ({ id: order.id + "", fields: order }));
     return {
         ok: true,
@@ -1436,9 +1450,9 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
             cdnImage: shopItemsTable.cdnImage,
             priority: shopItemsTable.priority,
 
+            // Digital goods: the fulfiller needs a first name and age, not the last name
             userBirthdate: userInternal.birthdate,
             userFirstName: userInternal.firstName,
-            userLastName: userInternal.lastName,
             iv: userInternal.iv,
         }).from(ordersTable).where(eq(ordersTable.id, parseInt(orderId))).leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID)).leftJoin(userInternal, eq(ordersTable.ordererEmail, userInternal.email));
         if (order.length === 0) {

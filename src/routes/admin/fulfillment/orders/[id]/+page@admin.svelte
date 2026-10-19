@@ -135,7 +135,6 @@
 						>
 						<p class="font-semibold text-zinc-200">
 							{order.firstName}
-							{order.lastName}
 						</p>
 						<p class="text-xs text-primary/50 font-mono">
 							{order.ageNow} years old
