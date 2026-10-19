@@ -168,6 +168,9 @@
 	let overrideReason = $state("")
 	let telescreenBusy = $state(false)
 	let telescreenPastReviews = $state<TelescreenPastReview[]>([])
+	// Every Telescreen request (opening a project, Refresh, Send) takes a number; only the latest started one updates
+	// the panel, so a slow automatic read can't overwrite a newer manual result, or another project's
+	let latestTelescreenRequest = 0
 	// Robert's trust score bands: 1-4 fraud, 5-7 doubtful (usually a deduction), 8-10 clean
 	const trustBand = (score: number | null | undefined) => {
 		if (score == null) return null
@@ -192,6 +195,7 @@
 	// On opening a project: the review as Telescreen has it now (a note written there since the queue loaded shows
 	// up), plus the earlier reviews. If Telescreen doesn't answer, the server returns the stored copy.
 	const loadTelescreenReview = async (projectId: string) => {
+		const request = ++latestTelescreenRequest
 		const response = await fetch("/admin/review2/telescreen", {
 			method: "POST",
 			headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -199,8 +203,7 @@
 		}).catch(() => null)
 		if (!response?.ok) return
 		const result = await response.json()
-		// The reviewer may have opened another project meanwhile
-		if (currentProject.id !== projectId) return
+		if (request !== latestTelescreenRequest) return
 		if (result.telescreen) currentTelescreen = result.telescreen
 		telescreenPastReviews = result.pastReviews ?? []
 	}
@@ -276,6 +279,7 @@
 	}
 	const telescreenAction = async (action: "refresh" | "submit") => {
 		const projectId = currentProject.id
+		const request = ++latestTelescreenRequest
 		telescreenBusy = true
 		const response = await fetch("/admin/review2/telescreen", {
 			method: "POST",
@@ -288,7 +292,7 @@
 			return
 		}
 		const result = await response.json()
-		if (currentProject.id === projectId) {
+		if (request === latestTelescreenRequest) {
 			currentTelescreen = result.telescreen
 			telescreenPastReviews = result.pastReviews ?? []
 		}
