@@ -171,7 +171,7 @@ export const unifiedSubmissionsTable = pgTable("unified_submissions", {
 ])
 // One row per Telescreen (Robert) fraud review of a project, open ("closedAt" IS NULL) until the review cycle ends.
 // No foreign key to projects on purpose: the row outlives a deleted project as the record of the review.
-// Created by script/migrations/2026-10-telescreen.sql
+// Created by drizzle/0001_telescreen.sql
 export const telescreenSubmissionsTable = pgTable("telescreen_submissions", {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     projectId: integer().notNull(),

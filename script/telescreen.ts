@@ -1,5 +1,5 @@
 // Telescreen (Robert) setup and maintenance. Needs DATABASE_URL and ROBERT_API_KEY (from .env.local / .env), and
-// script/migrations/2026-10-telescreen.sql already applied.
+// the database migrated (`npm run db:migrate`).
 //
 //   npx tsx script/telescreen.ts set-webhook https://alchemize.hackclub.com/api/telescreen/webhook
 //       Points Robert's outcome webhook at Alchemize. Prints the signing secret when Robert issues one (first URL,
