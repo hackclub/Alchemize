@@ -195,6 +195,16 @@ export const ensureTelescreenSubmission = async (projectId: number, actor: strin
 	// Two passes at most: the second one replaces a stale record that an earlier, timed-out attempt left in Robert
 	for (let pass = 0; pass < 2; pass++) {
 		let row = await getOpenTelescreenSubmission(projectId)
+		// Robert has it but we never learned when it arrived: read that first, never supersede a review on a guess
+		if (row?.robertProjectId && row.submittedAt === null) {
+			row = await refreshFromRobert(config, row)
+			if (rejectedInTelescreen(row)) return { ok: false, message: TELESCREEN_REJECTED }
+			if (row.submittedAt === null) {
+				const message = "Couldn't read when Telescreen received this project, try again"
+				await updateTelescreenSubmission(row.id, { lastError: message })
+				return { ok: false, message }
+			}
+		}
 		if (row?.robertProjectId) {
 			if (isUpToDate(row, log)) return { ok: true, submission: row }
 			const { patch, error } = await releaseInRobert(config, row, SUPERSEDED_REASON, actor)
@@ -229,7 +239,12 @@ export const ensureTelescreenSubmission = async (projectId: number, actor: strin
 		if (!response.data.created) {
 			// Robert already had this externalId (an earlier attempt timed out after it arrived): read when that was
 			const fresh = await robert.getProject(config, response.data.id)
-			if (fresh.ok) patch = { ...patch, ...snapshotPatch({ ...row, ...patch } as TelescreenSubmission, fresh.data) }
+			if (!fresh.ok) {
+				// Keep the id so the next attempt reads it back instead of treating the review as out of date
+				await updateTelescreenSubmission(row.id, { ...patch, lastError: truncate(fresh.message, 1000) })
+				return { ok: false, message: `Couldn't read the project back from Telescreen: ${fresh.message}` }
+			}
+			patch = { ...patch, ...snapshotPatch({ ...row, ...patch } as TelescreenSubmission, fresh.data) }
 		}
 		const saved = await updateTelescreenSubmission(row.id, patch)
 		if (!saved) return { ok: false, message: "The Telescreen submission disappeared while it was being saved" }
