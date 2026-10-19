@@ -9,6 +9,7 @@
 		Log,
 		AirtableProject,
 		HackatimeAnalysis,
+		TelescreenPastReview,
 		TelescreenView,
 	} from "$lib/types"
 	import { toast } from "svelte-sonner"
@@ -151,6 +152,8 @@
 			screenshot: nextProject.fields.screenshot,
 		}
 		currentTelescreen = nextProject.telescreen
+		telescreenPastReviews = []
+		loadTelescreenReview(nextProject.id)
 		decisionReason = ""
 		overrideEnabled = false
 		overrideReason = ""
@@ -164,11 +167,48 @@
 	let overrideEnabled = $state(false)
 	let overrideReason = $state("")
 	let telescreenBusy = $state(false)
+	let telescreenPastReviews = $state<TelescreenPastReview[]>([])
+	// Robert's trust score bands: 1-4 fraud, 5-7 doubtful (usually a deduction), 8-10 clean
+	const trustBand = (score: number | null | undefined) => {
+		if (score == null) return null
+		if (score <= 4)
+			return { label: "Fraud", chip: "bg-rose-500/10 text-rose-300 border-rose-500/30", callout: "border-rose-500/40 bg-rose-500/5" }
+		if (score <= 7)
+			return { label: "Doubtful", chip: "bg-amber-500/10 text-amber-300 border-amber-500/30", callout: "border-amber-500/40 bg-amber-500/5" }
+		return { label: "Clean", chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30", callout: "border-emerald-500/30 bg-emerald-500/5" }
+	}
+	const TELESCREEN_CLOSE_LABELS: Record<string, string> = {
+		awarded: "Paid",
+		fraud_rejected: "Fraud rejected",
+		telescreen_rejected: "Rejected in Telescreen",
+		t1_rejected: "Returned by T1",
+		t2_rejected: "Returned by T2",
+		superseded: "Superseded",
+	}
+	const isTelescreenRejection = (closeReason: string | null): boolean =>
+		closeReason === "fraud_rejected" || closeReason === "telescreen_rejected"
+	const formatTelescreenDate = (iso: string | null): string =>
+		iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ""
+	// On opening a project: the review as Telescreen has it now (a note written there since the queue loaded shows
+	// up), plus the earlier reviews. If Telescreen doesn't answer, the server returns the stored copy.
+	const loadTelescreenReview = async (projectId: string) => {
+		const response = await fetch("/admin/review2/telescreen", {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Accept: "application/json" },
+			body: JSON.stringify({ projectId, action: "refresh" }),
+		}).catch(() => null)
+		if (!response?.ok) return
+		const result = await response.json()
+		// The reviewer may have opened another project meanwhile
+		if (currentProject.id !== projectId) return
+		if (result.telescreen) currentTelescreen = result.telescreen
+		telescreenPastReviews = result.pastReviews ?? []
+	}
 	type TelescreenGate = { ok: boolean, overridable: boolean, message: string }
 	const telescreenGateFor = (t: TelescreenView | null): TelescreenGate => {
 		if (!data.telescreenConfigured)
 			return { ok: false, overridable: true, message: "Telescreen isn't configured on this server" }
-		if (t?.closed && (t.closeReason === "fraud_rejected" || t.closeReason === "telescreen_rejected"))
+		if (t?.closed && isTelescreenRejection(t.closeReason))
 			return {
 				ok: false,
 				overridable: false,
@@ -213,25 +253,11 @@
 	// A review Telescreen rejected can't be resent until the participant ships again (the server refuses too)
 	const telescreenNeedsSubmit = (t: TelescreenView | null): boolean =>
 		!t ||
-		(t.closed &&
-			!(
-				(t.closeReason === "fraud_rejected" || t.closeReason === "telescreen_rejected") &&
-				t.upToDate
-			)) ||
+		(t.closed && !(isTelescreenRejection(t.closeReason) && t.upToDate)) ||
 		(!t.closed && (t.state === "unsent" || !t.upToDate))
 	const telescreenLabel = (t: TelescreenView | null): string => {
 		if (!t) return "Not sent"
-		if (t.closed) {
-			const closed: Record<string, string> = {
-				awarded: "Paid",
-				fraud_rejected: "Fraud rejected",
-				telescreen_rejected: "Rejected in Telescreen",
-				t1_rejected: "Returned by T1",
-				t2_rejected: "Returned by T2",
-				superseded: "Superseded",
-			}
-			return closed[t.closeReason ?? ""] ?? "Closed"
-		}
+		if (t.closed) return TELESCREEN_CLOSE_LABELS[t.closeReason ?? ""] ?? "Closed"
 		const label = {
 			unsent: t.lastError ? "Send failed" : "Not sent",
 			awaiting_review: "Awaiting fraud review",
@@ -262,7 +288,10 @@
 			return
 		}
 		const result = await response.json()
-		if (currentProject.id === projectId) currentTelescreen = result.telescreen
+		if (currentProject.id === projectId) {
+			currentTelescreen = result.telescreen
+			telescreenPastReviews = result.pastReviews ?? []
+		}
 		if (result.ok) {
 			toast.success(action === "submit" ? "Sent to Telescreen" : "Telescreen state refreshed")
 		} else {
@@ -707,6 +736,17 @@
 							>
 								{telescreenLabel(project.telescreen)}
 							</span>
+							{#if project.telescreen?.trustScore != null}
+								<span
+									title="Telescreen trust score"
+									class={cn(
+										"text-[10px] px-1.5 py-0.5 rounded border font-mono",
+										trustBand(project.telescreen.trustScore)?.chip
+									)}
+								>
+									{project.telescreen.trustScore}/10
+								</span>
+							{/if}
 						</div>
 					</button>
 				{/each}
@@ -916,9 +956,12 @@
 											</span>
 											{#if currentTelescreen?.trustScore != null}
 												<span
-													class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-300 rounded font-mono border border-zinc-700"
+													class={cn(
+														"text-[11px] px-1.5 py-0.5 rounded border font-medium",
+														trustBand(currentTelescreen.trustScore)?.chip
+													)}
 												>
-													Trust score {currentTelescreen.trustScore}/10
+													{trustBand(currentTelescreen.trustScore)?.label} · trust score {currentTelescreen.trustScore}/10
 												</span>
 											{/if}
 										</div>
@@ -943,16 +986,30 @@
 											{/if}
 										</div>
 									</div>
-									{#if currentTelescreen?.reviewNote}
-										<p
-											class="text-xs text-zinc-300 bg-zinc-900/40 border border-zinc-800 rounded-lg p-2 whitespace-pre-wrap wrap-break-word"
+									{#if currentTelescreen && (currentTelescreen.reviewNote || currentTelescreen.trustScore != null)}
+										<div
+											class={cn(
+												"rounded-lg border p-3 space-y-1.5",
+												trustBand(currentTelescreen.trustScore)?.callout ?? "border-zinc-800 bg-zinc-900/40"
+											)}
 										>
-											<strong
-												class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
-												>Fraud reviewer's note (internal)</strong
-											>
-											{currentTelescreen.reviewNote}
-										</p>
+											<div class="flex items-center justify-between gap-2 flex-wrap">
+												<strong class="text-[11px] uppercase tracking-wider text-zinc-300">
+													Fraud reviewer's note
+													<span class="normal-case font-normal tracking-normal text-zinc-500"
+														>· internal, never shown to the participant</span
+													>
+												</strong>
+												{#if currentTelescreen.reviewedAt}
+													<span class="text-[11px] text-zinc-500"
+														>Reviewed {formatTelescreenDate(currentTelescreen.reviewedAt)}</span
+													>
+												{/if}
+											</div>
+											<p class="text-sm text-zinc-100 whitespace-pre-wrap wrap-break-word">
+												{currentTelescreen.reviewNote || "The fraud reviewer left no note."}
+											</p>
+										</div>
 									{/if}
 									{#if currentTelescreen?.outcomeStatus}
 										<p class="text-xs text-zinc-400 wrap-break-word">
@@ -963,7 +1020,8 @@
 											>
 											by {currentTelescreen.outcomeBy ?? "unknown"}{currentTelescreen.outcomeSource === "telescreen"
 												? " in Telescreen"
-												: ""}{currentTelescreen.outcomeReason
+												: ""}{currentTelescreen.outcomeReason &&
+											currentTelescreen.outcomeReason !== currentTelescreen.reviewNote
 												? `: ${currentTelescreen.outcomeReason}`
 												: ""}
 										</p>
@@ -972,6 +1030,72 @@
 										<p class="text-xs text-rose-300 wrap-break-word">
 											Approved without a Telescreen verdict by {currentTelescreen.overrideBy}: {currentTelescreen.overrideReason}
 										</p>
+									{/if}
+									{#if telescreenPastReviews.length > 0}
+										{@const rejectedBefore = telescreenPastReviews.some(review => isTelescreenRejection(review.closeReason))}
+										<details
+											class="border border-zinc-800 rounded-lg p-2"
+											open={rejectedBefore}
+										>
+											<summary
+												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider cursor-pointer"
+											>
+												Earlier Telescreen reviews ({telescreenPastReviews.length}){#if rejectedBefore}<span
+														class="ml-1 normal-case tracking-normal text-rose-400"
+														>· rejected by Telescreen before</span
+													>{/if}
+											</summary>
+											<ul class="mt-2 space-y-2">
+												{#each telescreenPastReviews as review}
+													<li class="border border-zinc-800/80 bg-zinc-900/20 rounded-lg p-2 space-y-1 text-xs">
+														<div class="flex items-center gap-2 flex-wrap">
+															<span class="text-zinc-500"
+																>{review.submittedAt
+																	? `Sent ${formatTelescreenDate(review.submittedAt)}`
+																	: "Never sent"}</span
+															>
+															{#if review.trustScore != null}
+																<span
+																	class={cn(
+																		"px-1.5 py-0.5 rounded border text-[10px] font-medium",
+																		trustBand(review.trustScore)?.chip
+																	)}
+																	>{trustBand(review.trustScore)?.label} · {review.trustScore}/10</span
+																>
+															{/if}
+															<span class="text-zinc-400"
+																>{TELESCREEN_CLOSE_LABELS[review.closeReason ?? ""] ?? "Closed"}</span
+															>
+														</div>
+														{#if review.reviewNote}
+															<p class="text-zinc-200 whitespace-pre-wrap wrap-break-word">
+																<span class="text-zinc-500">Fraud reviewer:</span>
+																{review.reviewNote}
+															</p>
+														{/if}
+														{#if review.outcomeStatus}
+															<p class="text-zinc-400 wrap-break-word">
+																Outcome: <span
+																	class={review.outcomeStatus === "approved"
+																		? "text-emerald-400"
+																		: "text-rose-400"}>{review.outcomeStatus}</span
+																>
+																by {review.outcomeBy ?? "unknown"}{review.outcomeSource === "telescreen"
+																	? " in Telescreen"
+																	: ""}{review.outcomeReason && review.outcomeReason !== review.reviewNote
+																	? `: ${review.outcomeReason}`
+																	: ""}
+															</p>
+														{/if}
+														{#if review.overrideBy}
+															<p class="text-rose-300 wrap-break-word">
+																Approved without a Telescreen verdict by {review.overrideBy}: {review.overrideReason}
+															</p>
+														{/if}
+													</li>
+												{/each}
+											</ul>
+										</details>
 									{/if}
 									{#if pending && !telescreenGate.ok}
 										<p class="text-xs text-amber-400">{telescreenGate.message}</p>

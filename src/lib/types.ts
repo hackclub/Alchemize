@@ -200,6 +200,20 @@ export interface HackatimeAnalysis {
 	dayMap: Record<string, number>
 	perFileBreakdown: FileBreakdown
 }
+// An earlier Telescreen review of a project, for the T2 history list. Reviewer-only, like TelescreenView.
+export interface TelescreenPastReview {
+	submittedAt: string | null
+	trustScore: number | null
+	reviewNote: string | null
+	reviewedAt: string | null
+	outcomeStatus: "approved" | "rejected" | null
+	outcomeReason: string | null
+	outcomeBy: string | null
+	outcomeSource: "alchemize" | "telescreen" | null
+	overrideBy: string | null
+	overrideReason: string | null
+	closeReason: string | null
+}
 // Telescreen (Robert) fraud review state of a project, as shown to T2 reviewers. Reviewer-only: never part of
 // participant-facing page data (the review note and trust score are internal).
 export interface TelescreenView {

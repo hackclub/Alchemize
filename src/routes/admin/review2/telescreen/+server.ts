@@ -1,12 +1,13 @@
 import { error, json } from "@sveltejs/kit"
 import type { RequestHandler } from "./$types"
 import { requireAdminApi } from "$lib/server/auth"
-import { getProjectForTelescreen } from "$lib/db"
-import { ensureTelescreenSubmission, refreshTelescreenSubmission, toTelescreenView } from "$lib/server/telescreen"
+import { getLatestTelescreenSubmission, getProjectForTelescreen } from "$lib/db"
+import { ensureTelescreenSubmission, getTelescreenPastReviews, refreshTelescreenSubmission, toTelescreenView } from "$lib/server/telescreen"
 import type { Log } from "$lib/types"
 
-// T2 Telescreen panel: "refresh" re-reads the project's state from Telescreen, "submit" sends it (again) when it
-// was never sent, the send failed, or the participant shipped more time since.
+// T2 Telescreen panel: "refresh" re-reads the project's state from Telescreen (also done when a project is opened, so
+// notes written there since show up), "submit" sends it (again) when it was never sent, the send failed, or the
+// participant shipped more time since. Every answer carries the current review and the earlier ones.
 export const POST: RequestHandler = async ({ request, locals }) => {
     const decoded = requireAdminApi(locals, "t2_reviewer")
     const { projectId, action } = await request.json().catch(() => ({}))
@@ -26,8 +27,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const result = await ensureTelescreenSubmission(projectIdNum, decoded.name)
         if (!result.ok) message = result.message
     }
-    const submission = await refreshTelescreenSubmission(projectIdNum)
+    // Same choice as the T2 queue: the open review, or else the latest one
+    const submission = await refreshTelescreenSubmission(projectIdNum) ?? await getLatestTelescreenSubmission(projectIdNum)
     let log: Log[] = []
     try { log = JSON.parse(project.log || "[]") } catch { /* unreadable log: shown as having nothing waiting */ }
-    return json({ ok: message === null, message, telescreen: toTelescreenView(submission, log) })
+    return json({
+        ok: message === null,
+        message,
+        telescreen: toTelescreenView(submission, log),
+        pastReviews: await getTelescreenPastReviews(projectIdNum),
+    })
 }

@@ -17,13 +17,14 @@ import {
 	getLatestTelescreenSubmission,
 	getOpenTelescreenSubmission,
 	getProjectForTelescreen,
+	getTelescreenSubmissionsForProject,
 	getTelescreenSubmissionsInStates,
 	openTelescreenSubmission,
 	patchProjectForShip,
 	updateTelescreenSubmission,
 	type TelescreenSubmission,
 } from "../db"
-import type { Log, TelescreenView } from "../types"
+import type { Log, TelescreenPastReview, TelescreenView } from "../types"
 import * as robert from "./telescreenClient"
 import { applyT2Reject, latestUnpaidShipTime } from "./projectLog"
 
@@ -545,3 +546,25 @@ export const toTelescreenView = (row: TelescreenSubmission | null | undefined, l
 			lastError: row.lastError,
 		}
 		: null
+
+// Earlier reviews of a project, newest first: every review except the one toTelescreenView shows (the open one, or
+// else the latest), so the T2 page lists each review once
+export const getTelescreenPastReviews = async (projectId: number): Promise<TelescreenPastReview[]> => {
+	const rows = await getTelescreenSubmissionsForProject(projectId)
+	const current = rows.find(row => row.closedAt === null) ?? rows[0]
+	return rows
+		.filter(row => row !== current)
+		.map(row => ({
+			submittedAt: row.submittedAt?.toISOString() ?? null,
+			trustScore: row.trustScore,
+			reviewNote: row.reviewNote,
+			reviewedAt: row.reviewedAt?.toISOString() ?? null,
+			outcomeStatus: row.outcomeStatus as TelescreenPastReview["outcomeStatus"],
+			outcomeReason: row.outcomeReason,
+			outcomeBy: row.outcomeBy,
+			outcomeSource: row.outcomeSource as TelescreenPastReview["outcomeSource"],
+			overrideBy: row.overrideBy,
+			overrideReason: row.overrideReason,
+			closeReason: row.closeReason,
+		}))
+}
