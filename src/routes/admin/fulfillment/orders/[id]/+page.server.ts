@@ -11,7 +11,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         const iv = orderDetails.fields.iv;
         const decryptedBday = decryptAES(orderDetails.fields.userBirthdate, iv);
         const decryptedFirstName = decryptAES(orderDetails.fields.userFirstName, iv);
-        const decryptedLastName = decryptAES(orderDetails.fields.userLastName, iv);
         const ageNow = new Date().getFullYear() - new Date(decryptedBday).getFullYear();
         return {
            orderDetails:{
@@ -27,8 +26,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
             img: orderDetails.fields.cdnImage,
             ageNow,
             firstName: decryptedFirstName,
-            lastName: decryptedLastName,
-            
            }
         };
 
