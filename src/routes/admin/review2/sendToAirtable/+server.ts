@@ -4,7 +4,7 @@ import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "./$types";
 import type { Log, AdminProjectView, Address } from "$lib/types";
 import { getProjectById, addToJustifications, beginUnifiedSubmission, completeUnifiedSubmission, markUnifiedSubmissionFailed } from "$lib/db";
-import { calculateNewMinutes, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
+import { approvedAtT1By, calculateNewMinutes, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
 import { approveInTelescreen } from "$lib/server/telescreen";
 import { formatAqua, hundredthsToUnits } from "$lib/currency"
 import { decryptAES, encryptAES } from "$lib/utils.server"
@@ -53,6 +53,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const log = JSON.parse(project.fields.log || "[]") as Log[]
     if (!hasUnpushedApprovedEntries(log)) {
         return error(400, "Project has not been approved or all logs are submitted to HQ")
+    }
+    // Two reviewers between a ship and a payout: whoever approved this time at T1 may not also award it
+    if (approvedAtT1By(log, decoded)) {
+        return error(403, "A different reviewer must award a project you approved at T1")
     }
     const address = pickShippingAddress(decryptAES(project.fields.address, project.fields.iv))
     const iv = crypto.randomBytes(16)

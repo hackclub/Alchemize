@@ -17,6 +17,7 @@ export const filterLogs = (logsJson: string): string => {
 		message.forEach(msg => {
 			msg.internalNote = ""
 			msg.justification = ""
+			delete msg.reviewerSlackId
 			if (msg.reviewerName?.startsWith("APPROVED")) {
 				msg.reviewerName = "APPROVED"
 			} else if (msg.reviewerName === "user") {

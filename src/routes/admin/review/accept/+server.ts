@@ -27,11 +27,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         }
         const log = projectData.fields.log
     const oldLog = JSON.parse(log || "[]") as Log[]
+    // Besides the deduction, this refuses anything but a pending entry: a rejected (T1 or T2) or already
+    // approved entry can't be accepted, the participant has to ship again first
     const deductMinutes = parseDeductionMinutes(decreaseTime, oldLog.at(-1), "accept")
     if (typeof deductMinutes === "string") {
         return error(400, deductMinutes)
     }
-    const newLog = applyT1Review(oldLog, deductMinutes, "accept", { userExternal, internalNote, justification, reviewerName: approver })
+    // The Slack ID is what stops the same admin from paying this approval at T2 (names can change)
+    const newLog = applyT1Review(oldLog, deductMinutes, "accept", { userExternal, internalNote, justification, reviewerName: approver, reviewerSlackId: decoded.slackId })
 
 
     const response = await patchProjectForShip(recordId, log, newLog, "accepted")
