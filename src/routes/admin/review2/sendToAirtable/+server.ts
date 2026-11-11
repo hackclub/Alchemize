@@ -58,11 +58,27 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (approvedAtT1By(log, decoded)) {
         return error(403, "A different reviewer must award a project you approved at T1")
     }
-    const address = pickShippingAddress(decryptAES(project.fields.address, project.fields.iv))
+    // AES-GCM refuses a row encrypted under another key ("Unsupported state or unable to authenticate data"): the
+    // owner's user_internal_data row was written under a different PII_ENCRYPTION_KEY than this build's (see the
+    // boot-time key check in hooks.server.ts). Nothing is approved or awarded before this point, so the push can
+    // simply be retried once the owner has logged in again, which re-encrypts their details under the current key.
+    let ownerPii: { address: string; birthdate: string; firstName: string; lastName: string }
+    try {
+        ownerPii = {
+            address: decryptAES(project.fields.address, project.fields.iv),
+            birthdate: decryptAES(project.fields.birthdate, project.fields.iv),
+            firstName: decryptAES(project.fields.firstName, project.fields.iv),
+            lastName: decryptAES(project.fields.lastName, project.fields.iv),
+        }
+    } catch (err) {
+        console.error(`Project ${projectIdNum}: the owner's details in user_internal_data can't be decrypted with this build's PII_ENCRYPTION_KEY`, err)
+        return error(500, "The owner's stored address, name and birthday can't be decrypted with the current encryption key, so nothing was submitted or awarded. Ask them to log in to Alchemize again, then push again. If this happens for every project, the deployment's encryption key changed: report it.")
+    }
+    const address = pickShippingAddress(ownerPii.address)
     const iv = crypto.randomBytes(16)
-    const decryptedBirthdate = decryptAES(project.fields.birthdate, project.fields.iv)
-    const decryptedFirstName = decryptAES(project.fields.firstName, project.fields.iv)
-    const decryptedLastName = decryptAES(project.fields.lastName, project.fields.iv)
+    const decryptedBirthdate = ownerPii.birthdate
+    const decryptedFirstName = ownerPii.firstName
+    const decryptedLastName = ownerPii.lastName
     // Unified needs a real address, birthday and name; refuse instead of submitting blanks
     if (!address || !address.line_1 || !address.city || !address.country) {
         return error(400, "The owner has no complete address on Hack Club Auth. Ask them to add one there and log in to Alchemize again")
