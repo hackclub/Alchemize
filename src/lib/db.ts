@@ -4,7 +4,7 @@ import { eq, and, gte, asc, desc, ne, notLike, or, sql, isNull, isNotNull, inArr
 import { integer, pgTable, varchar, uuid, jsonb, boolean, real, timestamp, uniqueIndex, index, check } from "drizzle-orm/pg-core";
 import type { Log } from './types'
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from './currency'
-import { applyT2Award, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
+import { applyT2Award, approvedAtT1By, calculateNewMinutes, hasUnpushedApprovedEntries, sharesHackatimeProject } from './server/projectLog'
 import { decryptHackatimeToken, encryptHackatimeToken } from './server/hackatimeToken'
 import dotenv from 'dotenv';
 dotenv.config({ path: ['.env.local', '.env'] });
@@ -462,7 +462,11 @@ export const completeUnifiedSubmission = async (
                 throw new TransactionAbort(404, "Project owner not found");
             }
             const lockedLog = JSON.parse(log || "[]") as Log[];
-            const newLog = applyT2Award(lockedLog, justification, submission.reviewerName);
+            // The award marker records when the awarder matches the T1 approver of the time being paid (the route
+            // allows that for a super admin only; the role isn't known here, so the note states just the match).
+            // Worked out before the award, which marks those entries as paid and out of approvedAtT1By's scope.
+            const sameReviewerAsT1 = approvedAtT1By(lockedLog, { slackId: submission.reviewerSlackId, name: submission.reviewerName });
+            const newLog = applyT2Award(lockedLog, justification, submission.reviewerName, new Date(), sameReviewerAsT1);
             const violation = findPushedEntryViolation(lockedLog, newLog);
             if (violation) {
                 throw new TransactionAbort(500, `Refusing award: ${violation}`);

@@ -177,8 +177,14 @@ export const calculateNewMinutes = (log: Log[]): number =>
 export const hasUnpushedApprovedEntries = (log: Log[]): boolean =>
 	log.some(entry => entry.status === 1 && !entry.submmitedToHQ)
 
-// T2 award: marks every approved entry as sent to HQ and appends the award marker
-export const applyT2Award = (log: Log[], justification: string, reviewerName: string, now = new Date()): Log[] => {
+// Internal note of the award marker when the T2 awarder matches the admin who approved the paid time at T1. It
+// states that fact only, not that it was allowed: the route decides that (checkT2Awarder lets only a super admin
+// through). Reviewer-only: filterLogs blanks internalNote before a log reaches a participant.
+export const SAME_REVIEWER_AWARD_NOTE = "Project sent to Unified. The T2 awarder matches the T1 approver of this time"
+
+// T2 award: marks every approved entry as sent to HQ and appends the award marker. `sameReviewerAsT1` must be
+// worked out on the log before the award (approvedAtT1By): afterwards the entries are paid and out of its scope.
+export const applyT2Award = (log: Log[], justification: string, reviewerName: string, now = new Date(), sameReviewerAsT1 = false): Log[] => {
 	const timestamp = now.toISOString()
 	return [
 		...log.map(entry => entry.status === 1 && !entry.submmitedToHQ ? { ...entry, submmitedToHQ: true } : entry),
@@ -186,7 +192,13 @@ export const applyT2Award = (log: Log[], justification: string, reviewerName: st
 			status: 1,
 			timestamp,
 			deltaTime: 0,
-			message: [{ userExternal: "Currency Awarded", internalNote: "Project sent to Unified", justification, timestamp, reviewerName: "T2 " + reviewerName }],
+			message: [{
+				userExternal: "Currency Awarded",
+				internalNote: sameReviewerAsT1 ? SAME_REVIEWER_AWARD_NOTE : "Project sent to Unified",
+				justification,
+				timestamp,
+				reviewerName: "T2 " + reviewerName,
+			}],
 			submmitedToHQ: true,
 			fraudApproved: false,
 		},
@@ -210,6 +222,20 @@ export const approvedAtT1By = (
 			)
 		)
 	)
+
+// The two-reviewer rule as applied to a T2 award:
+//   "independent"          someone else gave the T1 approval (the normal case)
+//   "super_admin_override" the awarder gave it themselves and is a super admin, who may do both stages of a project
+//   "refused"              the awarder gave it themselves and is not a super admin
+// Only a real `true` counts as super admin; callers pass the role as read from the admins table for this request.
+export type T2AwarderCheck = "independent" | "super_admin_override" | "refused"
+export const checkT2Awarder = (
+	log: Log[],
+	reviewer: { slackId?: string | null, name?: string | null, isSuperAdmin?: boolean }
+): T2AwarderCheck => {
+	if (!approvedAtT1By(log, reviewer)) return "independent"
+	return reviewer.isSuperAdmin === true ? "super_admin_override" : "refused"
+}
 
 // Reviewers may not review or pay out their own projects. Compared on both Slack ID and email, because
 // the admins table and the users table are maintained separately.
