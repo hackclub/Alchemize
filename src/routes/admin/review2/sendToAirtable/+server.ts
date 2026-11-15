@@ -4,7 +4,7 @@ import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "./$types";
 import type { Log, AdminProjectView, Address } from "$lib/types";
 import { getProjectById, addToJustifications, beginUnifiedSubmission, completeUnifiedSubmission, markUnifiedSubmissionFailed } from "$lib/db";
-import { approvedAtT1By, calculateNewMinutes, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
+import { calculateNewMinutes, checkT2Awarder, hasUnpushedApprovedEntries, isOwnProject } from "$lib/server/projectLog";
 import { approveInTelescreen } from "$lib/server/telescreen";
 import { formatAqua, hundredthsToUnits } from "$lib/currency"
 import { decryptAES, encryptAES } from "$lib/utils.server"
@@ -54,8 +54,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (!hasUnpushedApprovedEntries(log)) {
         return error(400, "Project has not been approved or all logs are submitted to HQ")
     }
-    // Two reviewers between a ship and a payout: whoever approved this time at T1 may not also award it
-    if (approvedAtT1By(log, decoded)) {
+    // Two reviewers between a ship and a payout: whoever approved this time at T1 may not also award it. The one
+    // exception is a super admin, who may take a project through both stages (never their own: refused above). The
+    // role is the one read from the admins table for this request, nothing the client sends can claim it. Such an
+    // award is logged below and noted on the award marker in the project log.
+    const awarder = checkT2Awarder(log, decoded)
+    if (awarder === "refused") {
         return error(403, "A different reviewer must award a project you approved at T1")
     }
     // AES-GCM refuses a row encrypted under another key ("Unsupported state or unable to authenticate data"): the
@@ -122,6 +126,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             message: telescreen.message,
             overridable: telescreen.overridable,
         }), { status: telescreen.status, headers: { "Content-Type": "application/json" } })
+    }
+    if (awarder === "super_admin_override") {
+        console.warn(`T2 award: super admin ${decoded.name} (${decoded.slackId}) is awarding project ${projectIdNum}, which they approved at T1 themselves`)
     }
 
     const deductedMinutes = Math.round(subtraction * 60)

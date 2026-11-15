@@ -10,9 +10,11 @@ import {
 	calculateNewMinutes,
 	calculateRecordedTime,
 	calculateShipDelta,
+	checkT2Awarder,
 	hasUnpushedApprovedEntries,
 	isOwnProject,
 	parseDeductionMinutes,
+	SAME_REVIEWER_AWARD_NOTE,
 	sharesHackatimeProject,
 } from "../../src/lib/server/projectLog"
 import type { Log } from "../../src/lib/types"
@@ -155,6 +157,43 @@ test("the T1 approver may not award the same time at T2 (by Slack ID, name as fa
 	assert.equal(reshipped.at(-1)!.status, 0)
 	assert.equal(approvedAtT1By(reshipped, alice), false)
 	assert.equal(approvedAtT1By(t1By(reshipped, alice, "accept"), alice), true, "approving it again at T1 blocks them again")
+})
+
+test("a super admin may award time they approved at T1 themselves; the award marker records the match", () => {
+	const alice = { slackId: "U1", name: "Alice" }
+	const bob = { slackId: "U2", name: "Bob" }
+	const approved = applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Alice", reviewerSlackId: "U1" })
+	// The T1 approver is refused at T2 unless they are a super admin
+	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: false }), "refused")
+	assert.equal(checkT2Awarder(approved, alice), "refused", "no flag is not a super admin")
+	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: "true" as unknown as boolean }), "refused", "only a real boolean counts")
+	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: true }), "super_admin_override")
+	assert.equal(checkT2Awarder(approved, { slackId: "U1", name: "Alice Renamed", isSuperAdmin: false }), "refused", "still keyed on the Slack ID")
+	// Someone else's approval is the normal case, super admin or not: nothing to override
+	assert.equal(checkT2Awarder(approved, { ...bob, isSuperAdmin: false }), "independent")
+	assert.equal(checkT2Awarder(approved, { ...bob, isSuperAdmin: true }), "independent")
+	// An approval recorded without a Slack ID is matched by name, for super admins too
+	const legacy = applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Alice" })
+	assert.equal(checkT2Awarder(legacy, { ...alice, isSuperAdmin: false }), "refused")
+	assert.equal(checkT2Awarder(legacy, { ...alice, isSuperAdmin: true }), "super_admin_override")
+	// With several approved entries waiting, one approval by the awarder is enough to need the override
+	const two = applyT1Review(ship(applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Bob", reviewerSlackId: "U2" }), 300), 0, "accept", { ...review, reviewerName: "Alice", reviewerSlackId: "U1" })
+	assert.equal(calculateNewMinutes(two), 300)
+	assert.equal(checkT2Awarder(two, { ...alice, isSuperAdmin: false }), "refused")
+	assert.equal(checkT2Awarder(two, { ...bob, isSuperAdmin: false }), "refused")
+	assert.equal(checkT2Awarder(two, { ...alice, isSuperAdmin: true }), "super_admin_override")
+	// The award marker carries the note only for an override. It is worked out on the log before the award
+	// (completeUnifiedSubmission): once paid, the entries are out of approvedAtT1By's scope
+	const plain = applyT2Award(approved, "j", "Bob")
+	assert.equal(plain.at(-1)!.message[0].internalNote, "Project sent to Unified")
+	assert.equal(approvedAtT1By(approved, alice), true)
+	const overridden = applyT2Award(approved, "j", "Alice", new Date(), approvedAtT1By(approved, alice))
+	assert.equal(overridden.at(-1)!.message[0].internalNote, SAME_REVIEWER_AWARD_NOTE)
+	assert.equal(overridden.at(-1)!.message[0].reviewerName, "T2 Alice")
+	assert.equal(overridden.at(-1)!.message[0].userExternal, "Currency Awarded", "the T2 page finds the marker by this text")
+	assert.deepEqual(overridden.slice(0, -1), plain.slice(0, -1), "the paid entries are the same either way")
+	assert.equal(approvedAtT1By(overridden, alice), false)
+	assert.equal(checkT2Awarder(overridden, { ...alice, isSuperAdmin: false }), "independent", "nothing left to pay")
 })
 
 test("T2 rejection marks the entry rejected and leaves paid entries alone", () => {
