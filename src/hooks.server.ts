@@ -39,7 +39,7 @@ const piiKeyProblem = (buildKey: string | undefined, runtimeKey: string | undefi
 	}
 	// Buffer.from(hex) ignores case, so keys that differ only in case encrypt identically
 	if (buildKey.toLowerCase() !== runtimeKey.toLowerCase()) {
-		return `PII_ENCRYPTION_KEY differs between the build (${keyFingerprint(buildKey)}, used for addresses, names and birthdays) and the run-time environment (${keyFingerprint(runtimeKey)}, used for Hackatime tokens): rows encrypted under one can't be read under the other, and data exists under both. Neither key may change (no rebuild or restart with a different value) until one set of rows has been re-encrypted under the other key`
+		return `PII_ENCRYPTION_KEY differs between the build (${keyFingerprint(buildKey)}, used for addresses, names and birthdays) and the run-time environment (${keyFingerprint(runtimeKey)}, used for Hackatime tokens): rows encrypted under one can't be read under the other. Before changing either key, check which key the stored data in that domain actually decrypts under`
 	}
 	return null
 }
