@@ -60,8 +60,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
     // AES-GCM refuses a row encrypted under another key ("Unsupported state or unable to authenticate data"): the
     // owner's user_internal_data row was written under a different PII_ENCRYPTION_KEY than this build's (see the
-    // boot-time key check in hooks.server.ts). Nothing is approved or awarded before this point, so the push can
-    // simply be retried once the owner has logged in again, which re-encrypts their details under the current key.
+    // boot-time key check in hooks.server.ts). This request approves and awards nothing before this point, so the
+    // push can be retried once the owner has logged in again, which re-encrypts their details under the current key.
+    // An earlier attempt may still be open: the retry then answers SUBMISSION_IN_DOUBT from beginUnifiedSubmission.
     let ownerPii: { address: string; birthdate: string; firstName: string; lastName: string }
     try {
         ownerPii = {
@@ -72,7 +73,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         }
     } catch (err) {
         console.error(`Project ${projectIdNum}: the owner's details in user_internal_data can't be decrypted with this build's PII_ENCRYPTION_KEY`, err)
-        return error(500, "The owner's stored address, name and birthday can't be decrypted with the current encryption key, so nothing was submitted or awarded. Ask them to log in to Alchemize again, then push again. If this happens for every project, the deployment's encryption key changed: report it.")
+        return error(500, "The owner's stored address, name and birthday can't be decrypted with the current encryption key, so this push submitted and awarded nothing. Ask them to log in to Alchemize again, then push again; if an earlier push of this project didn't finish, you'll be asked to check Airtable then. If this happens for every project, the deployment's encryption key changed: report it.")
     }
     const address = pickShippingAddress(ownerPii.address)
     const iv = crypto.randomBytes(16)
