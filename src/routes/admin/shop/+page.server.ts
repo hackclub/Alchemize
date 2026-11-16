@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types"
 import type { Item } from "$lib/types"
 import { unitsToHundredths } from "$lib/currency"
-import { deleteShopItem, fetchAllItems, upsertShopItem, type airtableReplication } from "$lib/db"
+import { deleteShopItem, fetchAllItems, upsertShopItem, toShopItem } from "$lib/db"
 import { error } from "@sveltejs/kit"
 import { BOT_AUTH } from "$env/static/private"
 import { requireAdminApi, requireAdminPage } from "$lib/server/auth"
@@ -106,13 +106,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw new Error("Failed to fetch items from the database")
 	}
 	const itemsData = await itemsResponse.json()
-	const items: Item[] = itemsData.records.map((record: airtableReplication) => ({
-		itemID: record.id,
-		name: record.fields.name,
-		description: record.fields.description,
-		priceHundredths: record.fields.priceHundredths,
-		cdnImage: record.fields.cdnImage,
-	}))
+	const items: Item[] = itemsData.records.map(toShopItem)
 
 	return {
 		items,

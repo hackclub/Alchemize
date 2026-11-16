@@ -1,13 +1,9 @@
 <script lang="ts">
 	import { ArrowUpRight } from "@lucide/svelte"
 	import type { Log } from "$lib/types"
+	import { totalLogMinutes } from "$lib/reviewTools"
 	let { data } = $props()
 	const project = data.project
-	const calculateTotalHours = (log: Log[]) => {
-		return log.reduce((total, entry) => {
-			return total + entry.deltaTime
-		}, 0)
-	}
 	const log = JSON.parse(project.log) as Log[]
 	log.reverse()
 	const currentReview = $state({
@@ -32,9 +28,7 @@
 					{project.Name}
 				</h1>
 				<h3 class="hours font-alchemize text-[clamp(0.5rem,1vw,1rem)] text-neutral-300">
-					{calculateTotalHours(log)} hour{calculateTotalHours(log) !== 1 ? "s" : ""}, Update: {project.update
-						? "Yes"
-						: "No"}
+					{totalLogMinutes(log)} hour{totalLogMinutes(log) !== 1 ? "s" : ""}, Update: {project.update ? "Yes" : "No"}
 				</h3>
 				<p class="description line-clamp-4 overflow-hidden text-justify text-[clamp(0.5rem,1vw,1rem)] text-neutral-500">
 					{project.description}

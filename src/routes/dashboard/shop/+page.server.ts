@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types"
 import type { Item } from "$lib/types"
 import { error, redirect } from "@sveltejs/kit"
-import { getUserByEmail, fetchAllItems, getOrdersByEmail, type airtableReplication } from "$lib/db"
+import { getUserByEmail, fetchAllItems, getOrdersByEmail, toShopItem } from "$lib/db"
 import { requireUserPage } from "$lib/server/auth"
 export const load: PageServerLoad = async ({ locals }) => {
 	const email = requireUserPage(locals).email
@@ -14,13 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw error(503, "The shop is unavailable right now, please try again in a few minutes")
 	}
 	const itemsData = await itemsResponse.json()
-	const items: Item[] = itemsData.records.map((record: airtableReplication) => ({
-		itemID: record.id,
-		name: record.fields.name,
-		description: record.fields.description,
-		priceHundredths: record.fields.priceHundredths,
-		cdnImage: record.fields.cdnImage,
-	}))
+	const items: Item[] = itemsData.records.map(toShopItem)
 
 	const userData = await userResponse.json()
 	const userRecord = userData.records?.[0]

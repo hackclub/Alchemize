@@ -5,6 +5,7 @@
 	import ProjectDetailsDialog from "$lib/components/projectdetails-dialog.svelte"
 	import { invalidateAll } from "$app/navigation"
 	import type { Project, AirtableProject, Log } from "$lib/types"
+	import { totalLogMinutes } from "$lib/reviewTools"
 	import { countCharacters } from "$lib/utils"
 	import { toast } from "svelte-sonner"
 	import { Newspaper } from "lucide-svelte"
@@ -25,10 +26,6 @@
 	let approvedCount = $derived(projects.filter(p => p.fields.status?.startsWith("accepted")).length)
 	let rejectedCount = $derived(projects.filter(p => p.fields.status?.startsWith("rejected")).length)
 	let totalCount = $derived(projects.length)
-
-	function calculateRecordedTime(log: Log[]): number {
-		return log.reduce((total, entry) => total + entry.deltaTime, 0)
-	}
 
 	let autogenChangelog = $state("")
 	const generateChangelog = (targetProject: Project) => {
@@ -72,7 +69,7 @@
 			project = {
 				id: nextProject.id,
 				name: nextProject.fields.Name,
-				hours: Math.floor(calculateRecordedTime(JSON.parse(nextProject.fields.log ?? "[]") as Log[]) / 60),
+				hours: Math.floor(totalLogMinutes(JSON.parse(nextProject.fields.log ?? "[]") as Log[]) / 60),
 				submittedBy: nextProject.fields.slackId,
 				type: nextProject.fields.type,
 				category: nextProject.fields.Theme,

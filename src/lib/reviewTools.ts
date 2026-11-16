@@ -1,3 +1,8 @@
+import type { Log } from "./types"
+
+/** Minutes recorded across all entries of a project log. */
+export const totalLogMinutes = (log: Log[]): number => log.reduce((total, entry) => total + entry.deltaTime, 0)
+
 /** Base URLs for external Hackatime fraud-review tools used by T2 reviewers. */
 export const HACKATIME_BILLY_BASE_URL = "https://billy.3kh0.net/"
 export const HACKATIME_JOE_FRAUD_BASE_URL = "https://joe.fraud.hackclub.com/billy"

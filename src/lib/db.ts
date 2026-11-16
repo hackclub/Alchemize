@@ -14,7 +14,7 @@ import {
 	index,
 	check,
 } from "drizzle-orm/pg-core"
-import type { Log } from "./types"
+import type { Item, Log } from "./types"
 import { CURRENCY_KEY, CURRENCY_NAME, hundredthsToUnits, formatAqua, minutesToHundredths } from "./currency"
 import {
 	applyT2Award,
@@ -1253,6 +1253,14 @@ export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
 		return fail(500, "Database read failed")
 	}
 }
+// A shop item record as the shop pages receive it
+export const toShopItem = (record: airtableReplication): Item => ({
+	itemID: record.id,
+	name: record.fields.name,
+	description: record.fields.description,
+	priceHundredths: record.fields.priceHundredths,
+	cdnImage: record.fields.cdnImage,
+})
 export const fetchAllItems = async (): Promise<DBResponse> => {
 	//Soft Hides items with priority less than 0, so we can keep them in the database for record-keeping purposes without showing them in the shop
 	const items = await db

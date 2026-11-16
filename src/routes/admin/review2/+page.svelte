@@ -19,7 +19,7 @@
 	import { safeHref } from "$lib/urls"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
-	import { buildBillyUrl, buildJoeFraudUrl, HACKATIME_REVIEW_START_DATE } from "$lib/reviewTools"
+	import { buildBillyUrl, buildJoeFraudUrl, HACKATIME_REVIEW_START_DATE, totalLogMinutes } from "$lib/reviewTools"
 	import { tick } from "svelte"
 	import { BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Title, Tooltip } from "chart.js"
 	type AdminProjectAccess = AirtableProject & { telescreen: TelescreenView | null }
@@ -38,13 +38,6 @@
 		return logs.some(log => log.status === 1)
 	}
 	let currentProject = $state({} as AdminProject)
-	function calculateRecordedTime(log: Log[]): number {
-		let totalTime = 0
-		for (const entry of log) {
-			totalTime += entry.deltaTime
-		}
-		return totalTime
-	}
 	const renderBar = () => {
 		if (!daySummaryChart || !currentHackatimeAnalysis?.dayMap) {
 			return
@@ -106,7 +99,7 @@
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours: Math.floor((calculateRecordedTime(JSON.parse(nextProject.fields.log ?? "[]") as Log[]) * 10) / 60) / 10,
+			hours: Math.floor((totalLogMinutes(JSON.parse(nextProject.fields.log ?? "[]") as Log[]) * 10) / 60) / 10,
 			submittedBy: nextProject.fields.slackId,
 			type: nextProject.fields.type,
 			category: nextProject.fields.Theme,
