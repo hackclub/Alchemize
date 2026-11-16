@@ -62,7 +62,7 @@
 		Where would you like to go today, {data.name || "Admin"}?
 	</h1>
 	<nav class="mt-5 grid w-[75%] grid-cols-5 items-center justify-center gap-10 px-10">
-		{#each visibleButtons as button}
+		{#each visibleButtons as button (button.href)}
 			<button onclick={() => (window.location.href = button.href)} class={buttonClass}>
 				<button.icon class="h-10 w-10" />
 				{button.label}

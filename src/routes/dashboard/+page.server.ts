@@ -6,19 +6,20 @@ import {
 	checkConfigByEmail,
 	getHackatimeTokenByEmail,
 	patchUserHackatime,
+	type airtableReplication,
 } from "$lib/db"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
 import { WebClient } from "@slack/web-api"
-import { hackatimeAuthUrl, authUrl } from "$lib/utils"
+import { hackatimeAuthUrl } from "$lib/utils"
 import { filterLogs } from "$lib/utils.server"
 import { redirect } from "@sveltejs/kit"
 import { requireUserPage } from "$lib/server/auth"
 import { getIdvStatus } from "$lib/server/idv"
 
-let slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN)
+const slackClient: WebClient = new WebClient(SLACK_BOT_TOKEN)
 
 const getSlackProfile = async (slackId: string) => {
-	if (!slackId || slackId == "") {
+	if (!slackId) {
 		return {
 			display_name: "",
 			image_512: "",
@@ -38,7 +39,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 	const hackatimeVerified = cookies.get("hackatime_verified")
 	const decodedToken = requireUserPage(locals)
 
-	let [projectsResponse, userResponse, slackprofile, configResponse, hackatimeAccessToken, idvStatus] =
+	const [projectsResponse, userResponse, slackprofile, configResponse, hackatimeAccessToken, idvStatus] =
 		await Promise.all([
 			getProjectsByOwner(decodedToken.email),
 			getUserByEmail(decodedToken.email),
@@ -67,16 +68,16 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	// If Hackatime is down the dashboard still loads, just without Hackatime projects
-	let filteredHacksS = {
+	const filteredHacksS = {
 		projects: hackatime.ok ? hackatime.projects : [],
 	}
-	let userFields = userData?.records?.[0]?.fields
-	let misconfigured = []
+	const userFields = userData?.records?.[0]?.fields
+	const misconfigured = []
 	if (!configs.address) misconfigured.push("Address")
 	if (!configs.birthdate) misconfigured.push("Birthdate")
 	if (!configs.firstName) misconfigured.push("First Name")
 	if (!configs.lastName) misconfigured.push("Last Name")
-	const sanitizedProjects = (projectsData?.records || []).map((record: any) => ({
+	const sanitizedProjects = (projectsData?.records || []).map((record: airtableReplication) => ({
 		...record,
 		fields: {
 			...record.fields,
@@ -92,8 +93,8 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		hackatimeVerified: hackatimeVerified === "true",
 		// Least privilege: the page only needs the balance, never the raw user row (ids, hackatime token, legacy JSON)
 		user: { balanceHundredths: Number(userFields?.balanceHundredths ?? 0) },
-		admin: admin,
+		admin,
 		pfp: slackprofile?.image_512 || "",
-		misconfigured: misconfigured,
+		misconfigured,
 	}
 }

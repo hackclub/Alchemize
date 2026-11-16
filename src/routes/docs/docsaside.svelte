@@ -5,7 +5,6 @@
 	import { cn } from "$lib/lib/utils"
 
 	import docsIndex from "./docs-index.json"
-	import { ArrowLeft } from "@lucide/svelte"
 	import Button from "$lib/components/ui/button/button.svelte"
 
 	const { toggleGroup, openGroups } = $props()
@@ -20,7 +19,7 @@
 			<Button variant="secondary" size="sm" class="w-full">Back to site</Button>
 		</a>
 	</div>
-	{#each Object.entries(docsIndex) as [groupName, groupItems]}
+	{#each Object.entries(docsIndex) as [groupName, groupItems] (groupName)}
 		<div class="sidebar-group flex w-full flex-col gap-2 border-b px-2 pt-5 pb-5">
 			<h1 class="text-md mb-1 flex w-full justify-between font-semibold text-card-foreground">
 				{groupName}
@@ -35,7 +34,7 @@
 				<div
 					transition:slide={{ duration: 150 }}
 					class="links flex flex-col gap-2 pl-3 font-note text-secondary-foreground">
-					{#each groupItems as item}
+					{#each groupItems as item (item.path)}
 						<a
 							href={item.path}
 							class="cursor-pointer underline-offset-4 transition hover:text-card-foreground hover:underline">

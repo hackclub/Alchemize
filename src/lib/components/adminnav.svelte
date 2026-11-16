@@ -66,7 +66,7 @@
 			<div class="grid grid-cols-1 items-center gap-6 md:grid-cols-3 md:gap-8">
 				<!-- Left -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "left" && i.visible) as item}
+					{#each navItems.filter(i => i.side === "left" && i.visible) as item (item.href)}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
@@ -108,7 +108,7 @@
 
 				<!-- Right -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "right" && i.visible) as item}
+					{#each navItems.filter(i => i.side === "right" && i.visible) as item (item.href)}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}

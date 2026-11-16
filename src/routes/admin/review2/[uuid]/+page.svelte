@@ -2,15 +2,15 @@
 	import { ArrowUpRight } from "@lucide/svelte"
 	import type { Log } from "$lib/types"
 	let { data } = $props()
-	let project = data.project
+	const project = data.project
 	const calculateTotalHours = (log: Log[]) => {
 		return log.reduce((total, entry) => {
 			return total + entry.deltaTime
 		}, 0)
 	}
-	let log = JSON.parse(project.log) as Log[]
+	const log = JSON.parse(project.log) as Log[]
 	log.reverse()
-	let currentReview = $state({
+	const currentReview = $state({
 		message: "",
 		justification: "",
 		internalNote: "",
@@ -44,9 +44,11 @@
 		</div>
 		<div class="flex h-[80%]">
 			<div class="nested-timeLine flex w-1/2 flex-col gap-2 overflow-scroll border px-3 py-3">
-				{#each log as entry, j}
+				<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
+				{#each log as entry}
+					<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 					{#each [...entry.message].reverse() as message, i}
-						{#if message.reviewerName != "user"}
+						{#if message.reviewerName !== "user"}
 							<button
 								class="nest w text-left text-primary-foreground"
 								onclick={() =>

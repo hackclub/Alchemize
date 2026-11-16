@@ -1,4 +1,4 @@
-import type { Log, Project, AirtableProject } from "$lib/types"
+import type { Log, AirtableProject } from "$lib/types"
 import { BOT_AUTH } from "$env/static/private"
 import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "@sveltejs/kit"

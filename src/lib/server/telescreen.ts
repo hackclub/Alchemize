@@ -544,6 +544,7 @@ const applyTelescreenRejection = async (projectId: number, internalNote: string)
 // outcome.set webhook: a final outcome in Telescreen. Our own decisions come back as an echo and change nothing.
 // A rejection made in Telescreen (fraud score 4 or below, or an organizer in Robert's UI) is applied to the project;
 // an approval made in Robert's UI is only recorded, and a T2 reviewer still decides whether to pay.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untrusted webhook JSON; every field is validated before use
 export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "recorded" | "rejected"> => {
 	const robertProjectId = payload?.projectId
 	const outcome = payload?.outcome

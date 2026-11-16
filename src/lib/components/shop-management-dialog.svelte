@@ -6,8 +6,6 @@
 	import { Checkbox } from "$lib/components/ui/checkbox"
 	import { Label } from "$lib/components/ui/label"
 	import { Button } from "$lib/components/ui/button"
-	import type { AirtableProject } from "$lib/types"
-	import { countCharacters } from "$lib/utils"
 	import { CURRENCY_NAME, hundredthsToUnits } from "$lib/currency"
 	import { toast } from "svelte-sonner"
 	import { Trash } from "lucide-svelte"
@@ -30,14 +28,13 @@
 		invalidater?: () => void
 	} = $props()
 
-	let showRotator = $state(false)
+	const showRotator = $state(false)
 	let showSecondRotator = $state(false)
 	let name = $state(shopItem?.name ?? "")
 	let description = $state(shopItem?.description ?? "")
-	let files: any = $state()
-	let fileinputPreview: any = $state("")
+	let files: FileList | null | undefined = $state()
+	let fileinputPreview = $state("")
 	let hasFile = $derived(files && files.length > 0)
-	let allFieldsFilled = $derived(name && description)
 	let cdnLink = $state(shopItem?.image ?? "")
 	let useCdnLink = $state(shopItem?.image ? true : false)
 	let priceUnits = $state<number | undefined>(shopItem ? hundredthsToUnits(shopItem.priceHundredths) : undefined)
@@ -45,16 +42,14 @@
 		if (files && files.length > 0) {
 			const file = files[0]
 			const objectUrl = URL.createObjectURL(file)
-			console.log("File input Link created dynamically:", objectUrl)
 			fileinputPreview = objectUrl
 
 			// Cleanup: revoke the URL when files change or component destroys
 			return () => {
 				URL.revokeObjectURL(objectUrl)
 			}
-		} else {
-			fileinputPreview = ""
 		}
+		fileinputPreview = ""
 	})
 	$effect(() => {
 		name = shopItem?.name ?? ""

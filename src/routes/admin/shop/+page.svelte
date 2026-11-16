@@ -2,10 +2,8 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import { Input } from "$lib/components/ui/input/index.js"
 	import ShopDialog from "$lib/components/shop-management-dialog.svelte"
-	//@ts-ignore
 	import { loaderStore } from "$lib/stores/adminLoader"
 	import { ShoppingBag, Search } from "lucide-svelte"
-	import { toast } from "svelte-sonner"
 	import { Plus } from "@lucide/svelte"
 	import { invalidateAll } from "$app/navigation"
 	import { formatAqua } from "$lib/currency"
@@ -17,7 +15,6 @@
 		priceHundredths: number
 		image: string
 	}
-	let isDialogOpen = $state(false)
 	let selectedItem = $state<Item>({
 		name: "",
 		description: "",

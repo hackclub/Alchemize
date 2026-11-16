@@ -5,7 +5,6 @@
 	const { data } = $props()
 	const order = data.orderDetails
 	const markAsFulfilled = async () => {
-		console.log("Marking as fulfilled...")
 		fetch(`/admin/fulfillment/fulfilled`, {
 			method: "POST",
 			headers: {

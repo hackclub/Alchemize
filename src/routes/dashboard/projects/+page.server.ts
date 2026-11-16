@@ -1,8 +1,7 @@
 import type { Actions, PageServerLoad } from "./$types"
-import crypto from "crypto"
 import { env } from "$env/dynamic/private"
-import { getDataFromAccessToken, hackatimeAuthUrl } from "$lib/utils"
-import { encryptAES, filterLogs } from "$lib/utils.server"
+import { hackatimeAuthUrl } from "$lib/utils"
+import { filterLogs } from "$lib/utils.server"
 import {
 	getProjectsByOwner,
 	createProject,
@@ -17,7 +16,7 @@ import { isProjectType } from "$lib/projectTypes"
 import { checkImageUpload } from "$lib/server/uploads"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
 import { getIdvStatus } from "$lib/server/idv"
-import type { AirtableProject, AirtableProjectWithPII, UserAuthToken } from "$lib/types"
+import type { AirtableProject, AirtableProjectWithPII } from "$lib/types"
 import { fail, redirect } from "@sveltejs/kit"
 import { requireUserApi, requireUserPage } from "$lib/server/auth"
 async function uploadScreenshot(file: File | null): Promise<string> {
@@ -116,7 +115,7 @@ export const actions = {
 			Theme: theme ?? "",
 			address: "redact",
 			birthdate: "redact",
-			slackId: slackId,
+			slackId,
 			firstName: "redact",
 			lastName: "redact",
 			screenshot: url,
@@ -215,7 +214,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	if (hackatimeAccessToken) {
-		let [hackatime, projectsResponse, idvStatus] = await Promise.all([
+		const [hackatime, projectsResponse, idvStatus] = await Promise.all([
 			fetchHackatimeProjects(hackatimeAccessToken, env.START_DATE ?? ""),
 			getProjectsByOwner(email),
 			getIdvStatus(user),
@@ -228,9 +227,9 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		}
 
 		const projectsData = await projectsResponse.json()
-		let projectsRecords: AirtableProjectWithPII[] = projectsData.records || []
-		let noPii: AirtableProject[] = []
-		for (let record of projectsRecords) {
+		const projectsRecords: AirtableProjectWithPII[] = projectsData.records || []
+		const noPii: AirtableProject[] = []
+		for (const record of projectsRecords) {
 			noPii.push({
 				id: record.id,
 				fields: {
@@ -254,8 +253,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 			})
 		}
 		// If Hackatime is down the page still loads, just without Hackatime projects to pick from
-		let filteredHacks = hackatime.ok ? hackatime.projects : []
-		let filteredHacksS = {
+		const filteredHacks = hackatime.ok ? hackatime.projects : []
+		const filteredHacksS = {
 			projects: filteredHacks,
 		}
 		return {

@@ -24,9 +24,8 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 	const response = await deleteProject(recordId, email)
 	if (response.ok) {
 		return new Response(JSON.stringify({ message: "Project deleted successfully" }), { status: 200 })
-	} else {
-		return new Response(JSON.stringify({ message: "Failed to delete project " + (await response.text()) }), {
-			status: 500,
-		})
 	}
+	return new Response(JSON.stringify({ message: "Failed to delete project " + (await response.text()) }), {
+		status: 500,
+	})
 }

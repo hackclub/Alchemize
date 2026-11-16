@@ -45,7 +45,7 @@ export const encryptAES = (text: string) => {
 	return {
 		iv: ivHex,
 		encryptedData: encrypted,
-		authTag: authTag,
+		authTag,
 		// iv is embedded so each ciphertext is self-describing and decryptable
 		// without relying on a shared, reused record-level IV.
 		finalString: `${ivHex}:${encrypted}:${authTag}`,

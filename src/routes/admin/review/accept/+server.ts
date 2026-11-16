@@ -70,7 +70,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	return new Response(
 		JSON.stringify({
 			message: "Project accepted",
-			newLog: newLog,
+			newLog,
 			telescreen: telescreen.ok ? { ok: true } : { ok: false, message: telescreen.message },
 		}),
 		{ status: 200 }

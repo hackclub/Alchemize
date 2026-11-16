@@ -28,7 +28,7 @@ const pickShippingAddress = (decryptedAddresses: string): Address | null => {
 	}
 }
 const findGithubUsernameFromCodeUrl = (codeUrl: string): string | null => {
-	const githubRegex = /https:\/\/github\.com\/([^\/]+)\/([^\/]+)/
+	const githubRegex = /https:\/\/github\.com\/([^/]+)\/([^/]+)/
 	const match = codeUrl.match(githubRegex)
 	return match ? match[1] : null
 }
@@ -189,7 +189,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		awardedHundredths = begun.inFlight.amountHundredths
 		completed = await awardAndClose(begun.inFlight.id, null)
 		if (!completed.ok) {
-			return error(completed.status as any, (await completed.json()).message)
+			return error(completed.status, (await completed.json()).message)
 		}
 	} else {
 		if (!begun.ok) {
@@ -202,7 +202,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					{ status: 409, headers: { "Content-Type": "application/json" } }
 				)
 			}
-			return error(begun.status as any, begun.message)
+			return error(begun.status, begun.message)
 		}
 		const submission = begun.submission
 		awardedHundredths = submission.amountHundredths
@@ -264,7 +264,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				`Unified submission ${submission.id} for project ${projectIdNum} was accepted by Airtable but the award failed`
 			)
 			return error(
-				completed.status as any,
+				completed.status,
 				`${(await completed.json()).message}. The project IS in Airtable: press push again and confirm it's already there to record the award.`
 			)
 		}
@@ -288,7 +288,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			zip: encryptAES(address.postal_code ?? "").finalString,
 			birthdate: encryptAES(decryptedBirthdate).finalString,
 			overrideHoursSpent: hundredthsToUnits(awardedHundredths) + "",
-			justification: justification,
+			justification,
 			firstName: encryptAES(decryptedFirstName).finalString,
 			lastName: encryptAES(decryptedLastName).finalString,
 			// Per-field IVs are embedded in each ciphertext above; this legacy
@@ -325,7 +325,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			projectName: project.fields.Name,
 			projectLink: project.fields.code,
 		})
-		return new Response(JSON.stringify({ message: "Bot Failed to send notification", newLog: newLog }), { status: 207 })
+		return new Response(JSON.stringify({ message: "Bot Failed to send notification", newLog }), { status: 207 })
 	}
 	return new Response(JSON.stringify({ message: "Project sent to HQ successfully" }), { status: 200 })
 }

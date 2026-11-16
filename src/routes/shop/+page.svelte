@@ -3,6 +3,7 @@
 	import { ShoppingBag } from "lucide-svelte"
 	import { cn } from "$lib/lib/utils"
 	import { formatAqua } from "$lib/currency"
+	import type { Item } from "$lib/types"
 
 	let { data } = $props()
 
@@ -15,7 +16,7 @@
 	}
 
 	const shopItems: ShopItem[] = data.items
-		.map((item: any) => ({
+		.map((item: Item) => ({
 			itemID: item.itemID,
 			name: item.name,
 			description: item.description,
@@ -45,7 +46,7 @@
 
 	<div
 		class="relative z-10 grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(250px,1fr))] content-start gap-4 overflow-y-auto pt-4 pr-2 pb-6">
-		{#each shopItems as item}
+		{#each shopItems as item (item.itemID)}
 			<div
 				class={cn(
 					"relative z-10 flex h-full w-full flex-col gap-3 rounded border-2 bg-card p-3 backdrop-blur-sm transition-all",
@@ -75,7 +76,7 @@
 							{formatAqua(item.priceHundredths)}
 						</p>
 
-						<Button variant="secondary" class={"w-full"}>
+						<Button variant="secondary" class="w-full">
 							<a href="/" class="hover:text-primary"> Login to Purchase </a>
 						</Button>
 					</div>

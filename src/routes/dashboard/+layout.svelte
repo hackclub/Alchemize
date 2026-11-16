@@ -2,19 +2,17 @@
 	import Navigation from "$lib/components/navigation.svelte"
 	import { navigating } from "$app/stores"
 	import { page } from "$app/state"
-	import { browser } from "$app/environment"
 	import { loaderStore } from "$lib/stores/loader"
 	import { hackatimeAuthUrl } from "$lib/utils"
+	import type { Snippet } from "svelte"
 	import type { LayoutData } from "./$types"
 	import Button from "$lib/components/ui/button/button.svelte"
 
-	let { children, data }: { children: any; data: LayoutData & { admin?: boolean } } = $props()
+	let { children, data }: { children: Snippet; data: LayoutData & { admin?: boolean } } = $props()
 
 	const isAllowed = $derived(data?.allowed ?? false)
-	const reLogin = $derived(data?.relogin ?? false)
-	const reHackatime = $derived(data?.reHackatime ?? false)
 	const excludedRoutes = ["/dashboard"]
-	let unVerified = $state(false)
+	const unVerified = $state(false)
 </script>
 
 <svelte:head><link rel="icon" href="/pmix_v2.png" /></svelte:head>

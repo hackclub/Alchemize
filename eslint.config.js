@@ -44,6 +44,13 @@ export default ts.config(
 				svelteConfig,
 			},
 		},
+		rules: {
+			// The Svelte-aware version leaves `let { ... } = $props()` and `let x = $derived(...)` alone
+			"prefer-const": "off",
+			"svelte/prefer-const": "error",
+			// The app is served from the domain root (no kit.paths.base), so plain hrefs are correct
+			"svelte/no-navigation-without-resolve": "off",
+		},
 	},
 	{
 		// One-off maintenance scripts and manual tests report progress on stdout

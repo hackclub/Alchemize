@@ -18,56 +18,23 @@
 	let doc = $derived(params.doc as string)
 	let indexSearch = $derived("/docs/" + subgroup + "/" + doc)
 
-	let docPath = $state<string | null>(null)
-	let docTitle = $state<string | null>(null)
-	let docFilePath = $state<string | null>(null)
-	let markdownContent = $state<string>("")
+	const markdownFiles = import.meta.glob<string>("../../**/*.md", { eager: true, query: "?raw", import: "default" })
 
-	const markdownFiles: Record<string, any> = import.meta.glob("../../**/*.md", {
-		eager: true,
-		query: "?raw",
-	})
-
-	$effect(() => {
-		let found = false
-		for (let group in docsIndex as DocsIndex) {
-			for (let item of (docsIndex as DocsIndex)[group]) {
-				if (item.path === indexSearch) {
-					docPath = item.path
-					docFilePath = item.filePath ?? null
-					docTitle = item.name
-					found = true
-					break
-				}
-			}
-			if (found) break
-		}
-	})
-
-	$effect(() => {
-		if (!docFilePath) {
-			markdownContent = ""
-			return
-		}
-
-		const cleanedPath = docFilePath.startsWith("/") ? docFilePath.slice(1) : docFilePath
+	let docItem = $derived(
+		Object.values(docsIndex as DocsIndex)
+			.flat()
+			.find(item => item.path === indexSearch)
+	)
+	let docTitle = $derived(docItem?.name ?? null)
+	let markdownContent = $derived.by(() => {
+		const filePath = docItem?.filePath
+		if (!filePath) return ""
+		const cleanedPath = filePath.startsWith("/") ? filePath.slice(1) : filePath
 		const targetKey = Object.keys(markdownFiles).find(key => key.endsWith(cleanedPath))
-
-		if (targetKey && markdownFiles[targetKey]) {
-			const fileModule = markdownFiles[targetKey]
-			const rawText = fileModule.default || fileModule
-
-			if (typeof rawText === "string") {
-				markdownContent = rawText
-			} else {
-				markdownContent = `Invalid file format for: ${docFilePath}`
-			}
-		} else {
-			markdownContent = `Doc not found: ${docFilePath}`
-		}
+		return targetKey ? markdownFiles[targetKey] : `Doc not found: ${filePath}`
 	})
 
-	let html = $derived.by(() => marked.parse(markdownContent))
+	let html = $derived(marked.parse(markdownContent))
 </script>
 
 <svelte:head>
@@ -76,6 +43,7 @@
 
 <article class="md">
 	{#if html}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- rendered from the markdown files bundled with the app, not from user input -->
 		{@html html}
 	{:else}
 		<p>Loading doc...</p>

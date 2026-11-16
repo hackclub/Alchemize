@@ -2,7 +2,6 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 	import ShopDialog from "$lib/components/shopitem-dialog.svelte"
 	import OrdersDialog from "$lib/components/orders-dialog.svelte"
-	import { getSlackProfile } from "$lib/utils"
 	import { ShoppingBag } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	import { cn } from "$lib/lib/utils"
@@ -49,7 +48,7 @@
 
 	const shopItems = $derived.by(() => {
 		const rawItems =
-			data?.items?.map((item: any) => {
+			data?.items?.map(item => {
 				const priceHundredths: number = item.priceHundredths ?? 0
 
 				return {
@@ -97,9 +96,7 @@
 		})
 	}
 
-	let finalItems = $derived(
-		shopItems.filter((item: any) => item?.name.toLowerCase().includes(searchQuery.toLowerCase()))
-	)
+	let finalItems = $derived(shopItems.filter(item => item?.name.toLowerCase().includes(searchQuery.toLowerCase())))
 </script>
 
 <svelte:head>
@@ -174,9 +171,9 @@
 
 	<div
 		class="relative z-10 grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(250px,1fr))] content-start gap-4 overflow-y-auto pt-4 pr-2 pb-6">
-		{#each finalItems as item}
+		{#each finalItems as item (item.itemID)}
 			<div
-				class={"shadow-aqr relative z-10 flex h-full w-full flex-col gap-3 rounded rounded-tl-3xl rounded-br-3xl border-2 border-border bg-card p-3 backdrop-blur-sm transition-all"}>
+				class="shadow-aqr relative z-10 flex h-full w-full flex-col gap-3 rounded rounded-tl-3xl rounded-br-3xl border-2 border-border bg-card p-3 backdrop-blur-sm transition-all">
 				<div
 					class="relative flex aspect-square w-full shrink-0 items-center justify-center overflow-hidden rounded rounded-tl-3xl rounded-br-3xl border bg-background p-3">
 					<img
@@ -231,12 +228,7 @@
 </main>
 
 {#if loggedIn}
-	<ShopDialog
-		allItems={shopItems}
-		bind:open={isDialogOpen}
-		item={selectedItem}
-		{balanceHundredths}
-		onConfirm={handleConfirmPurchase} />
+	<ShopDialog bind:open={isDialogOpen} item={selectedItem} {balanceHundredths} onConfirm={handleConfirmPurchase} />
 
 	<OrdersDialog bind:open={ordersDialogOpen} orders={data.orders ?? []} unavailable={data.ordersUnavailable} />
 {/if}

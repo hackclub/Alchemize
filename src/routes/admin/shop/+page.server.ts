@@ -1,7 +1,7 @@
 import type { PageServerLoad } from "./$types"
 import type { Item } from "$lib/types"
 import { unitsToHundredths } from "$lib/currency"
-import { deleteShopItem, fetchAllItems, upsertShopItem } from "$lib/db"
+import { deleteShopItem, fetchAllItems, upsertShopItem, type airtableReplication } from "$lib/db"
 import { error } from "@sveltejs/kit"
 import { BOT_AUTH } from "$env/static/private"
 import { requireAdminApi, requireAdminPage } from "$lib/server/auth"
@@ -72,17 +72,16 @@ export const actions = {
 				success: true,
 				message: "Item upserted successfully",
 			}
-		} else {
-			const errorText = await upsertResponse.text()
-			console.error("Error upserting item:", errorText)
-			return error(500, "Internal Server Error: " + errorText)
 		}
+		const errorText = await upsertResponse.text()
+		console.error("Error upserting item:", errorText)
+		return error(500, "Internal Server Error: " + errorText)
 	},
 	delete: async event => {
 		requireAdminApi(event.locals, "shop_manager")
 		//Fetch all the form data
 		const formData = await event.request.formData()
-		let itemID = formData.get("itemID") as string | null
+		const itemID = formData.get("itemID") as string | null
 		if (!itemID) {
 			return error(400, "Bad Request: Missing itemID")
 		}
@@ -107,7 +106,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw new Error("Failed to fetch items from the database")
 	}
 	const itemsData = await itemsResponse.json()
-	const items: Item[] = itemsData.records.map((record: any) => ({
+	const items: Item[] = itemsData.records.map((record: airtableReplication) => ({
 		itemID: record.id,
 		name: record.fields.name,
 		description: record.fields.description,

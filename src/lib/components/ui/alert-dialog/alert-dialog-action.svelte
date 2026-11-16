@@ -6,7 +6,7 @@
 	let {
 		ref = $bindable(null),
 		class: className,
-		variant = "default",
+		variant = "primary",
 		size = "default",
 		...restProps
 	}: AlertDialogPrimitive.ActionProps & {

@@ -22,18 +22,10 @@
 		total_seconds?: number
 	}
 
-	let projects: AirtableProject[] = $state(data?.projects ?? [])
-
-	$effect(() => {
-		projects = data?.projects ?? []
-	})
-
+	// Both follow the page data and are overwritten locally after an edit, delete or refused ship
+	let projects: AirtableProject[] = $derived(data?.projects ?? [])
 	// Identity verification status from the page load; a refused ship updates it if it changed since
-	let idvStatus: IdvStatus | undefined = $state(data?.idvStatus)
-
-	$effect(() => {
-		idvStatus = data?.idvStatus
-	})
+	let idvStatus: IdvStatus | undefined = $derived(data?.idvStatus)
 
 	let projectBeingUpdated: AirtableProject | null = $state(null)
 
@@ -274,7 +266,7 @@
 
 	<div class="flex flex-col gap-6 overflow-y-auto px-15 py-5 pb-24">
 		{#if projects.length}
-			{#each projects as project}
+			{#each projects as project (project.id)}
 				<button
 					class="flex min-h-[28vh] w-full items-center gap-5 overflow-hidden rounded-md rounded-tl-2xl rounded-br-2xl border-2 border-border bg-card p-2 py-2 text-card-foreground transition hover:-translate-x-0.5 hover:-translate-y-0.5"
 					onclick={() => openUpdateProjWindow(project)}>

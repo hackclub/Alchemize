@@ -1,14 +1,15 @@
 <script lang="ts">
 	import Button from "$lib/components/ui/button/button.svelte"
 	import Input from "$lib/components/ui/input/input.svelte"
+	import type { User } from "$lib/types"
 
 	let { data } = $props()
-	let userId = 1
-
 	let searchQuery = $state("")
 
 	let filteredUsers = $derived(
-		data.userData.filter((user: any) => user.fields?.email?.toLowerCase().includes(searchQuery.toLowerCase()))
+		data.userData.filter((user: { fields: User }) =>
+			user.fields?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+		)
 	)
 </script>
 
@@ -24,7 +25,7 @@
 			<Input placeholder="Search users using email...." bind:value={searchQuery} />
 		</div>
 
-		{#each filteredUsers as user}
+		{#each filteredUsers as user (user.fields.email)}
 			<div class="users-list flex w-full list-none flex-col items-center justify-start gap-y-2 p-2">
 				<li class="flex w-full items-center justify-between rounded-xl border-2 bg-background/40 p-2 py-1">
 					<p class="font-alchemize">{user.fields.email}</p>

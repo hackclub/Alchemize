@@ -1,6 +1,6 @@
 <script lang="ts">
 	const { data } = $props()
-	import { CircleQuestionMark, Moon, Sun } from "@lucide/svelte"
+	import { CircleQuestionMark } from "@lucide/svelte"
 	import { Button } from "$lib/components/ui/button"
 	type HackatimeProject = {
 		name?: string
@@ -8,7 +8,6 @@
 		project?: string
 		total_seconds?: number
 	}
-	import { mode, toggleMode } from "mode-watcher"
 	import { IDV_SUBMIT_URL, type IdvStatus } from "$lib/idv"
 
 	const IDV_BADGES: Record<IdvStatus, { label: string; dot: string; text: string }> = {
@@ -42,7 +41,7 @@
 
 	import { CURRENCY_NAME, formatAqua } from "$lib/currency"
 	import { formatHours, getHackatimeProjects } from "$lib/utils"
-	import { Blocks, ShieldUser, ShoppingBasket, Users, Clock, Newspaper, ArrowUpRight, User } from "lucide-svelte"
+	import { Blocks, ShieldUser, ShoppingBasket, Users, Clock, Newspaper, ArrowUpRight } from "lucide-svelte"
 
 	let hacks: HackatimeProject[] = $derived(getHackatimeProjects(data?.hacks))
 
@@ -160,7 +159,7 @@
 
 				<div class="flex flex-1 scrollbar-none flex-col gap-3 overflow-y-auto pr-1">
 					{#if projects && projects.length > 0}
-						{#each projects as project}
+						{#each projects as project (project.id)}
 							<a href="/dashboard/projects">
 								<div
 									class="group/item flex shrink-0 cursor-pointer flex-col justify-between gap-2 rounded-md rounded-tl-2xl rounded-br-2xl border border-border/60 bg-secondary/40 p-4 text-secondary-foreground transition-colors hover:border-border/70">
@@ -175,6 +174,7 @@
 										</span>
 									</div>
 									<p class=" line-clamp-1 flex gap-2 font-body text-xs tracking-normal">
+										<!-- eslint-disable-next-line svelte/no-at-html-tags -- renderBadge only returns fixed strings; the theme value picks one and is never interpolated -->
 										{@html renderBadge(project.fields.Theme)}
 									</p>
 								</div>

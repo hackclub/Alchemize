@@ -35,6 +35,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		return empty(401)
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untrusted webhook JSON; every field is validated before use
 	let payload: any
 	try {
 		payload = JSON.parse(rawBody)

@@ -1,4 +1,4 @@
-import type { Log, Project, AirtableProject } from "$lib/types"
+import type { AirtableProject } from "$lib/types"
 import { BOT_AUTH } from "$env/static/private"
 import { requireAdminApi } from "$lib/server/auth"
 import type { RequestHandler } from "@sveltejs/kit"
@@ -83,7 +83,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			status: botResponse.status,
 			statusText: botResponse.statusText,
 			timestamp: new Date().toISOString(),
-			slackId: slackId,
+			slackId,
 			projectName: projectData.fields.Name,
 			projectLink: projectData.fields.code ?? "",
 		})

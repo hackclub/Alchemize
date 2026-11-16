@@ -7,7 +7,6 @@
 		CirclePlay,
 		MessageSquareText,
 		Boxes,
-		FileWarning,
 		CheckCircle,
 		Undo2,
 		XCircle,

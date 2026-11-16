@@ -79,9 +79,6 @@ const filterHeartbeatsByHackatimeProject = (heartbeats: Heartbeats[], hackatimeP
 	const projects = hackatimeProject.split(",")
 	return heartbeats.filter(heartbeat => projects.includes(heartbeat.project))
 }
-const countHeartbeatsByCategory = (heartbeats: Heartbeats[], category: string): number => {
-	return heartbeats.filter(heartbeat => heartbeat.category === category).length
-}
 const heartbeatsToSeconds = (heartbeats: Heartbeats[], maxGapSecs: number = 120): number => {
 	const sortedHeartbeats = heartbeats.sort((a, b) => a.time - b.time)
 	let totalSeconds = 0

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as Dialog from "$lib/components/ui/dialog"
-	import Button from "$lib/components/ui/button/button.svelte"
 
 	type Project = {
 		name: string

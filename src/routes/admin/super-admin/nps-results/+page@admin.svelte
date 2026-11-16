@@ -1,17 +1,19 @@
 <script lang="ts">
 	const { data } = $props()
-	const res = data.npsResults.results
-	let results: any[] = []
-	res.forEach((result: any) => {
-		results.push({
-			score: result.data.score,
-			slackId: result.slackId,
-			headFrom: result.data.hear,
-			wentWell: result.data.well,
-			couldImprove: result.data.better,
-			anythingElse: result.data.anythingElse,
-		})
-	})
+	type NpsRow = {
+		id: number
+		slackId: string
+		data: { score: number; hear: string; well: string; better: string; anythingElse: string }
+	}
+	const results = (data.npsResults.results as NpsRow[]).map(result => ({
+		id: result.id,
+		score: result.data.score,
+		slackId: result.slackId,
+		headFrom: result.data.hear,
+		wentWell: result.data.well,
+		couldImprove: result.data.better,
+		anythingElse: result.data.anythingElse,
+	}))
 </script>
 
 <main class="h-screen w-full p-5">
@@ -22,7 +24,7 @@
 		</div>
 
 		<div class="container grid h-full max-h-full min-w-full grid-cols-4 gap-4 overflow-auto p-4">
-			{#each results as result}
+			{#each results as result (result.id)}
 				<div
 					class="card h-[35vh] max-h-[35vh] w-full space-y-2 overflow-auto rounded-xl border border-primary bg-primary/10 p-3 backdrop-blur-xl">
 					<h2 class="font-mono text-xl text-zinc-200">

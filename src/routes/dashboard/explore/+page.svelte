@@ -1,10 +1,10 @@
 <script>
 	import Button from "$lib/components/ui/button/button.svelte"
 	import { Input } from "$lib/components/ui/input/index.js" // Import Shadcn Input
-	import { Plus, Compass, ArrowUpRight, Clock, Search } from "@lucide/svelte"
+	import { Compass, ArrowUpRight, Clock, Search } from "@lucide/svelte"
 	import { Filter } from "lucide-svelte"
 
-	let projects = $state([
+	const projects = $state([
 		{
 			id: 1,
 			name: "Untitled mix",

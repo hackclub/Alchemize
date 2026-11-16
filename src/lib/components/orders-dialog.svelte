@@ -2,6 +2,7 @@
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
 
 	type Order = {
+		id: string
 		fields: {
 			cdnImage: string
 			orderItem: string
@@ -34,7 +35,7 @@
 			</Dialog.Header>
 
 			<div class="orders flex w-full flex-1 flex-col gap-3 overflow-y-auto pr-1">
-				{#each orders as order}
+				{#each orders as order (order.id)}
 					{@const isPending = order.fields.status !== "fulfilled"}
 
 					<div class="group relative flex h-32 w-full shrink-0 flex-col">

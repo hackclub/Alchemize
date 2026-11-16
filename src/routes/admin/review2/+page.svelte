@@ -28,7 +28,6 @@
 	let currentHackatimeAnalysis = $state({} as HackatimeAnalysis)
 	let { data } = $props()
 	let airtableProjects = $derived(data.projects as AdminProjectAccess[])
-	let project = $state({} as Project)
 	let justificationOpen = $state(false)
 	let daySummaryChart = $state<HTMLCanvasElement | undefined>(undefined)
 	let daySummaryChartInstance: Chart<"bar"> | null = null
@@ -50,8 +49,8 @@
 		if (!daySummaryChart || !currentHackatimeAnalysis?.dayMap) {
 			return
 		}
-		let dataLabels = []
-		let dataValues = []
+		const dataLabels = []
+		const dataValues = []
 		for (const [key, value] of Object.entries(currentHackatimeAnalysis.dayMap)) {
 			dataLabels.push(key)
 			dataValues.push(Math.round((value / 3600) * 10) / 10)
@@ -92,7 +91,7 @@
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				projectId: projectId,
+				projectId,
 			}),
 		})
 		const data = await response.json()
@@ -606,7 +605,7 @@
 				recordId: id,
 				userExternal: projectDescription,
 				justification: template,
-				slackId: slackId,
+				slackId,
 				decisionReason,
 			}),
 		})
@@ -641,7 +640,7 @@
 				<h3 class="text-sm font-semibold tracking-wider text-zinc-400 uppercase">T2 Review queue</h3>
 			</div>
 			{#if filteredProjects.length > 0}
-				{#each filteredProjects as project}
+				{#each filteredProjects as project (project.id)}
 					<button
 						onclick={() => setCurrentProject(project)}
 						class="project h-20 w-full border-b p-2 hover:bg-background">
@@ -910,6 +909,7 @@
 													>{/if}
 											</summary>
 											<ul class="mt-2 space-y-2">
+												<!-- eslint-disable-next-line svelte/require-each-key -- past reviews carry no id -->
 												{#each telescreenPastReviews as review}
 													<li class="space-y-1 rounded-lg border border-zinc-800/80 bg-zinc-900/20 p-2 text-xs">
 														<div class="flex flex-wrap items-center gap-2">
@@ -1176,7 +1176,9 @@
 							<div
 								class="custom-scrollbar space-y-3 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 wrap-break-word">
 								{#if currentProject.log && currentProject.log.length > 0}
+									<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 									{#each [...currentProject.log].reverse() as entry}
+										<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 										{#each [...entry.message].reverse() as msg, i}
 											<div
 												class="border {msg.reviewerName === 'user'

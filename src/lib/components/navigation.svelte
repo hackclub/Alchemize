@@ -2,7 +2,7 @@
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
 	import { page } from "$app/state"
 	import { buttonVariants } from "$lib/components/ui/button/button.svelte"
-	import { CompassIcon, Home, Blocks, ShoppingBag, Users, Newspaper, ShieldUser, Moon, Sun } from "lucide-svelte"
+	import { CompassIcon, Home, Blocks, ShoppingBag, Users, Newspaper, ShieldUser } from "lucide-svelte"
 
 	let { inline = false }: { inline?: boolean } = $props()
 
@@ -60,7 +60,7 @@
 			class="z-9999 max-w-[60%] min-w-[60vw] overflow-hidden rounded rounded-tl-3xl rounded-br-3xl border-2 border-primary bg-secondary/40 p-6 shadow-sm shadow-primary backdrop-blur-md sm:p-8 [&>button]:hidden">
 			<div class="grid w-full grid-cols-1 items-center gap-6 md:grid-cols-3 md:gap-8">
 				<div class="flex flex-col justify-center gap-4">
-					{#each navItems.filter(i => i.side === "left") as item}
+					{#each navItems.filter(i => i.side === "left") as item (item.href)}
 						<Dialog.Close class="w-full text-left">
 							<a
 								href={item.href}
@@ -97,7 +97,7 @@
 					</div>
 
 					<div class="flex w-full items-center justify-evenly">
-						{#each centerItems as item}
+						{#each centerItems as item (item.href)}
 							<Dialog.Close class="text-left" title={item.label}>
 								<a
 									href={item.href}
@@ -110,7 +110,7 @@
 				</div>
 
 				<div class="flex flex-col justify-center gap-4">
-					{#each navItems.filter(i => i.side === "right") as item}
+					{#each navItems.filter(i => i.side === "right") as item (item.href)}
 						<Dialog.Close class="w-full text-left">
 							<a
 								href={item.href}

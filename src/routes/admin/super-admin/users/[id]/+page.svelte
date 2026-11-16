@@ -31,7 +31,7 @@
 			slackId,
 			nda,
 		}
-		let response = fetch("/admin/super-admin/updateAdmin", {
+		const response = fetch("/admin/super-admin/updateAdmin", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

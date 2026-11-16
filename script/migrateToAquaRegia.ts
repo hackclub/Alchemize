@@ -30,7 +30,7 @@ const reportPath = args.find(a => a.startsWith("--report="))?.slice("--report=".
 
 const parseLegacy = (raw: unknown, where: string, problems: string[]): Record<LegacyKey, number> => {
 	const out = { redstone: 0, glowstone: 0, aqua_regia: 0, potion_mix: 0 }
-	let parsed: any
+	let parsed: unknown
 	try {
 		parsed = typeof raw === "string" ? (raw.trim() === "" ? {} : loosejson(raw)) : (raw ?? {})
 	} catch {

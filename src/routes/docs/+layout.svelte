@@ -8,7 +8,7 @@
 		page.url.pathname.startsWith("/docs/themes/") || page.url.pathname.startsWith("/docs/stones-and-shops/")
 	)
 
-	let openGroups = $state<Record<string, boolean>>(
+	const openGroups = $state<Record<string, boolean>>(
 		Object.fromEntries(Object.keys(docsIndex).map(group => [group, true]))
 	)
 

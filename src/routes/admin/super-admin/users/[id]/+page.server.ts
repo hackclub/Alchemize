@@ -11,22 +11,22 @@ async function getUserName(userId: string) {
 		const result = await slackClient.users.info({ user: userId })
 
 		return result.user?.profile?.display_name || "Unknown User"
-	} catch (error) {
+	} catch {
 		return "Unknown User"
 	}
 }
 export const load: PageServerLoad = async ({ params, locals }) => {
 	requireAdminPage(locals, "super_admin")
 
-	let email = params.id
-	let adminRes = await getAdminByEmail(email)
-	let adminData = await adminRes.json()
+	const email = params.id
+	const adminRes = await getAdminByEmail(email)
+	const adminData = await adminRes.json()
 	if (!adminRes.ok || !adminData.records || adminData.records.length === 0) {
 		return {
 			slackName: "Unknown User",
 
 			slackId: "",
-			email: email,
+			email,
 			isReviewer: false,
 			isSuperAdmin: false,
 			isFulfiller: false,
@@ -34,7 +34,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			isShopManager: false,
 		}
 	}
-	let roles = adminData.records[0].fields.roles || ""
+	const roles = adminData.records[0].fields.roles || ""
 	return {
 		slackName: await getUserName(adminData.records[0].fields.slackId),
 		slackId: adminData.records[0].fields.slackId,

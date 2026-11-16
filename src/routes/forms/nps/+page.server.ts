@@ -9,7 +9,7 @@ const MAX_SLACK_LENGTH = 80
 // Postgres rejects NUL in text and jsonb, so strip it instead of letting the insert fail
 const readText = (formData: FormData, key: string): string => {
 	const value = formData.get(key)
-	return typeof value === "string" ? value.replace(/\u0000/g, "").trim() : ""
+	return typeof value === "string" ? value.replaceAll("\0", "").trim() : ""
 }
 
 export const actions = {

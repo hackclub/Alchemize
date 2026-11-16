@@ -17,7 +17,7 @@
 	"
 			><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 256 256" fill="none">
 				<g clip-path="url(#clip0)">
-					<mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+					<mask id="mask0" style="mask-type: alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
 						<path
 							fill-rule="evenodd"
 							clip-rule="evenodd"

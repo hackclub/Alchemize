@@ -16,7 +16,6 @@
 
 	let {
 		open = $bindable(false),
-		allItems = [] as ShopItem[],
 		item = {
 			name: "",
 			description: "",
@@ -24,10 +23,9 @@
 			image: "",
 		},
 		balanceHundredths,
-		onConfirm = (qty: number) => {},
+		onConfirm = () => {},
 	}: {
 		open: boolean
-		allItems: ShopItem[]
 		item: ShopItem
 		balanceHundredths: number
 		onConfirm: (qty: number) => void

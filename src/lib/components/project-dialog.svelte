@@ -131,19 +131,18 @@
 	const selectClass =
 		"flex h-10 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm font-body text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
 
-	let files: any = $state()
-	let fileinputPreview: any = $state("")
+	let files: FileList | null | undefined = $state()
+	let fileinputPreview = $state("")
 	let hasFile = $derived(files && files.length > 0)
 
-	let files2: any = $state()
-	let fileinputPreview2: any = $state("")
+	let files2: FileList | null | undefined = $state()
+	let fileinputPreview2 = $state("")
 	let hasFile2 = $derived(files2 && files2.length > 0)
 
 	$effect(() => {
 		if (files && files.length > 0) {
 			const file = files[0]
 			const objectUrl = URL.createObjectURL(file)
-			console.log("File input Link created dynamically:", objectUrl)
 			fileinputPreview = objectUrl
 
 			return () => {
@@ -160,7 +159,6 @@
 		if (files2 && files2.length > 0) {
 			const file2 = files2[0]
 			const objectUrl2 = URL.createObjectURL(file2)
-			console.log("File input Link created dynamically:", objectUrl2)
 			fileinputPreview2 = objectUrl2
 
 			return () => {
@@ -233,7 +231,9 @@
 									<p class="font-note text-sm text-muted-foreground">No activity yet.</p>
 								</div>
 							{:else}
+								<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 								{#each [...log].reverse() as entry}
+									<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 									{#each [...entry.message].reverse() as msg, i}
 										{#if msg.reviewerName !== "user"}
 											<div
@@ -538,7 +538,7 @@
 
 										<select id="type" name="type" class={selectClass} bind:value={type}>
 											<option value="" disabled selected={!type}> Choose Type </option>
-											{#each PROJECT_TYPES as projectType}
+											{#each PROJECT_TYPES as projectType (projectType.value)}
 												<option value={projectType.value}>{projectType.label}</option>
 											{/each}
 										</select>
@@ -573,6 +573,7 @@
 												</option>
 											{/if}
 
+											<!-- eslint-disable-next-line svelte/require-each-key -- Hackatime project names are optional and not guaranteed unique -->
 											{#each availableHacks as hack}
 												<option value={hack.name}>{hack.name}</option>
 											{/each}

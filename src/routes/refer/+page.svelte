@@ -5,21 +5,17 @@
 	import Button from "$lib/components/ui/button/button.svelte"
 
 	const { data } = $props()
-	let linkText = data.url
+	const linkText = data.url
 
 	let loading = $state(true)
 	let copied = $state(false)
 
-	let myReferals = data.myReferals
-	let counts: Record<string, number> = data.counts
+	const myReferals = data.myReferals
+	const counts: Record<string, number> = data.counts
 
-	let sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1])
+	const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1])
 
 	let referralCount = $derived(myReferals.length)
-
-	const rewards: any = [
-		// { name: "Test", required: 1, icon: "✨" }
-	]
 
 	async function onCopy() {
 		try {
@@ -89,11 +85,12 @@
 			</h2>
 
 			<div class="relative z-20 flex min-h-0 flex-1 scrollbar-none flex-col gap-3 overflow-y-auto pr-1">
+				<!-- eslint-disable-next-line svelte/require-each-key -- referrals carry only a display name, which can repeat -->
 				{#each myReferals as referral}
 					<div
 						class="relative z-10 flex w-full items-center justify-between rounded-lg border border-border bg-secondary p-3 shadow-xs shadow-primary transition-all duration-150">
 						<p class="font-mono text-sm tracking-wide text-secondary-foreground">
-							{referral.referedName || referral.referedName}
+							{referral.referedName}
 						</p>
 						<span
 							class="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-primary"
@@ -116,7 +113,7 @@
 			</h2>
 
 			<div class="relative z-20 flex min-h-0 flex-1 scrollbar-none flex-col gap-3 overflow-y-auto pr-1">
-				{#each sortedCounts as [name, count], index}
+				{#each sortedCounts as [name, count], index (name)}
 					<div
 						class="relative z-10 flex w-full items-center justify-between rounded-lg border border-border bg-secondary p-3 text-secondary-foreground shadow-sm shadow-primary">
 						<div class="flex items-center gap-3">

@@ -75,13 +75,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(302, authUrl)
 	}
 	const id = encodeURIComponent(createReferralCode(data.id, data.slack_id, referralKey))
-	let referalsResponse = await getAllRefers()
+	const referalsResponse = await getAllRefers()
 	if (!referalsResponse.ok) {
 		throw new Error(`Failed to fetch referals data: ${await referalsResponse.text()}`)
 	}
-	let referalsData: { records: AirtableReferRecord[] } = await referalsResponse.json()
-	let myReferals = getMyReferals(data.id.slice(6), referalsData.records)
-	let referedCountsByReferer = await getReferedCountsByReferer(referalsData.records)
+	const referalsData: { records: AirtableReferRecord[] } = await referalsResponse.json()
+	const myReferals = getMyReferals(data.id.slice(6), referalsData.records)
+	const referedCountsByReferer = await getReferedCountsByReferer(referalsData.records)
 	return {
 		url: `${BASE_URL}/?refer=${id}`,
 		myReferals,

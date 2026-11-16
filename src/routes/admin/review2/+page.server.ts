@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Robert has no webhook for "passed fraud review", so pick those up before showing the queue
 	await refreshAwaitingReview().catch(error => console.error("Refreshing Telescreen states failed:", error))
 	const [projectRes, submissions] = await Promise.all([getAllProjectsAdmin(), getCurrentTelescreenSubmissions()])
-	let projects = await projectRes.json()
+	const projects = await projectRes.json()
 	const submissionByProject = new Map(submissions.map(submission => [submission.projectId, submission]))
 	const parseLog = (raw: string): Log[] => {
 		try {

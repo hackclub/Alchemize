@@ -16,7 +16,6 @@
 	}) => LenisInstance
 
 	let { data } = $props()
-	let rsvpCount: number | "Fetching" = $state("Fetching")
 	let openFaq = $state<number | null>(null)
 	let shopItems: { itemID: string; name: string; cdnImage: string }[] = $state([])
 	let shopItemsError = $state(false)
@@ -28,8 +27,6 @@
 	let authUrl = $derived(
 		PUBLIC_TURNED_OFF !== "false" ? `./turned-off` : hasaccessToken ? `./dashboard/projects` : `/auth`
 	)
-
-	let referUrl = $state(`./refer`)
 
 	function toggleFaq(question: number) {
 		openFaq = openFaq === question ? null : question
@@ -86,10 +83,6 @@
 		hasaccessToken = document.cookie.split("; ").find(row => row.startsWith("slack_id=")) !== undefined
 
 		authUrl = PUBLIC_TURNED_OFF !== "false" ? `./turned-off` : hasaccessToken ? `./dashboard` : `/auth`
-		fetch("/rsvp")
-			.then(res => res.json())
-			.then(data => (rsvpCount = data.count))
-
 		fetch("/api/shop/items")
 			.then(response => {
 				if (!response.ok) {
@@ -102,11 +95,6 @@
 				console.error("Failed to load homepage shop items", error)
 				shopItemsError = true
 			})
-
-		referUrl = PUBLIC_TURNED_OFF !== "false" ? `./turned-off` : hasaccessToken ? `./refer` : `/auth`
-		fetch("/rsvp")
-			.then(res => res.json())
-			.then(data => (rsvpCount = data.count))
 	})
 </script>
 

@@ -3,21 +3,6 @@
 	import Input from "$lib/components/ui/input/input.svelte"
 	import { cn } from "$lib/lib/utils"
 	const { data } = $props()
-	const ordersRaw = data.orders
-
-	//@ts-ignore
-	let ordersFulfilled = ordersRaw.filter(order => order.fulfiller !== "")
-	//@ts-ignore
-	let ordersUnfulfilled = ordersRaw.filter(order => order.fulfiller === "")
-	ordersUnfulfilled.sort(
-		//@ts-ignore
-		(a, b) => new Date(b.createdTime) - new Date(a.createdTime)
-	)
-	ordersFulfilled.sort(
-		//@ts-ignore
-		(a, b) => new Date(b.createdTime) - new Date(a.createdTime)
-	)
-	let orders = [...ordersUnfulfilled, ...ordersFulfilled]
 
 	let searchQuery = $state("")
 	let currentTab = $state("all")
@@ -69,7 +54,7 @@
 			</div>
 
 			<div class="flex w-full items-center gap-x-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1 sm:w-auto">
-				{#each ["all", "pending", "fulfilled"] as tab}
+				{#each ["all", "pending", "fulfilled"] as tab (tab)}
 					<button
 						type="button"
 						class={cn(

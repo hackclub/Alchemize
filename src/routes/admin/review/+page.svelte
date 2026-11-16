@@ -89,7 +89,7 @@
 	}
 
 	let mode = $state(1) // 0 = all, 1 = pending, 2 = approved, 3 = rejected
-	let filterProjectByMode = (p: AirtableProject) => {
+	const filterProjectByMode = (p: AirtableProject) => {
 		if (mode === 0) return true
 		if (p.fields.status?.startsWith("pending") && mode === 1) return true
 		if (p.fields.status?.startsWith("accepted") && mode === 2) return true
@@ -195,7 +195,7 @@
 			</h3>
 		</div>
 		<div class="custom-scrollbar flex-1 space-y-2 overflow-y-auto p-3">
-			{#each projects as item}
+			{#each projects as item (item.id)}
 				{#if filterProjectByMode(item)}
 					<button
 						class="group flex w-full flex-col gap-2 rounded-xl border p-3.5 text-left transition duration-200
@@ -438,7 +438,9 @@
 								<div
 									class="custom-scrollbar space-y-3 overflow-y-auto rounded-xl border border-border bg-input/40 p-4 wrap-break-word">
 									{#if project.log && project.log.length > 0}
+										<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 										{#each [...project.log].reverse() as entry}
+											<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 											{#each [...entry.message].reverse() as msg, i}
 												<div
 													class="border {msg.reviewerName === 'user'

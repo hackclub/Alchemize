@@ -86,7 +86,7 @@
 					</div>
 
 					<div class="flex flex-wrap gap-2">
-						{#each scores as n}
+						{#each scores as n (n)}
 							<button
 								type="button"
 								on:click={() => (score = n)}

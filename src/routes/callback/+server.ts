@@ -38,14 +38,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const referCookie = cookies.get("refer")
 	const secureCookies = url.protocol === "https:"
 
-	let userHackatime = ""
 	if (!code) {
 		throw error(400, "Missing authorization code")
 	}
 	const clientId = PUBLIC_HACKCLUB_AUTH
 	const clientSecret = env.HACKCLUB_SECRET
 	const redirectUri = PUBLIC_HACKCLUB_REDIRECT
-	let newUser = false
 	if (!clientId || !clientSecret || !redirectUri) {
 		throw error(500, "Missing OAuth environment variables")
 	}
@@ -75,6 +73,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const meResponse = await getDataFromAccessToken(tokenBody.access_token)
 
 	// Signature (key chosen by kid), issuer, audience (our OAuth client) and expiry are checked before any claim is used
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ID token claims, read one by one below once the signature is verified
 	let decodedToken: any
 	try {
 		decodedToken = await verifyHackClubIdToken(tokenBody.id_token, clientId)
@@ -125,7 +124,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		iv,
 		hackClubId
 	)
-	newUser = account.isNew
+	const newUser = account.isNew
 	const userRecordId = String(account.id)
 	if (referCookie && newUser) {
 		const referral = parseReferralCode(
