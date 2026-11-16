@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres"
-import { Pool } from "pg"
+import { Pool, type PoolClient } from "pg"
 import { eq, and, gte, asc, desc, ne, notLike, or, sql, isNull, isNotNull, inArray } from "drizzle-orm"
 import {
 	integer,
@@ -256,16 +256,29 @@ export const telescreenWebhookDeliveriesTable = pgTable("telescreen_webhook_deli
 })
 export type TelescreenSubmission = typeof telescreenSubmissionsTable.$inferSelect
 // Response Interface
+// The query helpers answer in the shape of a fetch Response wrapping Airtable-style records ({ id, fields }),
+// which is what the callers were written against before the move to Postgres. The bodies are untyped for
+// that reason: each caller knows which helper it called and reads the fields it selected.
 export interface DBResponse {
 	ok: boolean
 	status: number
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
 	json: () => Promise<any>
 	text: () => Promise<string>
 }
 export interface airtableReplication {
 	id: string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
 	fields: any
 }
+const respond = (status: number, body: unknown): DBResponse => ({
+	ok: status >= 200 && status < 300,
+	status,
+	json: async () => body,
+	text: async () => JSON.stringify(body),
+})
+const fail = (status: number, message: string): DBResponse => respond(status, { message })
+const toRecords = <T extends { id: number }>(rows: T[]) => rows.map(row => ({ id: row.id + "", fields: row }))
 // TLS to Postgres. DATABASE_SSL (read at runtime) overrides the default:
 //   verify  - TLS, certificate checked against the system CAs (default for Neon)
 //   require - TLS without certificate checks (encrypted but open to MITM; only if verify can't work)
@@ -302,7 +315,7 @@ const db = drizzle(pool) //Database Connection
 export { pool }
 
 // Transaction helper: performs a callback within a database transaction with row-level locking
-export const withTransaction = async <T>(callback: (client: import("pg").PoolClient) => Promise<T>): Promise<T> => {
+export const withTransaction = async <T>(callback: (client: PoolClient) => Promise<T>): Promise<T> => {
 	const client = await pool.connect()
 	try {
 		await client.query("BEGIN")
@@ -319,7 +332,7 @@ export const withTransaction = async <T>(callback: (client: import("pg").PoolCli
 
 // Ledger insert bound to a transaction client, so the entry commits or rolls back with the balance change
 export const insertLedgerEntryTx = async (
-	client: import("pg").PoolClient,
+	client: PoolClient,
 	ledgerData: {
 		email: string
 		slackId: string
@@ -367,12 +380,7 @@ export const atomicPurchaseItem = async (
 				const exists = await client.query("SELECT 1 FROM users WHERE email = $1", [email])
 				const status = exists.rows.length === 0 ? 404 : 400
 				const message = status === 404 ? "User not found" : `Insufficient ${CURRENCY_NAME}`
-				return {
-					ok: false,
-					status,
-					json: async () => ({ message }),
-					text: async () => JSON.stringify({ message }),
-				}
+				return fail(status, message)
 			}
 			const balanceHundredths: number = deduction.rows[0].balanceHundredths
 			// total = unit price x quantity, so this division is exact
@@ -383,36 +391,21 @@ export const atomicPurchaseItem = async (
 			)
 			await insertLedgerEntryTx(client, {
 				email,
-				slackId: slackId,
+				slackId,
 				sign: false,
 				amountHundredths: totalPriceHundredths,
 				reason: `shop purchase`,
 				remarks: `Deducted ${formatAqua(totalPriceHundredths)} for purchase of ${quantity} x ${itemName}`,
 			})
-			return {
-				ok: true,
-				status: 200,
-				json: async () => ({
-					message: "Purchase successful",
-					balanceHundredths,
-					orderId: String(orderResult.rows[0].id),
-				}),
-				text: async () =>
-					JSON.stringify({
-						message: "Purchase successful",
-						balanceHundredths,
-						orderId: String(orderResult.rows[0].id),
-					}),
-			}
+			return respond(200, {
+				message: "Purchase successful",
+				balanceHundredths,
+				orderId: String(orderResult.rows[0].id),
+			})
 		})
 	} catch (error) {
 		console.error("Atomic purchase failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Purchase failed" }),
-			text: async () => JSON.stringify({ message: "Purchase failed" }),
-		}
+		return fail(500, "Purchase failed")
 	}
 }
 
@@ -433,12 +426,7 @@ const abortResponse = (error: unknown, fallback: string): DBResponse => {
 	if (!(error instanceof TransactionAbort)) {
 		console.error(`${fallback}:`, error)
 	}
-	return {
-		ok: false,
-		status,
-		json: async () => ({ message }),
-		text: async () => JSON.stringify({ message }),
-	}
+	return fail(status, message)
 }
 
 // Unified submission, phase 1 of 3: under the project row lock, check there is approved time to send and
@@ -582,12 +570,7 @@ export const completeUnifiedSubmission = async (
 				'UPDATE telescreen_submissions SET "closedAt" = now(), "closeReason" = \'awarded\', "updatedAt" = now() WHERE "projectId" = $1 AND "closedAt" IS NULL',
 				[submission.projectId]
 			)
-			return {
-				ok: true,
-				status: 200,
-				json: async () => ({ message: "Project shipped and currency awarded", amountHundredths, newLog }),
-				text: async () => JSON.stringify({ message: "Project shipped and currency awarded", amountHundredths, newLog }),
-			}
+			return respond(200, { message: "Project shipped and currency awarded", amountHundredths, newLog })
 		})
 	} catch (error) {
 		return abortResponse(error, "Completing the Unified submission failed")
@@ -750,21 +733,11 @@ export const getUserByEmail = async (email: string): Promise<DBResponse> => {
 			})
 			.from(userTable)
 			.where(eq(userTable.email, email))
-		const records = users.map(user => ({ id: user.id + "", fields: user })) as airtableReplication[]
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ records }),
-			text: async () => JSON.stringify({ records }),
-		}
+		const records = toRecords(users)
+		return respond(200, { records })
 	} catch (error) {
 		console.error("Database read failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database read failed" }),
-			text: async () => JSON.stringify({ message: "Database read failed" }),
-		}
+		return fail(500, "Database read failed")
 	}
 }
 
@@ -856,19 +829,9 @@ export const patchUserHackatime = async (email: string, hackatimeToken: string):
 		.where(eq(userTable.email, email))
 		.returning({ id: userTable.id })
 	if (updatedUser.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "User not found" }),
-			text: async () => JSON.stringify({ message: "User not found" }),
-		}
+		return fail(404, "User not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ id: updatedUser[0].id + "", fields: updatedUser[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: updatedUser[0].id + "", fields: updatedUser[0] } as airtableReplication),
-	} as DBResponse
+	return respond(200, { id: updatedUser[0].id + "", fields: updatedUser[0] })
 }
 export const getAllRefers = async (): Promise<DBResponse> => {
 	const refers = await db
@@ -878,13 +841,8 @@ export const getAllRefers = async (): Promise<DBResponse> => {
 			referedName: refersTable.referedName,
 		})
 		.from(refersTable)
-	const records = refers.map(refer => ({ id: refer.id + "", fields: refer }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(refers)
+	return respond(200, { records })
 }
 // Whether a referer from a legacy (forgeable) referral code names a real Alchemize user
 export const isKnownReferrer = async (referer: string): Promise<boolean> => {
@@ -907,20 +865,10 @@ export const createReferRecord = async (
 		.insert(refersTable)
 		.values({ referedEmail, referer, yswsEligible, verified, referedName })
 		.returning()
-	return {
-		ok: true,
-		status: 201,
-		json: async () =>
-			({
-				id: newRefer[0].id + "",
-				fields: { referedEmail, referer, yswsEligible, verified, referedName },
-			}) as airtableReplication,
-		text: async () =>
-			JSON.stringify({
-				id: newRefer[0].id + "",
-				fields: { referedEmail, referer, yswsEligible, verified, referedName },
-			} as airtableReplication),
-	} as DBResponse
+	return respond(201, {
+		id: newRefer[0].id + "",
+		fields: { referedEmail, referer, yswsEligible, verified, referedName },
+	})
 }
 
 //Project Functions
@@ -947,13 +895,8 @@ export const getProjectsByOwner = async (owner: string): Promise<DBResponse> => 
 		})
 		.from(projectTable)
 		.where(eq(projectTable.owner, owner))
-	const records = projects.map(project => ({ id: project.id + "", fields: project }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(projects)
+	return respond(200, { records })
 }
 // Server-side only (T2 Hackatime analysis): the owner's decrypted Hackatime token rides along, never return it to a page
 export const getProjectWithHackatime = async (projectId: string): Promise<DBResponse> => {
@@ -969,12 +912,7 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
 		.where(eq(projectTable.id, parseInt(projectId)))
 		.leftJoin(userTable, eq(projectTable.owner, userTable.email))
 	if (projects.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Project not found" }),
-			text: async () => JSON.stringify({ message: "Project not found" }),
-		}
+		return fail(404, "Project not found")
 	}
 
 	const records = projects.map(project => ({
@@ -984,77 +922,47 @@ export const getProjectWithHackatime = async (projectId: string): Promise<DBResp
 			hackatimeToken: project.hackatimeToken ? decryptHackatimeToken(project.hackatimeToken) : project.hackatimeToken,
 		},
 	}))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	return respond(200, { records })
 }
-// T1 review queue: shipped projects only, and only what reviewers use (no owner email, no journals)
+// What the review queues read: no owner email, journals or Unified ID
+const REVIEW_QUEUE_COLUMNS = {
+	id: projectTable.id,
+	Name: projectTable.Name,
+	type: projectTable.type,
+	description: projectTable.description,
+	log: projectTable.log,
+	languages: projectTable.languages,
+	hackatime: projectTable.hackatime,
+	update: projectTable.update,
+	code: projectTable.code,
+	demo: projectTable.demo,
+	Theme: projectTable.Theme,
+	slackId: projectTable.slackId,
+	status: projectTable.status,
+	screenshot: projectTable.screenshot,
+}
+// T1 review queue: shipped projects only, and only what reviewers use
 export const getAllProjects = async (): Promise<DBResponse> => {
-	const projects = await db
-		.select({
-			id: projectTable.id,
-			Name: projectTable.Name,
-			type: projectTable.type,
-			description: projectTable.description,
-			log: projectTable.log,
-			languages: projectTable.languages,
-			hackatime: projectTable.hackatime,
-			update: projectTable.update,
-			code: projectTable.code,
-			demo: projectTable.demo,
-			Theme: projectTable.Theme,
-			slackId: projectTable.slackId,
-			status: projectTable.status,
-			screenshot: projectTable.screenshot,
-		})
-		.from(projectTable)
-		.where(ne(projectTable.status, "unshipped"))
+	const projects = await db.select(REVIEW_QUEUE_COLUMNS).from(projectTable).where(ne(projectTable.status, "unshipped"))
 
-	const records = projects.map(project => ({ id: project.id + "", fields: project }))
+	const records = toRecords(projects)
 
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	return respond(200, { records })
 }
-// T2 review queue: shipped projects only. No owner email, journals or Unified ID (the T2 page uses none of them)
+// T2 review queue: shipped projects only, with the second screenshot
 export const getAllProjectsAdmin = async (): Promise<DBResponse> => {
 	const projects = await db
-		.select({
-			id: projectTable.id,
-			Name: projectTable.Name,
-			type: projectTable.type,
-			description: projectTable.description,
-			log: projectTable.log,
-			languages: projectTable.languages,
-			hackatime: projectTable.hackatime,
-			update: projectTable.update,
-			code: projectTable.code,
-			demo: projectTable.demo,
-			Theme: projectTable.Theme,
-			slackId: projectTable.slackId,
-			status: projectTable.status,
-			screenshot: projectTable.screenshot,
-			screenshot2: projectTable.screenshot2,
-		})
+		.select({ ...REVIEW_QUEUE_COLUMNS, screenshot2: projectTable.screenshot2 })
 		.from(projectTable)
 		.where(ne(projectTable.status, "unshipped"))
 
-	const records = projects.map(project => ({ id: project.id + "", fields: project }))
+	const records = toRecords(projects)
 
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	return respond(200, { records })
 }
-export const createProject = async (projectData: any): Promise<DBResponse> => {
+export const createProject = async (
+	projectData: Omit<typeof projectTable.$inferInsert, "encryptionIv"> & { iv?: string }
+): Promise<DBResponse> => {
 	const {
 		Name,
 		description,
@@ -1104,12 +1012,7 @@ export const createProject = async (projectData: any): Promise<DBResponse> => {
 			encryptionIv: iv,
 		})
 		.returning()
-	return {
-		ok: true,
-		status: 201,
-		json: async () => ({ id: newProject[0].id + "", fields: newProject[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: newProject[0].id + "", fields: newProject[0] } as airtableReplication),
-	} as DBResponse
+	return respond(201, { id: newProject[0].id + "", fields: newProject[0] })
 }
 // Read for edit checks: only the owner's own project, only the fields the edit rules need
 export const getProjectForEdit = async (projectId: string, owner: string) => {
@@ -1146,7 +1049,11 @@ export const findHackatimeConflicts = async (owner: string, hackatime: string, e
 // Edits are refused while a project is in review (pending_* or T1-accepted awaiting T2), so what the
 // reviewers approved is what gets paid and sent to Unified. The Hackatime project cannot change once the
 // project has been shipped: detaching it would let another project claim the same hours again.
-export const updateProject = async (projectId: string, projectData: any, email: string): Promise<DBResponse> => {
+export const updateProject = async (
+	projectId: string,
+	projectData: Record<string, unknown>,
+	email: string
+): Promise<DBResponse> => {
 	const allowedFields = [
 		"Name",
 		"description",
@@ -1167,12 +1074,7 @@ export const updateProject = async (projectId: string, projectData: any, email: 
 	)
 
 	if (Object.keys(updatePayload).length === 0) {
-		return {
-			ok: false,
-			status: 400,
-			json: async () => ({ message: "No valid fields provided for update" }),
-			text: async () => JSON.stringify({ message: "No valid fields provided for update" }),
-		}
+		return fail(400, "No valid fields provided for update")
 	}
 
 	try {
@@ -1195,30 +1097,15 @@ export const updateProject = async (projectId: string, projectData: any, email: 
 			.returning({ id: projectTable.id })
 
 		if (updatedProject.length === 0) {
-			return {
-				ok: false,
-				status: 409,
-				json: async () => ({ message: "Project not found, not yours, or locked for review" }),
-				text: async () => JSON.stringify({ message: "Project not found, not yours, or locked for review" }),
-			}
+			return fail(409, "Project not found, not yours, or locked for review")
 		}
 
 		const responsePayload = { id: updatedProject[0].id + "", fields: updatedProject[0] }
 
-		return {
-			ok: true,
-			status: 200,
-			json: async () => responsePayload as airtableReplication,
-			text: async () => JSON.stringify(responsePayload),
-		} as DBResponse
+		return respond(200, responsePayload)
 	} catch (error) {
 		console.error("Database write failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database update failed" }),
-			text: async () => JSON.stringify({ message: "Database update failed" }),
-		}
+		return fail(500, "Database update failed")
 	}
 }
 // POWERFUL FUNCTION: Returns PII too, use with Caution. For use in APIs only, data never to be sent to client
@@ -1253,19 +1140,9 @@ export const getProjectById = async (projectId: string): Promise<DBResponse> => 
 		.where(eq(projectTable.id, parseInt(projectId)))
 		.leftJoin(userInternal, eq(projectTable.owner, userInternal.email))
 	if (project.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Project not found" }),
-			text: async () => JSON.stringify({ message: "Project not found" }),
-		}
+		return fail(404, "Project not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ id: project[0].id + "", fields: project[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: project[0].id + "", fields: project[0] } as airtableReplication),
-	} as DBResponse
+	return respond(200, { id: project[0].id + "", fields: project[0] })
 }
 // Log entries already sent to HQ have been paid for. No rewrite may drop them, unmark them or change their
 // status/time, otherwise they would become eligible for another T2 award. Returns a reason, or null if safe.
@@ -1328,25 +1205,10 @@ export const patchProjectForShip = async (
 				status,
 				parseInt(projectId),
 			])
-			return {
-				ok: true,
-				status: 200,
-				json: async () => ({ id: updated.rows[0].id + "" }),
-				text: async () => JSON.stringify({ id: updated.rows[0].id + "" }),
-			} as DBResponse
+			return respond(200, { id: updated.rows[0].id + "" })
 		})
 	} catch (error) {
-		const status = error instanceof TransactionAbort ? error.status : 500
-		const message = error instanceof TransactionAbort ? error.message : "Database update failed"
-		if (!(error instanceof TransactionAbort)) {
-			console.error("Database write failed:", error)
-		}
-		return {
-			ok: false,
-			status,
-			json: async () => ({ message }),
-			text: async () => JSON.stringify({ message }),
-		}
+		return abortResponse(error, "Database update failed")
 	}
 }
 export const deleteProject = async (projectId: string, email: string): Promise<DBResponse> => {
@@ -1356,58 +1218,15 @@ export const deleteProject = async (projectId: string, email: string): Promise<D
 			.where(and(eq(projectTable.id, parseInt(projectId)), eq(projectTable.owner, email)))
 			.returning()
 		if (deletedProject.length === 0) {
-			return {
-				ok: false,
-				status: 404,
-				json: async () => ({ message: "Project not found" }),
-				text: async () => JSON.stringify({ message: "Project not found" }),
-			}
+			return fail(404, "Project not found")
 		}
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ id: deletedProject[0].id + "", fields: deletedProject[0] }) as airtableReplication,
-			text: async () =>
-				JSON.stringify({ id: deletedProject[0].id + "", fields: deletedProject[0] } as airtableReplication),
-		} as DBResponse
+		return respond(200, { id: deletedProject[0].id + "", fields: deletedProject[0] })
 	} catch (error) {
 		console.error("Database write failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database update failed" }),
-			text: async () => JSON.stringify({ message: "Database update failed" }),
-		}
+		return fail(500, "Database update failed")
 	}
 }
 //Shop Functions
-export const createOrder = async (orderData: any): Promise<DBResponse> => {
-	try {
-		const { orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData } = orderData
-		const newOrder = await db
-			.insert(ordersTable)
-			.values({ orderItem, itemID, qty, ordererEmail, ordererUid, status, fulfiller, moreData })
-			.returning()
-		return {
-			ok: true,
-			status: 201,
-			json: async () => ({ id: newOrder[0].id + "", fields: newOrder[0] }) as airtableReplication,
-			text: async () =>
-				JSON.stringify({
-					id: newOrder[0].id + "",
-					fields: newOrder[0],
-				} as airtableReplication),
-		} as DBResponse
-	} catch (error) {
-		console.error("Database insert failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database insert failed" }),
-			text: async () => JSON.stringify({ message: "Database insert failed" }),
-		}
-	}
-}
 export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
 	try {
 		const orders = await db
@@ -1427,21 +1246,11 @@ export const getOrdersByEmail = async (email: string): Promise<DBResponse> => {
 			.from(ordersTable)
 			.where(eq(ordersTable.ordererEmail, email))
 			.leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID))
-		const records = orders.map(order => ({ id: order.id + "", fields: order }))
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ records }),
-			text: async () => JSON.stringify({ records }),
-		} as DBResponse
+		const records = toRecords(orders)
+		return respond(200, { records })
 	} catch (error) {
 		console.error("Database read failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database read failed" }),
-			text: async () => JSON.stringify({ message: "Database read failed" }),
-		}
+		return fail(500, "Database read failed")
 	}
 }
 export const fetchAllItems = async (): Promise<DBResponse> => {
@@ -1452,22 +1261,7 @@ export const fetchAllItems = async (): Promise<DBResponse> => {
 		.where(gte(shopItemsTable.priority, 0))
 		.orderBy(asc(shopItemsTable.priority))
 	const records = items.map(item => ({ id: item.itemID + "", fields: item }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
-}
-export const adminFetchItemsById = async (itemId: string): Promise<DBResponse> => {
-	const items = await db.select().from(shopItemsTable).where(eq(shopItemsTable.itemID, itemId))
-	const records = items.map(item => ({ id: item.itemID + "", fields: item }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	return respond(200, { records })
 }
 export const upsertShopItem = async (
 	itemData: {
@@ -1492,12 +1286,7 @@ export const upsertShopItem = async (
 			},
 		})
 		.returning()
-	return {
-		ok: true,
-		status: 201,
-		json: async () => ({ id: newItem[0].itemID + "", fields: newItem[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: newItem[0].itemID + "", fields: newItem[0] } as airtableReplication),
-	} as DBResponse
+	return respond(201, { id: newItem[0].itemID + "", fields: newItem[0] })
 }
 
 export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
@@ -1507,19 +1296,9 @@ export const getShopItemById = async (itemId: string): Promise<DBResponse> => {
 		.from(shopItemsTable)
 		.where(and(eq(shopItemsTable.itemID, itemId), gte(shopItemsTable.priority, 0)))
 	if (item.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Item not found" }),
-			text: async () => JSON.stringify({ message: "Item not found" }),
-		}
+		return fail(404, "Item not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ id: item[0].itemID + "", fields: item[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: item[0].itemID + "", fields: item[0] } as airtableReplication),
-	} as DBResponse
+	return respond(200, { id: item[0].itemID + "", fields: item[0] })
 }
 export const deleteShopItem = async (itemId: string): Promise<DBResponse> => {
 	//This function does not actually delete the item, just sets its priority to -1 so it doesn't show up in the shop but we keep the data for record-keeping purposes
@@ -1530,31 +1309,16 @@ export const deleteShopItem = async (itemId: string): Promise<DBResponse> => {
 		.where(eq(shopItemsTable.itemID, itemId))
 		.returning()
 	if (updatedItem.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Item not found" }),
-			text: async () => JSON.stringify({ message: "Item not found" }),
-		}
+		return fail(404, "Item not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ id: updatedItem[0].itemID + "", fields: updatedItem[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: updatedItem[0].itemID + "", fields: updatedItem[0] } as airtableReplication),
-	} as DBResponse
+	return respond(200, { id: updatedItem[0].itemID + "", fields: updatedItem[0] })
 }
 //Admin Functions
 export const doesAdminExist = async (slackId: string): Promise<DBResponse> => {
 	// An empty Slack ID must never match: admin rows saved without one would otherwise be claimable
 	const admins = slackId.trim() === "" ? [] : await db.select().from(adminTable).where(eq(adminTable.slackId, slackId))
-	const records = admins.map(admin => ({ id: admin.id + "", fields: admin }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(admins)
+	return respond(200, { records })
 }
 // Super-admin user list: email and balance only (no Hack Club Auth ids or Slack IDs)
 export const getAllUsers = async (): Promise<DBResponse> => {
@@ -1565,13 +1329,8 @@ export const getAllUsers = async (): Promise<DBResponse> => {
 			balanceHundredths: userTable.balanceHundredths,
 		})
 		.from(userTable)
-	const records = users.map(user => ({ id: user.id + "", fields: user }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(users)
+	return respond(200, { records })
 }
 export const addToJustifications = async (justificationData: {
 	name: string
@@ -1639,13 +1398,7 @@ export const addToJustifications = async (justificationData: {
 			iv,
 		})
 		.returning()
-	return {
-		ok: true,
-		status: 201,
-		json: async () => ({ id: newJustification[0].id + "", fields: newJustification[0] }) as airtableReplication,
-		text: async () =>
-			JSON.stringify({ id: newJustification[0].id + "", fields: newJustification[0] } as airtableReplication),
-	} as DBResponse
+	return respond(201, { id: newJustification[0].id + "", fields: newJustification[0] })
 }
 export const getLatestJustificationByProjectId = async (projectId: string): Promise<DBResponse> => {
 	// Only non-sensitive columns — never select the encrypted PII fields on this table
@@ -1662,31 +1415,16 @@ export const getLatestJustificationByProjectId = async (projectId: string): Prom
 		.orderBy(desc(justifications.id))
 		.limit(1)
 	if (rows.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "No justification found for this project" }),
-			text: async () => JSON.stringify({ message: "No justification found for this project" }),
-		} as DBResponse
+		return fail(404, "No justification found for this project")
 	}
-	const records = rows.map(row => ({ id: row.id + "", fields: row }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(rows)
+	return respond(200, { records })
 }
 export const getAdminByEmail = async (email: string): Promise<DBResponse> => {
 	const admins = await db.select().from(adminTable).where(eq(adminTable.email, email.trim()))
 
-	const records = admins.map(admin => ({ id: admin.id + "", fields: admin }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(admins)
+	return respond(200, { records })
 }
 export const upsertAdmin = async (
 	slackId: string,
@@ -1696,7 +1434,7 @@ export const upsertAdmin = async (
 	nda: string
 ): Promise<DBResponse> => {
 	try {
-		const adminRes = db
+		const admin = await db
 			.insert(adminTable)
 			.values({ slackId, email, roles, name, nda })
 			.onConflictDoUpdate({
@@ -1709,21 +1447,10 @@ export const upsertAdmin = async (
 				},
 			})
 			.returning()
-		const admin = await adminRes
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ id: admin[0].id + "", fields: admin[0] }) as airtableReplication,
-			text: async () => JSON.stringify({ id: admin[0].id + "", fields: admin[0] } as airtableReplication),
-		} as DBResponse
+		return respond(200, { id: admin[0].id + "", fields: admin[0] })
 	} catch (error) {
 		console.error("Database upsert failed:", error)
-		return {
-			ok: false,
-			status: 500,
-			json: async () => ({ message: "Database upsert failed" }),
-			text: async () => JSON.stringify({ message: "Database upsert failed" }),
-		}
+		return fail(500, "Database upsert failed")
 	}
 }
 export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DBResponse> => {
@@ -1747,19 +1474,9 @@ export const fetchProjectFromUnifiedUUID = async (unifiedId: string): Promise<DB
 		.from(projectTable)
 		.where(eq(projectTable.unifiedId, unifiedId))
 	if (project.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Project not found" }),
-			text: async () => JSON.stringify({ message: "Project not found" }),
-		}
+		return fail(404, "Project not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records: project }),
-		text: async () => JSON.stringify({ records: project }),
-	} as DBResponse
+	return respond(200, { records: project })
 }
 // SUB FUNCTIONS ADMIN:- Fulfillers' functions
 
@@ -1774,13 +1491,8 @@ export const getAllOrders = async (): Promise<DBResponse> => {
 			dateCreated: ordersTable.dateCreated,
 		})
 		.from(ordersTable)
-	const records = orders.map(order => ({ id: order.id + "", fields: order }))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ records }),
-		text: async () => JSON.stringify({ records }),
-	} as DBResponse
+	const records = toRecords(orders)
+	return respond(200, { records })
 }
 export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> => {
 	try {
@@ -1814,23 +1526,13 @@ export const getOrderDetailsById = async (orderId: string): Promise<DBResponse> 
 			.leftJoin(shopItemsTable, eq(ordersTable.itemID, shopItemsTable.itemID))
 			.leftJoin(userInternal, eq(ordersTable.ordererEmail, userInternal.email))
 		if (order.length === 0) {
-			return {
-				ok: false,
-				status: 404,
-				json: async () => ({ message: "Order not found" }),
-				text: async () => JSON.stringify({ message: "Order not found" }),
-			}
+			return fail(404, "Order not found")
 		}
 
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ id: order[0].id + "", fields: order[0] }) as airtableReplication,
-			text: async () => JSON.stringify({ id: order[0].id + "", fields: order[0] } as airtableReplication),
-		} as DBResponse
+		return respond(200, { id: order[0].id + "", fields: order[0] })
 	} catch (e) {
 		console.error("Database read failed:", e)
-		throw new Error("Database read failed")
+		throw new Error("Database read failed", { cause: e })
 	}
 }
 
@@ -1861,61 +1563,23 @@ export const addUserToAuthTable = async (
 				},
 			})
 			.returning()
-		return {
-			ok: true,
-			status: 201,
-			json: async () => ({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] }) as airtableReplication,
-			text: async () =>
-				JSON.stringify({ id: newAuthUser[0].userId + "", fields: newAuthUser[0] } as airtableReplication),
-		} as DBResponse
+		return respond(201, { id: newAuthUser[0].userId + "", fields: newAuthUser[0] })
 	} catch (e) {
 		console.error("Database insert failed:", e)
-		throw new Error("Database insert failed")
-	}
-}
-export const getUserFromAuthTable = async (uid: string): Promise<DBResponse> => {
-	try {
-		const user = await db.select().from(userInternal).where(eq(userInternal.userId, uid))
-		if (user.length === 0) {
-			return {
-				ok: false,
-				status: 404,
-				json: async () => ({ message: "User not found" }),
-				text: async () => JSON.stringify({ message: "User not found" }),
-			}
-		}
-		return {
-			ok: true,
-			status: 200,
-			json: async () => ({ id: user[0].userId + "", fields: user[0] }) as airtableReplication,
-			text: async () => JSON.stringify({ id: user[0].userId + "", fields: user[0] } as airtableReplication),
-		}
-	} catch (e) {
-		console.error("Database read failed:", e)
-		throw new Error("Database read failed")
+		throw new Error("Database insert failed", { cause: e })
 	}
 }
 export const checkConfigByEmail = async (email: string): Promise<DBResponse> => {
 	const dbRes = await db.select().from(userInternal).where(eq(userInternal.email, email))
 	if (dbRes.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "User not found" }),
-			text: async () => JSON.stringify({ message: "User not found" }),
-		}
+		return fail(404, "User not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({
-			address: dbRes[0].address !== "null",
-			birthdate: dbRes[0].birthdate !== "null",
-			firstName: dbRes[0].firstName !== "null",
-			lastName: dbRes[0].lastName !== "null",
-		}),
-		text: async () => JSON.stringify({}),
-	}
+	return respond(200, {
+		address: dbRes[0].address !== "null",
+		birthdate: dbRes[0].birthdate !== "null",
+		firstName: dbRes[0].firstName !== "null",
+		lastName: dbRes[0].lastName !== "null",
+	})
 }
 export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): Promise<DBResponse> => {
 	const updatedOrder = await db
@@ -1924,37 +1588,17 @@ export const markOrderAsFulfilled = async (orderId: string, fulfiller: string): 
 		.where(eq(ordersTable.id, parseInt(orderId)))
 		.returning()
 	if (updatedOrder.length === 0) {
-		return {
-			ok: false,
-			status: 404,
-			json: async () => ({ message: "Order not found" }),
-			text: async () => JSON.stringify({ message: "Order not found" }),
-		}
+		return fail(404, "Order not found")
 	}
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ message: "Order marked as fulfilled" }),
-		text: async () => JSON.stringify({ message: "Order marked as fulfilled" }),
-	}
+	return respond(200, { message: "Order marked as fulfilled" })
 }
 //RSVP Functions
-export const createRSVP = async (rsvpData: { name: string; slackId: string; moreData: any }) => {
+export const createRSVP = async (rsvpData: { name: string; slackId: string; moreData: unknown }) => {
 	const { name, slackId, moreData } = rsvpData
 	const newRSVP = await db.insert(rsvpTable).values({ program: name, slackId, data: moreData }).returning()
-	return {
-		ok: true,
-		status: 201,
-		json: async () => ({ id: newRSVP[0].id + "", fields: newRSVP[0] }) as airtableReplication,
-		text: async () => JSON.stringify({ id: newRSVP[0].id + "", fields: newRSVP[0] } as airtableReplication),
-	} as DBResponse
+	return respond(201, { id: newRSVP[0].id + "", fields: newRSVP[0] })
 }
 export const getNPSResults = async (): Promise<DBResponse> => {
 	const npsResults = await db.select().from(rsvpTable).where(eq(rsvpTable.program, "NPS"))
-	return {
-		ok: true,
-		status: 200,
-		json: async () => ({ results: npsResults }),
-		text: async () => JSON.stringify({ results: npsResults }),
-	}
+	return respond(200, { results: npsResults })
 }
