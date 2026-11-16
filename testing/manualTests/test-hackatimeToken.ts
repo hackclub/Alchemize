@@ -2,7 +2,11 @@
 // Run: npx tsx testing/manualTests/test-hackatimeToken.ts
 import assert from "node:assert/strict"
 import crypto from "node:crypto"
-import { decryptHackatimeToken, encryptHackatimeToken, isEncryptedHackatimeToken } from "../../src/lib/server/hackatimeToken"
+import {
+	decryptHackatimeToken,
+	encryptHackatimeToken,
+	isEncryptedHackatimeToken,
+} from "../../src/lib/server/hackatimeToken"
 
 // The module reads the key per call, so setting it after the import is fine
 process.env.PII_ENCRYPTION_KEY = crypto.randomBytes(32).toString("hex")

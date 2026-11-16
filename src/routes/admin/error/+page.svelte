@@ -26,13 +26,11 @@
 	<meta property="og:title" content="Error" />
 </svelte:head>
 
-<div class="w-full h-screen flex flex-col items-center justify-center gap-y-4">
+<div class="flex h-screen w-full flex-col items-center justify-center gap-y-4">
 	<img src="/pmix_v2.png" alt="alchemize" class="h-40" />
 	<h1 class="text-6xl font-bold">Error {status}</h1>
-	<p class="text-2xl font-light font-mono">{message}</p>
+	<p class="font-mono text-2xl font-light">{message}</p>
 	<a href="/admin/login">
-		<Button class="bg-primary px-15 py-5 text-primary text-lg hover:scale-103">
-			Are you sure????
-		</Button>
+		<Button class="bg-primary px-15 py-5 text-lg text-primary hover:scale-103">Are you sure????</Button>
 	</a>
 </div>

@@ -97,7 +97,9 @@
 	text-decoration: underline;
 	text-decoration-color: color-mix(in srgb, var(--primary) 55%, transparent);
 	text-underline-offset: 0.2em;
-	transition: color 200ms ease, text-decoration-color 200ms ease;
+	transition:
+		color 200ms ease,
+		text-decoration-color 200ms ease;
 }
 
 .md a:hover {

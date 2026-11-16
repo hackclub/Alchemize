@@ -1,15 +1,6 @@
 <script lang="ts">
 	import * as Dialog from "$lib/components/ui/dialog/index.js"
-	import {
-		CompassIcon,
-		Home,
-		ShoppingBag,
-		ShieldUser,
-		UserStar,
-		Package,
-		LockKeyhole,
-		Star,
-	} from "lucide-svelte"
+	import { CompassIcon, Home, ShoppingBag, ShieldUser, UserStar, Package, LockKeyhole, Star } from "lucide-svelte"
 
 	let {
 		admin,
@@ -66,32 +57,25 @@
 	<Dialog.Root>
 		<Dialog.Trigger
 			type="button"
-			class="fixed top-5 right-5 z-99 flex items-center justify-center bg-black/20 border-2 border-primary/80 hover:border-primary hover:bg-primary/5 p-2 rounded-md transition-all duration-200 shadow-sm shadow-primary group"
-		>
-			<CompassIcon
-				class="w-5 h-5 text-zinc-400 group-hover:text-primary transition-colors"
-			/>
+			class="group fixed top-5 right-5 z-99 flex items-center justify-center rounded-md border-2 border-primary/80 bg-black/20 p-2 shadow-sm shadow-primary transition-all duration-200 hover:border-primary hover:bg-primary/5">
+			<CompassIcon class="h-5 w-5 text-zinc-400 transition-colors group-hover:text-primary" />
 		</Dialog.Trigger>
 
 		<Dialog.Content
-			class="bg-black/60 backdrop-blur-2xl border-2 border-primary rounded-md max-w-3xl min-w-[60vw] p-6 sm:p-8 overflow-hidden"
-		>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-center">
+			class="max-w-3xl min-w-[60vw] overflow-hidden rounded-md border-2 border-primary bg-black/60 p-6 backdrop-blur-2xl sm:p-8">
+			<div class="grid grid-cols-1 items-center gap-6 md:grid-cols-3 md:gap-8">
 				<!-- Left -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "left" && i.visible) as item}
+					{#each navItems.filter(i => i.side === "left" && i.visible) as item (item.href)}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all group shadow-sm shadow-primary"
-							>
-								<div class="p-1.5 bg-black/50 border border-primary/20 rounded">
-									<item.icon class="w-4 h-4" />
+								class="group flex items-center gap-3 rounded-md border-2 border-primary/40 bg-black/90 px-4 py-3 text-zinc-300 shadow-sm shadow-primary transition-all hover:border-primary hover:text-primary">
+								<div class="rounded border border-primary/20 bg-black/50 p-1.5">
+									<item.icon class="h-4 w-4" />
 								</div>
 
-								<span
-									class="font-alchemize font-bold text-xs uppercase tracking-wider"
-								>
+								<span class="font-alchemize text-xs font-bold tracking-wider uppercase">
 									{item.label}
 								</span>
 							</a>
@@ -100,50 +84,40 @@
 				</div>
 
 				<!-- Center -->
-				<div
-					class="flex flex-col items-center text-center gap-4 order-first md:order-0"
-				>
-					<div class="flex items-center justify-center w-20 h-20 rounded-md">
-						<img src="/pmix_v2.png" alt="" class="w-16 h-16 object-contain" />
+				<div class="order-first flex flex-col items-center gap-4 text-center md:order-0">
+					<div class="flex h-20 w-20 items-center justify-center rounded-md">
+						<img src="/pmix_v2.png" alt="" class="h-16 w-16 object-contain" />
 					</div>
 
 					<div>
-						<Dialog.Title
-							class="font-alchemize font-extrabold uppercase tracking-widest text-primary text-3xl"
-						>
+						<Dialog.Title class="font-alchemize text-3xl font-extrabold tracking-widest text-primary uppercase">
 							Admin
 						</Dialog.Title>
 
-						<p class="text-zinc-400 text-xs mt-2">
-							Where do you want to go today admin...
-						</p>
+						<p class="mt-2 text-xs text-zinc-400">Where do you want to go today admin...</p>
 					</div>
 
 					<Dialog.Close>
 						<a
 							href="/dashboard"
-							class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 p-2 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all shadow-sm shadow-primary"
-						>
-							<Home class="w-4 h-4" />
+							class="flex items-center gap-3 rounded-md border-2 border-primary/40 bg-black/90 p-2 text-zinc-300 shadow-sm shadow-primary transition-all hover:border-primary hover:text-primary">
+							<Home class="h-4 w-4" />
 						</a>
 					</Dialog.Close>
 				</div>
 
 				<!-- Right -->
 				<div class="flex flex-col gap-4">
-					{#each navItems.filter(i => i.side === "right" && i.visible) as item}
+					{#each navItems.filter(i => i.side === "right" && i.visible) as item (item.href)}
 						<Dialog.Close class="w-full">
 							<a
 								href={item.href}
-								class="flex items-center gap-3 bg-black/90 border-2 border-primary/40 px-4 py-3 rounded-md text-zinc-300 hover:text-primary hover:border-primary transition-all group shadow-sm shadow-primary"
-							>
-								<div class="p-1.5 bg-black/50 border border-primary/20 rounded">
-									<item.icon class="w-4 h-4" />
+								class="group flex items-center gap-3 rounded-md border-2 border-primary/40 bg-black/90 px-4 py-3 text-zinc-300 shadow-sm shadow-primary transition-all hover:border-primary hover:text-primary">
+								<div class="rounded border border-primary/20 bg-black/50 p-1.5">
+									<item.icon class="h-4 w-4" />
 								</div>
 
-								<span
-									class="font-alchemize font-bold text-xs uppercase tracking-wider"
-								>
+								<span class="font-alchemize text-xs font-bold tracking-wider uppercase">
 									{item.label}
 								</span>
 							</a>
@@ -155,19 +129,12 @@
 						<Dialog.Close>
 							<a
 								href="/admin/super-admin"
-								class="flex items-center gap-3 bg-black/90 border-2 border-blue-600/40 hover:border-blue-600 px-4 py-3 rounded-md text-blue-600 transition-all shadow-sm shadow-blue-600"
-							>
-								<div
-									class="p-1.5 bg-black/50 border border-blue-600/20 rounded"
-								>
-									<LockKeyhole class="w-4 h-4" />
+								class="flex items-center gap-3 rounded-md border-2 border-blue-600/40 bg-black/90 px-4 py-3 text-blue-600 shadow-sm shadow-blue-600 transition-all hover:border-blue-600">
+								<div class="rounded border border-blue-600/20 bg-black/50 p-1.5">
+									<LockKeyhole class="h-4 w-4" />
 								</div>
 
-								<span
-									class="font-alchemize font-bold text-xs uppercase tracking-wider"
-								>
-									Supaadmin
-								</span>
+								<span class="font-alchemize text-xs font-bold tracking-wider uppercase"> Supaadmin </span>
 							</a>
 						</Dialog.Close>
 					{/if}

@@ -10,21 +10,16 @@
 	<meta property="og:title" content="Admin Login" />
 </svelte:head>
 
-<div
-	class="login w-screen h-screen flex items-center justify-center flex-col gap-y-4"
->
+<div class="login flex h-screen w-screen flex-col items-center justify-center gap-y-4">
 	<img src="/pmix_v2.png" alt="alchemize" class="h-40" />
-	<h1 class="text-5xl font-bold font-decor uppercase select-none text-primary">
-		Alchemize Admin
-	</h1>
-	<div class="flex gap-x-5 items-center">
+	<h1 class="font-decor text-5xl font-bold text-primary uppercase select-none">Alchemize Admin</h1>
+	<div class="flex items-center gap-x-5">
 		<Button
 			onclick={() => {
 				window.location.href = authUrl
 			}}
 			size="xl"
-			variant="primary"
-		>
+			variant="primary">
 			Login with Hack Club
 		</Button>
 		<Button
@@ -32,8 +27,7 @@
 				window.location.href = "/dashboard"
 			}}
 			variant="outline"
-			size="xl"
-		>
+			size="xl">
 			or go back home
 		</Button>
 	</div>

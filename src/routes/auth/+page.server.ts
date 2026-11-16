@@ -5,7 +5,15 @@ import type { PageServerLoad } from "./$types"
 import { createOAuthState } from "$lib/server/hackClubAuth"
 
 export const load: PageServerLoad = ({ cookies, url }) => {
-    const state = createOAuthState(cookies, "oauth_state", url.protocol === "https:")
-    const authorizationUrl = "https://auth.hackclub.com/oauth/authorize?client_id=" + PUBLIC_HACKCLUB_AUTH + "&redirect_uri=" + PUBLIC_HACKCLUB_REDIRECT + "&response_type=code&scope=" + scopes + "&state=" + state
-    return redirect(303, authorizationUrl)
+	const state = createOAuthState(cookies, "oauth_state", url.protocol === "https:")
+	const authorizationUrl =
+		"https://auth.hackclub.com/oauth/authorize?client_id=" +
+		PUBLIC_HACKCLUB_AUTH +
+		"&redirect_uri=" +
+		PUBLIC_HACKCLUB_REDIRECT +
+		"&response_type=code&scope=" +
+		scopes +
+		"&state=" +
+		state
+	return redirect(303, authorizationUrl)
 }

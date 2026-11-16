@@ -4,9 +4,7 @@
 </script>
 
 <main class="h-screen w-full p-5">
-	<div
-		class="h-full w-full rounded-xl bg-black/20 backdrop-blur border-2 p-2 flex gap-5"
-	>
+	<div class="flex h-full w-full gap-5 rounded-xl border-2 bg-black/20 p-2 backdrop-blur">
 		<Aside />
 		{@render children()}
 	</div>

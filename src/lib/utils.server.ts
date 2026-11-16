@@ -35,52 +35,48 @@ export const filterLogs = (logsJson: string): string => {
 // finalString as `iv:ciphertext:authTag`. Never reuse an IV across plaintexts
 // under the same key: GCM nonce reuse leaks the auth subkey and plaintext XORs.
 export const encryptAES = (text: string) => {
-	const algorithm = 'aes-256-gcm';
-	const iv = crypto.randomBytes(12);
-	const cipher = crypto.createCipheriv(
-		algorithm,
-		Buffer.from(PII_ENCRYPTION_KEY, "hex"),
-		iv
-	)
-	let encrypted = cipher.update(text, 'utf8', 'hex')
-	encrypted += cipher.final('hex')
-	const authTag = cipher.getAuthTag().toString('hex')
-	const ivHex = iv.toString('hex')
+	const algorithm = "aes-256-gcm"
+	const iv = crypto.randomBytes(12)
+	const cipher = crypto.createCipheriv(algorithm, Buffer.from(PII_ENCRYPTION_KEY, "hex"), iv)
+	let encrypted = cipher.update(text, "utf8", "hex")
+	encrypted += cipher.final("hex")
+	const authTag = cipher.getAuthTag().toString("hex")
+	const ivHex = iv.toString("hex")
 	return {
 		iv: ivHex,
 		encryptedData: encrypted,
-		authTag: authTag,
+		authTag,
 		// iv is embedded so each ciphertext is self-describing and decryptable
 		// without relying on a shared, reused record-level IV.
-		finalString: `${ivHex}:${encrypted}:${authTag}`
+		finalString: `${ivHex}:${encrypted}:${authTag}`,
 	}
 }
 export const decryptAES = (encryptedDataWithTag: string, ivHex: string) => {
 	// "null" is the unencrypted marker for a value missing on Hack Club Auth
-	if (!encryptedDataWithTag || encryptedDataWithTag === "null") return '';
-	const algorithm = 'aes-256-gcm';
-	const key = Buffer.from(PII_ENCRYPTION_KEY, 'hex');
+	if (!encryptedDataWithTag || encryptedDataWithTag === "null") return ""
+	const algorithm = "aes-256-gcm"
+	const key = Buffer.from(PII_ENCRYPTION_KEY, "hex")
 
-	const parts = encryptedDataWithTag.split(':');
-	let iv: Buffer;
-	let encryptedText: string;
-	let authTagHex: string;
+	const parts = encryptedDataWithTag.split(":")
+	let iv: Buffer
+	let encryptedText: string
+	let authTagHex: string
 	if (parts.length === 3) {
 		// New format: IV is embedded in the payload.
-		[, encryptedText, authTagHex] = parts;
-		iv = Buffer.from(parts[0], 'hex');
+		;[, encryptedText, authTagHex] = parts
+		iv = Buffer.from(parts[0], "hex")
 	} else {
 		// Legacy format: `ciphertext:authTag` with a separate record-level IV.
-		if (!ivHex) return '';
-		[encryptedText, authTagHex] = parts;
-		iv = Buffer.from(ivHex, 'hex');
+		if (!ivHex) return ""
+		;[encryptedText, authTagHex] = parts
+		iv = Buffer.from(ivHex, "hex")
 	}
 
-	const decipher = crypto.createDecipheriv(algorithm, key, iv);
-	decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+	const decipher = crypto.createDecipheriv(algorithm, key, iv)
+	decipher.setAuthTag(Buffer.from(authTagHex, "hex"))
 
-	let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-	decrypted += decipher.final('utf8');
+	let decrypted = decipher.update(encryptedText, "hex", "utf8")
+	decrypted += decipher.final("utf8")
 
-	return decrypted;
+	return decrypted
 }

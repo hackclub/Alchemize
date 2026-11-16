@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn, type WithElementRef, type WithoutChildren } from "$lib/lib/utils.js";
-	import type { HTMLTextareaAttributes } from "svelte/elements";
+	import { cn, type WithElementRef, type WithoutChildren } from "$lib/lib/utils.js"
+	import type { HTMLTextareaAttributes } from "svelte/elements"
 
 	let {
 		ref = $bindable(null),
@@ -8,16 +8,15 @@
 		class: className,
 		"data-slot": dataSlot = "textarea",
 		...restProps
-	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props();
+	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props()
 </script>
 
 <textarea
 	bind:this={ref}
 	data-slot={dataSlot}
 	class={cn(
-		"border-input dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 disabled:bg-input/50 dark:disabled:bg-input/80 rounded-lg border bg-transparent px-3 py-2.5 text-sm leading-relaxed transition-colors focus-visible:ring-3 aria-invalid:ring-3 placeholder:text-muted-foreground flex field-sizing-content min-h-24 w-full outline-none disabled:cursor-not-allowed disabled:opacity-50",
+		"flex field-sizing-content min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2.5 text-sm leading-relaxed transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
 		className
 	)}
 	bind:value
-	{...restProps}
-></textarea>
+	{...restProps}></textarea>

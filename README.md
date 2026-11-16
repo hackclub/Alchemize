@@ -18,6 +18,14 @@ This is a website for the YSWS "Alchemize", it contains everyhing from review da
 - The website would be integrated with Hackclub Auth for user authentication and authorization
 - The website would also be integrated with "Alchistant" a slack bot for notifications and updates on projects
 
+## Code quality
+
+- `npm run format` formats everything with Prettier (config in `.prettierrc`).
+- `npm run lint` checks formatting and runs ESLint (config in `eslint.config.js`).
+- `npm run check` type checks with svelte-check, and `npm test` runs the tests in `testing/manualTests`.
+
+`npm install` points git at `.githooks`, so `npm run lint` runs before every `git push`. CI (`.github/workflows/ci.yml`) runs lint, the type check and the tests on every pull request and on pushes to `main`.
+
 ## How to deploy
 Just clone and run `npm install` and then `npm run dev` to start the development server. 
 

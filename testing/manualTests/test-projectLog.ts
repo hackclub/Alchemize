@@ -27,7 +27,8 @@ const test = (name: string, fn: () => void) => {
 }
 
 const review = { userExternal: "feedback", internalNote: "", justification: "j", reviewerName: "Reviewer" }
-const ship = (log: Log[], hackatimeMinutes: number) => applyShip(log, calculateShipDelta(hackatimeMinutes, log), "changelog")
+const ship = (log: Log[], hackatimeMinutes: number) =>
+	applyShip(log, calculateShipDelta(hackatimeMinutes, log), "changelog")
 const t1 = (log: Log[], hours: number, decision: "accept" | "reject") => {
 	const minutes = parseDeductionMinutes(hours, log.at(-1), decision)
 	assert.equal(typeof minutes, "number", `deduction refused: ${minutes}`)
@@ -59,7 +60,9 @@ test("a deduction on a rejected entry survives the re-ship", () => {
 })
 
 test("legacy entries without deductedMinutes still count their delta", () => {
-	const legacy: Log[] = [{ status: 1, timestamp: "", deltaTime: 300, message: [], submmitedToHQ: true, fraudApproved: false }]
+	const legacy: Log[] = [
+		{ status: 1, timestamp: "", deltaTime: 300, message: [], submmitedToHQ: true, fraudApproved: false },
+	]
 	assert.equal(calculateRecordedTime(legacy), 300)
 	assert.equal(calculateShipDelta(420, legacy), 120)
 })
@@ -105,7 +108,11 @@ test("only a pending entry can be accepted at T1; a rejection is overturned by s
 	assert.equal(log.at(-1)!.status, 2)
 	assert.match(String(parseDeductionMinutes(0, log.at(-1), "accept")), /already rejected/)
 	assert.equal(parseDeductionMinutes(0, log.at(-1), "reject"), 0)
-	assert.equal(parseDeductionMinutes(0, ship(log, 180).at(-1), "accept"), 0, "acceptable again once the participant ships")
+	assert.equal(
+		parseDeductionMinutes(0, ship(log, 180).at(-1), "accept"),
+		0,
+		"acceptable again once the participant ships"
+	)
 	// Already approved and waiting for T2: not approved twice, but a T1 reviewer can still reject it
 	const approved = t1(ship([], 120), 0, "accept")
 	assert.match(String(parseDeductionMinutes(0, approved.at(-1), "accept")), /already approved/)
@@ -118,21 +125,33 @@ test("only a pending entry can be accepted at T1; a rejection is overturned by s
 test("the T1 approver may not award the same time at T2 (by Slack ID, name as fallback)", () => {
 	const alice = { slackId: "U1", name: "Alice" }
 	const bob = { slackId: "U2", name: "Bob" }
-	const t1By = (log: Log[], who: { slackId: string, name: string }, decision: "accept" | "reject") =>
+	const t1By = (log: Log[], who: { slackId: string; name: string }, decision: "accept" | "reject") =>
 		applyT1Review(log, 0, decision, { ...review, reviewerName: who.name, reviewerSlackId: who.slackId })
 	const approved = t1By(ship([], 120), alice, "accept")
 	assert.equal(approved.at(-1)!.message.at(-1)!.reviewerSlackId, "U1", "an approval records the approver's Slack ID")
 	assert.equal(approvedAtT1By(approved, alice), true)
-	assert.equal(approvedAtT1By(approved, { slackId: "U1", name: "Alice Renamed" }), true, "a renamed admin is still the approver")
+	assert.equal(
+		approvedAtT1By(approved, { slackId: "U1", name: "Alice Renamed" }),
+		true,
+		"a renamed admin is still the approver"
+	)
 	assert.equal(approvedAtT1By(approved, bob), false)
-	assert.equal(approvedAtT1By(approved, { slackId: "U2", name: "Alice" }), true, "same name, other ID: refused (fails closed)")
+	assert.equal(
+		approvedAtT1By(approved, { slackId: "U2", name: "Alice" }),
+		true,
+		"same name, other ID: refused (fails closed)"
+	)
 	assert.equal(approvedAtT1By(approved, { slackId: "", name: "" }), false, "empty values never match")
 	assert.equal(approvedAtT1By(approved, { slackId: "U2", name: "APPROVED Alice" }), false)
 	// Approvals recorded before the ID existed are matched by name
 	const legacy = applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Alice" })
 	assert.equal(legacy.at(-1)!.message.at(-1)!.reviewerSlackId, undefined)
 	assert.equal(approvedAtT1By(legacy, alice), true)
-	assert.equal(approvedAtT1By(legacy, { slackId: "U1", name: "Alice Renamed" }), false, "without an ID only the name can match")
+	assert.equal(
+		approvedAtT1By(legacy, { slackId: "U1", name: "Alice Renamed" }),
+		false,
+		"without an ID only the name can match"
+	)
 	assert.equal(approvedAtT1By(legacy, bob), false)
 	// A rejection records no ID: rejecting an earlier cycle doesn't block that reviewer once someone else approves
 	const rejectedByBob = t1By(ship([], 120), bob, "reject")
@@ -156,19 +175,35 @@ test("the T1 approver may not award the same time at T2 (by Slack ID, name as fa
 	const reshipped = ship(applyT2Reject(approved, "x"), 180)
 	assert.equal(reshipped.at(-1)!.status, 0)
 	assert.equal(approvedAtT1By(reshipped, alice), false)
-	assert.equal(approvedAtT1By(t1By(reshipped, alice, "accept"), alice), true, "approving it again at T1 blocks them again")
+	assert.equal(
+		approvedAtT1By(t1By(reshipped, alice, "accept"), alice),
+		true,
+		"approving it again at T1 blocks them again"
+	)
 })
 
 test("a super admin may award time they approved at T1 themselves; the award marker records the match", () => {
 	const alice = { slackId: "U1", name: "Alice" }
 	const bob = { slackId: "U2", name: "Bob" }
-	const approved = applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Alice", reviewerSlackId: "U1" })
+	const approved = applyT1Review(ship([], 120), 0, "accept", {
+		...review,
+		reviewerName: "Alice",
+		reviewerSlackId: "U1",
+	})
 	// The T1 approver is refused at T2 unless they are a super admin
 	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: false }), "refused")
 	assert.equal(checkT2Awarder(approved, alice), "refused", "no flag is not a super admin")
-	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: "true" as unknown as boolean }), "refused", "only a real boolean counts")
+	assert.equal(
+		checkT2Awarder(approved, { ...alice, isSuperAdmin: "true" as unknown as boolean }),
+		"refused",
+		"only a real boolean counts"
+	)
 	assert.equal(checkT2Awarder(approved, { ...alice, isSuperAdmin: true }), "super_admin_override")
-	assert.equal(checkT2Awarder(approved, { slackId: "U1", name: "Alice Renamed", isSuperAdmin: false }), "refused", "still keyed on the Slack ID")
+	assert.equal(
+		checkT2Awarder(approved, { slackId: "U1", name: "Alice Renamed", isSuperAdmin: false }),
+		"refused",
+		"still keyed on the Slack ID"
+	)
 	// Someone else's approval is the normal case, super admin or not: nothing to override
 	assert.equal(checkT2Awarder(approved, { ...bob, isSuperAdmin: false }), "independent")
 	assert.equal(checkT2Awarder(approved, { ...bob, isSuperAdmin: true }), "independent")
@@ -177,7 +212,12 @@ test("a super admin may award time they approved at T1 themselves; the award mar
 	assert.equal(checkT2Awarder(legacy, { ...alice, isSuperAdmin: false }), "refused")
 	assert.equal(checkT2Awarder(legacy, { ...alice, isSuperAdmin: true }), "super_admin_override")
 	// With several approved entries waiting, one approval by the awarder is enough to need the override
-	const two = applyT1Review(ship(applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Bob", reviewerSlackId: "U2" }), 300), 0, "accept", { ...review, reviewerName: "Alice", reviewerSlackId: "U1" })
+	const two = applyT1Review(
+		ship(applyT1Review(ship([], 120), 0, "accept", { ...review, reviewerName: "Bob", reviewerSlackId: "U2" }), 300),
+		0,
+		"accept",
+		{ ...review, reviewerName: "Alice", reviewerSlackId: "U1" }
+	)
 	assert.equal(calculateNewMinutes(two), 300)
 	assert.equal(checkT2Awarder(two, { ...alice, isSuperAdmin: false }), "refused")
 	assert.equal(checkT2Awarder(two, { ...bob, isSuperAdmin: false }), "refused")
@@ -190,7 +230,11 @@ test("a super admin may award time they approved at T1 themselves; the award mar
 	const overridden = applyT2Award(approved, "j", "Alice", new Date(), approvedAtT1By(approved, alice))
 	assert.equal(overridden.at(-1)!.message[0].internalNote, SAME_REVIEWER_AWARD_NOTE)
 	assert.equal(overridden.at(-1)!.message[0].reviewerName, "T2 Alice")
-	assert.equal(overridden.at(-1)!.message[0].userExternal, "Currency Awarded", "the T2 page finds the marker by this text")
+	assert.equal(
+		overridden.at(-1)!.message[0].userExternal,
+		"Currency Awarded",
+		"the T2 page finds the marker by this text"
+	)
 	assert.deepEqual(overridden.slice(0, -1), plain.slice(0, -1), "the paid entries are the same either way")
 	assert.equal(approvedAtT1By(overridden, alice), false)
 	assert.equal(checkT2Awarder(overridden, { ...alice, isSuperAdmin: false }), "independent", "nothing left to pay")

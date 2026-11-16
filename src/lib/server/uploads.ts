@@ -5,9 +5,13 @@
 // Matches the "up to 5MB" shown in the upload dialogs
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
-const sniffImageType = (head: Uint8Array): { mime: string, extension: string } | null => {
+const sniffImageType = (head: Uint8Array): { mime: string; extension: string } | null => {
 	const startsWith = (bytes: number[], offset = 0) => bytes.every((byte, i) => head[offset + i] === byte)
-	const ascii = (text: string, offset = 0) => startsWith([...text].map(char => char.charCodeAt(0)), offset)
+	const ascii = (text: string, offset = 0) =>
+		startsWith(
+			[...text].map(char => char.charCodeAt(0)),
+			offset
+		)
 	if (startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return { mime: "image/png", extension: "png" }
 	if (startsWith([0xff, 0xd8, 0xff])) return { mime: "image/jpeg", extension: "jpg" }
 	if (ascii("GIF87a") || ascii("GIF89a")) return { mime: "image/gif", extension: "gif" }
@@ -16,8 +20,8 @@ const sniffImageType = (head: Uint8Array): { mime: string, extension: string } |
 }
 
 export type ImageCheck =
-	| { ok: true, file: File | null } // null: nothing was uploaded (empty file input)
-	| { ok: false, message: string }
+	| { ok: true; file: File | null } // null: nothing was uploaded (empty file input)
+	| { ok: false; message: string }
 
 export const checkImageUpload = async (value: FormDataEntryValue | null, label: string): Promise<ImageCheck> => {
 	if (value === null || typeof value === "string" || value.size === 0) {
@@ -30,5 +34,10 @@ export const checkImageUpload = async (value: FormDataEntryValue | null, label: 
 	if (!type) {
 		return { ok: false, message: `${label} must be a PNG, JPEG, GIF or WebP image` }
 	}
-	return { ok: true, file: new File([value], `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.${type.extension}`, { type: type.mime }) }
+	return {
+		ok: true,
+		file: new File([value], `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.${type.extension}`, {
+			type: type.mime,
+		}),
+	}
 }

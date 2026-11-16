@@ -38,7 +38,7 @@ export const consumeOAuthState = (cookies: Cookies, cookieName: string, returned
 
 type Jwk = crypto.JsonWebKeyInput["key"] & { kid?: string }
 
-let jwksCache: { keys: Jwk[], fetchedAt: number } | null = null
+let jwksCache: { keys: Jwk[]; fetchedAt: number } | null = null
 
 const fetchJwks = async (force: boolean): Promise<Jwk[]> => {
 	if (!force && jwksCache && Date.now() - jwksCache.fetchedAt < JWKS_CACHE_MS) {

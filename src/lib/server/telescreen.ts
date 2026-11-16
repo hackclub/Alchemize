@@ -32,9 +32,11 @@ export const telescreenConfig = () => robert.telescreenConfigFromEnv()
 
 const NOT_CONFIGURED = "Telescreen isn't configured on this server (ROBERT_API_KEY is missing)"
 // What a participant is told when Telescreen rejects their project. Never the fraud reviewer's note or score.
-const PARTICIPANT_REJECTION_REASON = "it didn't pass our project verification checks. If you think this is a mistake, please ask in #alchemize-help"
+const PARTICIPANT_REJECTION_REASON =
+	"it didn't pass our project verification checks. If you think this is a mistake, please ask in #alchemize-help"
 const TELESCREEN_REJECTED = "Telescreen rejected this project's last review"
-const SUPERSEDED_REASON = "Superseded: the participant shipped more time after this was submitted, so Alchemize submitted the project again for a fresh review"
+const SUPERSEDED_REASON =
+	"Superseded: the participant shipped more time after this was submitted, so Alchemize submitted the project again for a fresh review"
 
 const truncate = (value: string, length: number): string => (value.length > length ? value.slice(0, length) : value)
 
@@ -76,12 +78,12 @@ const snapshotPatch = (row: TelescreenSubmission, project: robert.RobertProject)
 	submittedAt: parseDate(project.submittedAt) ?? row.submittedAt,
 	...(project.outcome && !row.outcomeStatus
 		? {
-			outcomeStatus: project.outcome.status,
-			outcomeReason: typeof project.outcome.reason === "string" ? truncate(project.outcome.reason, 5000) : null,
-			outcomeAt: parseDate(project.outcome.at),
-			outcomeBy: "Telescreen",
-			outcomeSource: "telescreen",
-		}
+				outcomeStatus: project.outcome.status,
+				outcomeReason: typeof project.outcome.reason === "string" ? truncate(project.outcome.reason, 5000) : null,
+				outcomeAt: parseDate(project.outcome.at),
+				outcomeBy: "Telescreen",
+				outcomeSource: "telescreen",
+			}
 		: {}),
 })
 
@@ -100,7 +102,10 @@ const lookupHackatimeId = async (slackId: string): Promise<number | null> => {
 	}
 }
 
-const refreshFromRobert = async (config: robert.TelescreenConfig, row: TelescreenSubmission): Promise<TelescreenSubmission> => {
+const refreshFromRobert = async (
+	config: robert.TelescreenConfig,
+	row: TelescreenSubmission
+): Promise<TelescreenSubmission> => {
 	if (!row.robertProjectId) return row
 	const fresh = await robert.getProject(config, row.robertProjectId)
 	if (!fresh.ok) {
@@ -118,10 +123,16 @@ const rejectedInTelescreen = (row: TelescreenSubmission): boolean =>
 // super admin override gets around it. Throws when the project can't be updated right now.
 const closeAsTelescreenRejection = async (row: TelescreenSubmission): Promise<TelescreenSubmission | null> => {
 	const fraud = row.state === "rejected_fraud"
-	await applyTelescreenRejection(row.projectId, fraud
-		? `Rejected by Telescreen fraud review${row.trustScore ? ` (trust score ${row.trustScore})` : ""}`
-		: "Rejected in Telescreen")
-	return updateTelescreenSubmission(row.id, { closedAt: new Date(), closeReason: fraud ? "fraud_rejected" : "telescreen_rejected" })
+	await applyTelescreenRejection(
+		row.projectId,
+		fraud
+			? `Rejected by Telescreen fraud review${row.trustScore ? ` (trust score ${row.trustScore})` : ""}`
+			: "Rejected in Telescreen"
+	)
+	return updateTelescreenSubmission(row.id, {
+		closedAt: new Date(),
+		closeReason: fraud ? "fraud_rejected" : "telescreen_rejected",
+	})
 }
 
 // For every read of Robert's state: a rejection may reach us this way first (a webhook that never arrived, or a
@@ -143,7 +154,7 @@ const releaseInRobert = async (
 	row: TelescreenSubmission,
 	reason: string,
 	actor: string
-): Promise<{ patch: Partial<TelescreenSubmission>, error: string | null }> => {
+): Promise<{ patch: Partial<TelescreenSubmission>; error: string | null }> => {
 	if (!row.robertProjectId) return { patch: {}, error: null }
 	let state = row.state
 	let patch: Partial<TelescreenSubmission> = {}
@@ -158,17 +169,29 @@ const releaseInRobert = async (
 		state = fresh.data.state
 	}
 	if (state === "awaiting_outcome") {
-		const outcome = await robert.recordOutcome(config, row.robertProjectId, { status: "rejected", reason: truncate(reason, 5000) })
+		const outcome = await robert.recordOutcome(config, row.robertProjectId, {
+			status: "rejected",
+			reason: truncate(reason, 5000),
+		})
 		if (outcome.ok) {
 			return {
-				patch: { ...patch, state: "decided", outcomeStatus: "rejected", outcomeReason: truncate(reason, 5000), outcomeAt: new Date(), outcomeBy: actor, outcomeSource: "alchemize" },
+				patch: {
+					...patch,
+					state: "decided",
+					outcomeStatus: "rejected",
+					outcomeReason: truncate(reason, 5000),
+					outcomeAt: new Date(),
+					outcomeBy: actor,
+					outcomeSource: "alchemize",
+				},
 				error: null,
 			}
 		}
 		// 409: another decision landed first; record whatever Robert has now
 		if (outcome.status === 409) {
 			const fresh = await robert.getProject(config, row.robertProjectId)
-			if (fresh.ok && fresh.data.state !== "awaiting_outcome") return { patch: { ...patch, ...snapshotPatch(row, fresh.data) }, error: null }
+			if (fresh.ok && fresh.data.state !== "awaiting_outcome")
+				return { patch: { ...patch, ...snapshotPatch(row, fresh.data) }, error: null }
 		}
 		return { patch, error: outcome.message }
 	}
@@ -176,7 +199,7 @@ const releaseInRobert = async (
 	return { patch, error: null }
 }
 
-export type TelescreenResult = { ok: true, submission: TelescreenSubmission } | { ok: false, message: string }
+export type TelescreenResult = { ok: true; submission: TelescreenSubmission } | { ok: false; message: string }
 
 // Sends the project to Telescreen unless its open submission already covers everything waiting to be paid.
 // Idempotent: a retry reuses the open submission's externalId, so Robert never gets a duplicate.
@@ -209,7 +232,8 @@ export const ensureTelescreenSubmission = async (projectId: number, actor: strin
 		if (row?.robertProjectId) {
 			if (isUpToDate(row, log)) return { ok: true, submission: row }
 			const { patch, error } = await releaseInRobert(config, row, SUPERSEDED_REASON, actor)
-			const released = (await updateTelescreenSubmission(row.id, { ...patch, lastError: error && truncate(error, 1000) })) ?? row
+			const released =
+				(await updateTelescreenSubmission(row.id, { ...patch, lastError: error && truncate(error, 1000) })) ?? row
 			// Robert rejected it before we heard: that verdict stands rather than being superseded
 			if (rejectedInTelescreen(released)) {
 				await settleRejection(released)
@@ -262,8 +286,8 @@ export const ensureTelescreenSubmission = async (projectId: number, actor: strin
 // failure is stored in lastError and retried by `script/telescreen.ts sync`; the rejection itself never waits on it.
 export const closeTelescreenSubmission = async (
 	projectId: number,
-	opts: { reason: string, actor: string, closeReason: string }
-): Promise<{ ok: boolean, message: string | null }> => {
+	opts: { reason: string; actor: string; closeReason: string }
+): Promise<{ ok: boolean; message: string | null }> => {
 	const row = await getOpenTelescreenSubmission(projectId)
 	if (!row) return { ok: true, message: null }
 	const config = telescreenConfig()
@@ -271,7 +295,7 @@ export const closeTelescreenSubmission = async (
 	let error: string | null = null
 	if (row.robertProjectId) {
 		if (config) {
-			({ patch, error } = await releaseInRobert(config, row, opts.reason, opts.actor))
+			;({ patch, error } = await releaseInRobert(config, row, opts.reason, opts.actor))
 		} else {
 			error = NOT_CONFIGURED
 		}
@@ -279,7 +303,9 @@ export const closeTelescreenSubmission = async (
 	// If Robert turns out to have rejected it already, record it as Telescreen's rejection so it can't be resent
 	const merged = { ...row, ...patch } as TelescreenSubmission
 	const closeReason = rejectedInTelescreen(merged)
-		? merged.state === "rejected_fraud" ? "fraud_rejected" : "telescreen_rejected"
+		? merged.state === "rejected_fraud"
+			? "fraud_rejected"
+			: "telescreen_rejected"
 		: opts.closeReason
 	await updateTelescreenSubmission(row.id, {
 		...patch,
@@ -295,7 +321,8 @@ export const closeTelescreenSubmission = async (
 export const retryRobertRelease = async (row: TelescreenSubmission): Promise<string | null> => {
 	const config = telescreenConfig()
 	if (!config) return NOT_CONFIGURED
-	const reason = row.closeReason === "superseded" ? SUPERSEDED_REASON : `Closed in Alchemize (${row.closeReason ?? "rejected"})`
+	const reason =
+		row.closeReason === "superseded" ? SUPERSEDED_REASON : `Closed in Alchemize (${row.closeReason ?? "rejected"})`
 	const { patch, error } = await releaseInRobert(config, row, reason, "Alchemize")
 	await updateTelescreenSubmission(row.id, { ...patch, lastError: error && truncate(error, 1000) })
 	return error
@@ -343,7 +370,7 @@ export const isTelescreenRejection = (row: Pick<TelescreenSubmission, "closeReas
 export type ApprovalResult =
 	| { ok: true }
 	// overridable: a super admin may approve anyway with a reason (Telescreen has not given a verdict)
-	| { ok: false, status: number, message: string, overridable: boolean }
+	| { ok: false; status: number; message: string; overridable: boolean }
 
 // The T2 approval gate. Passes when Telescreen's fraud review cleared the project (awaiting our outcome, or already
 // approved in Telescreen) and saw all the time being paid; the approval is then recorded in Telescreen before
@@ -353,7 +380,7 @@ export type ApprovalResult =
 export const approveInTelescreen = async (
 	projectId: number,
 	log: Log[],
-	reviewer: { name: string, isSuperAdmin: boolean },
+	reviewer: { name: string; isSuperAdmin: boolean },
 	decisionReason: string,
 	overrideReason: string | undefined
 ): Promise<ApprovalResult> => {
@@ -365,15 +392,31 @@ export const approveInTelescreen = async (
 			return { ok: false, status, message, overridable: overridable && reviewer.isSuperAdmin }
 		}
 		if (!reviewer.isSuperAdmin) {
-			return { ok: false, status: 403, message: "Only a super admin can approve without a Telescreen verdict", overridable: false }
+			return {
+				ok: false,
+				status: 403,
+				message: "Only a super admin can approve without a Telescreen verdict",
+				overridable: false,
+			}
 		}
 		const reason = overrideReason.trim()
 		if (reason.length < 20) {
-			return { ok: false, status: 400, message: "Explain the Telescreen override in at least 20 characters", overridable: true }
+			return {
+				ok: false,
+				status: 400,
+				message: "Explain the Telescreen override in at least 20 characters",
+				overridable: true,
+			}
 		}
 		row ??= await openTelescreenSubmission(projectId)
-		await updateTelescreenSubmission(row.id, { overrideBy: reviewer.name, overrideReason: truncate(reason, 2000), overrideAt: new Date() })
-		console.warn(`Telescreen: ${reviewer.name} approved project ${projectId} without a Telescreen verdict (${message}): ${reason}`)
+		await updateTelescreenSubmission(row.id, {
+			overrideBy: reviewer.name,
+			overrideReason: truncate(reason, 2000),
+			overrideAt: new Date(),
+		})
+		console.warn(
+			`Telescreen: ${reviewer.name} approved project ${projectId} without a Telescreen verdict (${message}): ${reason}`
+		)
 		return { ok: true }
 	}
 
@@ -381,23 +424,31 @@ export const approveInTelescreen = async (
 	// participant ships again and a new review passes
 	if (!row) {
 		const latest = await getLatestTelescreenSubmission(projectId)
-		if (latest && isTelescreenRejection(latest)) return blocked("Telescreen rejected this project's last review. It needs a new ship and a new review", false)
+		if (latest && isTelescreenRejection(latest))
+			return blocked("Telescreen rejected this project's last review. It needs a new ship and a new review", false)
 	}
 	if (!config) return blocked(NOT_CONFIGURED, true)
 	if (!row?.robertProjectId) {
-		return blocked(`This project hasn't been sent to Telescreen yet${row?.lastError ? ` (${row.lastError})` : ""}. Send it from the Telescreen panel.`, true)
+		return blocked(
+			`This project hasn't been sent to Telescreen yet${row?.lastError ? ` (${row.lastError})` : ""}. Send it from the Telescreen panel.`,
+			true
+		)
 	}
 	if (row.state === "awaiting_review") row = await refreshFromRobert(config, row)
 	if (!isUpToDate(row, log)) {
-		return blocked("The participant shipped more time after this was sent to Telescreen, so its review is out of date. Send it again from the Telescreen panel.", true)
+		return blocked(
+			"The participant shipped more time after this was sent to Telescreen, so its review is out of date. Send it again from the Telescreen panel.",
+			true
+		)
 	}
 	switch (row.state) {
 		case "rejected_fraud":
-			return blocked(`Telescreen's fraud review rejected this project${row.trustScore ? ` (trust score ${row.trustScore})` : ""}`, false)
+			return blocked(
+				`Telescreen's fraud review rejected this project${row.trustScore ? ` (trust score ${row.trustScore})` : ""}`,
+				false
+			)
 		case "decided":
-			return row.outcomeStatus === "approved"
-				? { ok: true }
-				: blocked("This project was rejected in Telescreen", false)
+			return row.outcomeStatus === "approved" ? { ok: true } : blocked("This project was rejected in Telescreen", false)
 		case "awaiting_review":
 			return blocked("Telescreen's fraud review of this project hasn't finished yet", true)
 		case "awaiting_outcome":
@@ -407,11 +458,19 @@ export const approveInTelescreen = async (
 	}
 
 	const reason = decisionReason.trim()
-	const outcome = await robert.recordOutcome(config, row.robertProjectId!, { status: "approved", ...(reason ? { reason: truncate(reason, 5000) } : {}) })
+	const outcome = await robert.recordOutcome(config, row.robertProjectId!, {
+		status: "approved",
+		...(reason ? { reason: truncate(reason, 5000) } : {}),
+	})
 	if (outcome.ok) {
 		await updateTelescreenSubmission(row.id, {
-			state: "decided", outcomeStatus: "approved", outcomeReason: reason ? truncate(reason, 5000) : null,
-			outcomeAt: new Date(), outcomeBy: reviewer.name, outcomeSource: "alchemize", lastError: null,
+			state: "decided",
+			outcomeStatus: "approved",
+			outcomeReason: reason ? truncate(reason, 5000) : null,
+			outcomeAt: new Date(),
+			outcomeBy: reviewer.name,
+			outcomeSource: "alchemize",
+			lastError: null,
 		})
 		return { ok: true }
 	}
@@ -419,7 +478,9 @@ export const approveInTelescreen = async (
 		// Something landed first (a retry of this approval, a fraud rejection, a decision in Robert): go by what Robert has now
 		const fresh = await robert.getProject(config, row.robertProjectId!)
 		if (fresh.ok) {
-			const saved = await settleRejection((await updateTelescreenSubmission(row.id, snapshotPatch(row, fresh.data))) ?? row)
+			const saved = await settleRejection(
+				(await updateTelescreenSubmission(row.id, snapshotPatch(row, fresh.data))) ?? row
+			)
 			if (fresh.data.outcome?.status === "approved") return { ok: true }
 			if (saved.state === "rejected_fraud" || fresh.data.outcome?.status === "rejected") {
 				return blocked("Telescreen rejected this project while you were reviewing it", false)
@@ -428,10 +489,14 @@ export const approveInTelescreen = async (
 		return blocked(`Telescreen refused the approval: ${outcome.message}`, false)
 	}
 	// No answer or a server error: nothing was recorded or paid
-	return blocked(`Couldn't record the approval in Telescreen: ${outcome.message}`, outcome.status === 0 || outcome.status >= 500, 502)
+	return blocked(
+		`Couldn't record the approval in Telescreen: ${outcome.message}`,
+		outcome.status === 0 || outcome.status >= 500,
+		502
+	)
 }
 
-const notifyParticipantOfRejection = async (project: { slackId: string, Name: string, code: string | null }) => {
+const notifyParticipantOfRejection = async (project: { slackId: string; Name: string; code: string | null }) => {
 	try {
 		const response = await fetch("https://notifications.alchemize.hackclub.com/review-reject", {
 			method: "POST",
@@ -445,7 +510,8 @@ const notifyParticipantOfRejection = async (project: { slackId: string, Name: st
 			}),
 			signal: AbortSignal.timeout(10_000),
 		})
-		if (!response.ok) console.warn(`Telescreen: rejection notification for ${project.slackId} failed with ${response.status}`)
+		if (!response.ok)
+			console.warn(`Telescreen: rejection notification for ${project.slackId} failed with ${response.status}`)
 	} catch (error) {
 		console.warn("Telescreen: rejection notification failed:", (error as Error).message)
 	}
@@ -458,7 +524,10 @@ const applyTelescreenRejection = async (projectId: number, internalNote: string)
 		const project = await getProjectForTelescreen(projectId)
 		if (!project) return false
 		const log = parseLog(project.log)
-		const updated = applyT2Reject(log, PARTICIPANT_REJECTION_REASON, new Date(), { internalNote, reviewerName: "Telescreen" })
+		const updated = applyT2Reject(log, PARTICIPANT_REJECTION_REASON, new Date(), {
+			internalNote,
+			reviewerName: "Telescreen",
+		})
 		// Nothing pending or approved-and-unpaid to reject
 		if (updated === log) return false
 		const response = await patchProjectForShip(String(projectId), project.log, updated, "rejected")
@@ -466,7 +535,8 @@ const applyTelescreenRejection = async (projectId: number, internalNote: string)
 			await notifyParticipantOfRejection(project)
 			return true
 		}
-		if (response.status !== 409) throw new Error(`could not reject project ${projectId}: ${(await response.json()).message}`)
+		if (response.status !== 409)
+			throw new Error(`could not reject project ${projectId}: ${(await response.json()).message}`)
 	}
 	throw new Error(`project ${projectId} is busy (changed repeatedly, or a Unified submission is in flight)`)
 }
@@ -474,6 +544,7 @@ const applyTelescreenRejection = async (projectId: number, internalNote: string)
 // outcome.set webhook: a final outcome in Telescreen. Our own decisions come back as an echo and change nothing.
 // A rejection made in Telescreen (fraud score 4 or below, or an organizer in Robert's UI) is applied to the project;
 // an approval made in Robert's UI is only recorded, and a T2 reviewer still decides whether to pay.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untrusted webhook JSON; every field is validated before use
 export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "recorded" | "rejected"> => {
 	const robertProjectId = payload?.projectId
 	const outcome = payload?.outcome
@@ -494,7 +565,9 @@ export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "r
 	const decidedAt = parseDate(outcome.reviewedAt) ?? new Date()
 	const ownEcho = row.outcomeSource === "alchemize" && row.outcomeStatus === status
 	if (row.outcomeStatus && row.outcomeStatus !== status) {
-		console.error(`Telescreen webhook: project ${row.projectId} has outcome ${row.outcomeStatus} here but ${status} in Telescreen`)
+		console.error(
+			`Telescreen webhook: project ${row.projectId} has outcome ${row.outcomeStatus} here but ${status} in Telescreen`
+		)
 	}
 
 	const updated = await updateTelescreenSubmission(row.id, {
@@ -503,12 +576,16 @@ export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "r
 		...(fraud ? { reviewNote: reason ?? row.reviewNote, reviewedAt: decidedAt } : {}),
 		...(!row.outcomeStatus
 			? {
-				outcomeStatus: status,
-				outcomeReason: reason,
-				outcomeAt: decidedAt,
-				outcomeBy: fraud ? "Telescreen fraud review" : typeof outcome.reviewerName === "string" ? truncate(outcome.reviewerName, 255) : "Telescreen",
-				outcomeSource: "telescreen",
-			}
+					outcomeStatus: status,
+					outcomeReason: reason,
+					outcomeAt: decidedAt,
+					outcomeBy: fraud
+						? "Telescreen fraud review"
+						: typeof outcome.reviewerName === "string"
+							? truncate(outcome.reviewerName, 255)
+							: "Telescreen",
+					outcomeSource: "telescreen",
+				}
 			: {}),
 	})
 
@@ -516,7 +593,9 @@ export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "r
 	if (row.closedAt) {
 		// The cycle already ended here (paid, superseded or rejected); nothing left to apply
 		if (row.closeReason === "awarded") {
-			console.error(`Telescreen webhook: project ${row.projectId} was rejected in Telescreen after it was paid (super admin override?)`)
+			console.error(
+				`Telescreen webhook: project ${row.projectId} was rejected in Telescreen after it was paid (super admin override?)`
+			)
 		}
 		return "recorded"
 	}
@@ -528,23 +607,23 @@ export const handleOutcomeWebhook = async (payload: any): Promise<"ignored" | "r
 export const toTelescreenView = (row: TelescreenSubmission | null | undefined, log: Log[]): TelescreenView | null =>
 	row
 		? {
-			state: row.state as TelescreenView["state"],
-			robertProjectId: row.robertProjectId,
-			submittedAt: row.submittedAt?.toISOString() ?? null,
-			upToDate: isUpToDate(row, log),
-			trustScore: row.trustScore,
-			reviewNote: row.reviewNote,
-			reviewedAt: row.reviewedAt?.toISOString() ?? null,
-			outcomeStatus: row.outcomeStatus as TelescreenView["outcomeStatus"],
-			outcomeReason: row.outcomeReason,
-			outcomeBy: row.outcomeBy,
-			outcomeSource: row.outcomeSource as TelescreenView["outcomeSource"],
-			overrideBy: row.overrideBy,
-			overrideReason: row.overrideReason,
-			closed: row.closedAt !== null,
-			closeReason: row.closeReason,
-			lastError: row.lastError,
-		}
+				state: row.state as TelescreenView["state"],
+				robertProjectId: row.robertProjectId,
+				submittedAt: row.submittedAt?.toISOString() ?? null,
+				upToDate: isUpToDate(row, log),
+				trustScore: row.trustScore,
+				reviewNote: row.reviewNote,
+				reviewedAt: row.reviewedAt?.toISOString() ?? null,
+				outcomeStatus: row.outcomeStatus as TelescreenView["outcomeStatus"],
+				outcomeReason: row.outcomeReason,
+				outcomeBy: row.outcomeBy,
+				outcomeSource: row.outcomeSource as TelescreenView["outcomeSource"],
+				overrideBy: row.overrideBy,
+				overrideReason: row.overrideReason,
+				closed: row.closedAt !== null,
+				closeReason: row.closeReason,
+				lastError: row.lastError,
+			}
 		: null
 
 // Earlier reviews of a project, newest first: every review except the one toTelescreenView shows (the open one, or

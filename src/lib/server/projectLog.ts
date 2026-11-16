@@ -63,7 +63,11 @@ export const applyShip = (log: Log[], deltaTime: number, changelog: string, now 
 
 // T1 "Deduct hours" arrives in hours (null when the input is left empty); log deltas are in minutes.
 // Returns the minutes to deduct from the last entry, or an error message.
-export const parseDeductionMinutes = (decreaseTime: unknown, lastLog: Log | undefined, decision: "accept" | "reject"): number | string => {
+export const parseDeductionMinutes = (
+	decreaseTime: unknown,
+	lastLog: Log | undefined,
+	decision: "accept" | "reject"
+): number | string => {
 	const hours = decreaseTime ?? 0
 	if (typeof hours !== "number" || !Number.isFinite(hours) || hours < 0) {
 		return "Deducted hours must be a non-negative number"
@@ -101,7 +105,13 @@ export const applyT1Review = (
 	log: Log[],
 	deductMinutes: number,
 	decision: "accept" | "reject",
-	review: { userExternal: string, internalNote: string, justification: string, reviewerName: string, reviewerSlackId?: string },
+	review: {
+		userExternal: string
+		internalNote: string
+		justification: string
+		reviewerName: string
+		reviewerSlackId?: string
+	},
 	now = new Date()
 ): Log[] => {
 	const lastLog = log.at(-1)
@@ -109,22 +119,28 @@ export const applyT1Review = (
 		throw new Error("Log is empty")
 	}
 	const timestamp = now.toISOString()
-	return [...log.slice(0, -1), {
-		...lastLog,
-		status: decision === "accept" ? 1 : 2,
-		timestamp,
-		deltaTime: lastLog.deltaTime - deductMinutes,
-		deductedMinutes: (lastLog.deductedMinutes ?? 0) + deductMinutes,
-		message: [...lastLog.message, {
-			userExternal: review.userExternal,
-			internalNote: review.internalNote,
-			justification: review.justification,
+	return [
+		...log.slice(0, -1),
+		{
+			...lastLog,
+			status: decision === "accept" ? 1 : 2,
 			timestamp,
-			reviewerName: decision === "accept" ? `APPROVED ${review.reviewerName}` : review.reviewerName,
-			...(decision === "accept" && review.reviewerSlackId ? { reviewerSlackId: review.reviewerSlackId } : {}),
-		}],
-		submmitedToHQ: false,
-	}]
+			deltaTime: lastLog.deltaTime - deductMinutes,
+			deductedMinutes: (lastLog.deductedMinutes ?? 0) + deductMinutes,
+			message: [
+				...lastLog.message,
+				{
+					userExternal: review.userExternal,
+					internalNote: review.internalNote,
+					justification: review.justification,
+					timestamp,
+					reviewerName: decision === "accept" ? `APPROVED ${review.reviewerName}` : review.reviewerName,
+					...(decision === "accept" && review.reviewerSlackId ? { reviewerSlackId: review.reviewerSlackId } : {}),
+				},
+			],
+			submmitedToHQ: false,
+		},
+	]
 }
 
 // T2 rejection sends the last T1-approved (or pending) entry back as rejected; anything else is unchanged.
@@ -133,26 +149,32 @@ export const applyT2Reject = (
 	log: Log[],
 	rejectionReason: string,
 	now = new Date(),
-	by: { internalNote: string, reviewerName: string } = { internalNote: "Rejected at T2", reviewerName: "T2 Reviewer" }
+	by: { internalNote: string; reviewerName: string } = { internalNote: "Rejected at T2", reviewerName: "T2 Reviewer" }
 ): Log[] => {
 	const lastLog = log.at(-1)
 	if (!lastLog || (lastLog.status !== 0 && lastLog.status !== 1) || lastLog.submmitedToHQ) {
 		return log
 	}
 	const timestamp = now.toISOString()
-	return [...log.slice(0, -1), {
-		...lastLog,
-		status: 2,
-		timestamp,
-		message: [...lastLog.message, {
-			userExternal: `Hiya! Your project failed T2 review, REASON: ${rejectionReason}`,
-			internalNote: by.internalNote,
-			justification: by.internalNote,
+	return [
+		...log.slice(0, -1),
+		{
+			...lastLog,
+			status: 2,
 			timestamp,
-			reviewerName: by.reviewerName,
-		}],
-		submmitedToHQ: false,
-	}]
+			message: [
+				...lastLog.message,
+				{
+					userExternal: `Hiya! Your project failed T2 review, REASON: ${rejectionReason}`,
+					internalNote: by.internalNote,
+					justification: by.internalNote,
+					timestamp,
+					reviewerName: by.reviewerName,
+				},
+			],
+			submmitedToHQ: false,
+		},
+	]
 }
 
 // When the participant last shipped time that is still waiting to be paid (pending or T1-approved, not sent to HQ).
@@ -172,7 +194,7 @@ export const latestUnpaidShipTime = (log: Log[]): Date | null => {
 
 // Minutes approved by T1 that have not been sent to Unified yet
 export const calculateNewMinutes = (log: Log[]): number =>
-	log.reduce((total, entry) => entry.status === 1 && !entry.submmitedToHQ ? total + entry.deltaTime : total, 0)
+	log.reduce((total, entry) => (entry.status === 1 && !entry.submmitedToHQ ? total + entry.deltaTime : total), 0)
 
 export const hasUnpushedApprovedEntries = (log: Log[]): boolean =>
 	log.some(entry => entry.status === 1 && !entry.submmitedToHQ)
@@ -184,21 +206,29 @@ export const SAME_REVIEWER_AWARD_NOTE = "Project sent to Unified. The T2 awarder
 
 // T2 award: marks every approved entry as sent to HQ and appends the award marker. `sameReviewerAsT1` must be
 // worked out on the log before the award (approvedAtT1By): afterwards the entries are paid and out of its scope.
-export const applyT2Award = (log: Log[], justification: string, reviewerName: string, now = new Date(), sameReviewerAsT1 = false): Log[] => {
+export const applyT2Award = (
+	log: Log[],
+	justification: string,
+	reviewerName: string,
+	now = new Date(),
+	sameReviewerAsT1 = false
+): Log[] => {
 	const timestamp = now.toISOString()
 	return [
-		...log.map(entry => entry.status === 1 && !entry.submmitedToHQ ? { ...entry, submmitedToHQ: true } : entry),
+		...log.map(entry => (entry.status === 1 && !entry.submmitedToHQ ? { ...entry, submmitedToHQ: true } : entry)),
 		{
 			status: 1,
 			timestamp,
 			deltaTime: 0,
-			message: [{
-				userExternal: "Currency Awarded",
-				internalNote: sameReviewerAsT1 ? SAME_REVIEWER_AWARD_NOTE : "Project sent to Unified",
-				justification,
-				timestamp,
-				reviewerName: "T2 " + reviewerName,
-			}],
+			message: [
+				{
+					userExternal: "Currency Awarded",
+					internalNote: sameReviewerAsT1 ? SAME_REVIEWER_AWARD_NOTE : "Project sent to Unified",
+					justification,
+					timestamp,
+					reviewerName: "T2 " + reviewerName,
+				},
+			],
 			submmitedToHQ: true,
 			fraudApproved: false,
 		},
@@ -209,18 +239,17 @@ export const applyT2Award = (log: Log[], justification: string, reviewerName: st
 // HQ): the same person may not approve at T1 and award at T2, that needs two reviewers. An approval is a message
 // with reviewerName "APPROVED <name>" and, since this check exists, the approver's Slack ID. The ID is what counts
 // (admin names can change between T1 and T2); the name is still compared for approvals recorded without an ID.
-export const approvedAtT1By = (
-	log: Log[],
-	reviewer: { slackId?: string | null, name?: string | null }
-): boolean =>
-	log.some(entry =>
-		entry.status === 1 && !entry.submmitedToHQ &&
-		entry.message.some(msg =>
-			!!msg.reviewerName?.startsWith("APPROVED ") && (
-				(!!reviewer.slackId && msg.reviewerSlackId === reviewer.slackId) ||
-				(!!reviewer.name && msg.reviewerName === `APPROVED ${reviewer.name}`)
+export const approvedAtT1By = (log: Log[], reviewer: { slackId?: string | null; name?: string | null }): boolean =>
+	log.some(
+		entry =>
+			entry.status === 1 &&
+			!entry.submmitedToHQ &&
+			entry.message.some(
+				msg =>
+					!!msg.reviewerName?.startsWith("APPROVED ") &&
+					((!!reviewer.slackId && msg.reviewerSlackId === reviewer.slackId) ||
+						(!!reviewer.name && msg.reviewerName === `APPROVED ${reviewer.name}`))
 			)
-		)
 	)
 
 // The two-reviewer rule as applied to a T2 award:
@@ -231,7 +260,7 @@ export const approvedAtT1By = (
 export type T2AwarderCheck = "independent" | "super_admin_override" | "refused"
 export const checkT2Awarder = (
 	log: Log[],
-	reviewer: { slackId?: string | null, name?: string | null, isSuperAdmin?: boolean }
+	reviewer: { slackId?: string | null; name?: string | null; isSuperAdmin?: boolean }
 ): T2AwarderCheck => {
 	if (!approvedAtT1By(log, reviewer)) return "independent"
 	return reviewer.isSuperAdmin === true ? "super_admin_override" : "refused"
@@ -240,17 +269,21 @@ export const checkT2Awarder = (
 // Reviewers may not review or pay out their own projects. Compared on both Slack ID and email, because
 // the admins table and the users table are maintained separately.
 export const isOwnProject = (
-	reviewer: { slackId?: string | null, email?: string | null },
-	project: { slackId?: string | null, owner?: string | null }
+	reviewer: { slackId?: string | null; email?: string | null },
+	project: { slackId?: string | null; owner?: string | null }
 ): boolean => {
 	const sameSlack = !!reviewer.slackId && !!project.slackId && reviewer.slackId === project.slackId
-	const sameEmail = !!reviewer.email && !!project.owner && reviewer.email.trim().toLowerCase() === project.owner.trim().toLowerCase()
+	const sameEmail =
+		!!reviewer.email && !!project.owner && reviewer.email.trim().toLowerCase() === project.owner.trim().toLowerCase()
 	return sameSlack || sameEmail
 }
 
 // Hackatime project values may hold a comma-separated list (analyzeHackatime splits on ",")
 export const hackatimeProjectNames = (value: string | null | undefined): string[] =>
-	(value ?? "").split(",").map(name => name.trim()).filter(Boolean)
+	(value ?? "")
+		.split(",")
+		.map(name => name.trim())
+		.filter(Boolean)
 
 export const sharesHackatimeProject = (a: string | null | undefined, b: string | null | undefined): boolean => {
 	const names = new Set(hackatimeProjectNames(a))

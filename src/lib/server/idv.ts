@@ -4,7 +4,7 @@ const CHECK_URL = "https://auth.hackclub.com/api/external/check"
 
 // Live status from Hack Club Auth. The session's verification_status is frozen at login (up to 30 days old),
 // so it is never used for this. Looked up by Hack Club Auth id, which (unlike the email) can't change.
-export const getIdvStatus = async (user: { id: string, email: string }): Promise<IdvStatus> => {
+export const getIdvStatus = async (user: { id: string; email: string }): Promise<IdvStatus> => {
 	const params = new URLSearchParams(user.id?.startsWith("ident!") ? { idv_id: user.id } : { email: user.email })
 	try {
 		const response = await fetch(`${CHECK_URL}?${params}`, { signal: AbortSignal.timeout(10_000) })

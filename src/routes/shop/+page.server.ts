@@ -1,16 +1,10 @@
-import type { PageServerLoad } from "./$types";
-import { fetchAllItems } from "$lib/db";
+import type { PageServerLoad } from "./$types"
+import { fetchAllItems, toShopItem, type airtableReplication } from "$lib/db"
 
 export const load: PageServerLoad = async () => {
-    const { records } = await (await fetchAllItems()).json();
+	const { records } = await (await fetchAllItems()).json()
 
-    return {
-        items: records.map((record: any) => ({
-            itemID: record.id,
-            name: record.fields.name,
-            description: record.fields.description,
-            priceHundredths: record.fields.priceHundredths,
-            cdnImage: record.fields.cdnImage,
-        })),
-    };
-};
+	return {
+		items: (records as airtableReplication[]).map(toShopItem),
+	}
+}

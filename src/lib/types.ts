@@ -1,5 +1,5 @@
 export type Orders = {
-	id: Number
+	id: number
 	orderItem: string
 	itemID: string
 	qty: string
@@ -92,13 +92,6 @@ export interface AdminProjectView extends AirtableProject {
 		iv: string
 	}
 }
-export interface AdminProjectViewNormal extends Project {
-	firstName: string
-	lastName: string
-	address: string
-	birthdate: string
-	Theme: string
-}
 export interface Item {
 	itemID: string
 	name: string
@@ -120,16 +113,6 @@ export interface AirtableReferRecord {
 export interface Refers {
 	referer: string
 	referedName: string
-}
-export interface AdminJWT {
-	slackId: string
-	email: string
-	name: string
-	roles: string
-	isReviewer: boolean
-	isT2Reviewer: boolean
-	isSuperAdmin: boolean
-	isFulfiller: boolean
 }
 export interface AirtableUser {
 	id: string
@@ -168,7 +151,7 @@ export interface Address {
 	phone_number: string
 	primary: boolean
 }
-export interface Heartbeats{
+export interface Heartbeats {
 	branch: string
 	category: string
 	cursorpos: number
@@ -181,12 +164,12 @@ export interface Heartbeats{
 	operating_system: string
 	project: string
 	time: number
-}	
+}
 interface FileBreakdown {
-    [file: string]: {
-        totalMs: number;
-        formatted: string;
-    };
+	[file: string]: {
+		totalMs: number
+		formatted: string
+	}
 }
 export interface HackatimeAnalysis {
 	hackatimeProject: string

@@ -1,18 +1,10 @@
 <script>
 	import Button from "$lib/components/ui/button/button.svelte"
-	import {
-		MapPin,
-		PackageCheck,
-		Calendar,
-		User,
-		Repeat,
-		Undo2,
-	} from "lucide-svelte"
+	import { MapPin, PackageCheck, Calendar, User, Repeat, Undo2 } from "lucide-svelte"
 	import { toast } from "svelte-sonner"
 	const { data } = $props()
 	const order = data.orderDetails
 	const markAsFulfilled = async () => {
-		console.log("Marking as fulfilled...")
 		fetch(`/admin/fulfillment/fulfilled`, {
 			method: "POST",
 			headers: {
@@ -35,75 +27,53 @@
 	}
 </script>
 
-<a
-	href="/admin/fulfillment"
-	class="absolute top-2 left-2 hover:bg-zinc-900 p-1 rounded-md z-50"
->
+<a href="/admin/fulfillment" class="absolute top-2 left-2 z-50 rounded-md p-1 hover:bg-zinc-900">
 	<Undo2 />
 </a>
 
 <main
-	class="w-full h-full flex-col max-h-screen overflow-x-hidden custom-scrollbar overflow-y-scroll flex items-center justify-center p-4 md:p-8 relative text-primary"
->
+	class="custom-scrollbar relative flex h-full max-h-screen w-full flex-col items-center justify-center overflow-x-hidden overflow-y-scroll p-4 text-primary md:p-8">
 	{#if order.fulfiller !== ""}
-		<div
-			class="h-10 w-2/5 flex items-center justify-center rounded-xl bg-green-800/50 border-2 border-green-600 mb-20"
-		>
+		<div class="mb-20 flex h-10 w-2/5 items-center justify-center rounded-xl border-2 border-green-600 bg-green-800/50">
 			!!!! Fullfilled order, Fulfilled by {order.fulfiller}
 		</div>
 	{/if}
 	<div
-		class="relative z-50 w-full max-w-5xl h-[85vh] bg-slate-900/70 backdrop-blur-md border border-slate-700/40 rounded-2xl shadow-2xl grid grid-cols-1 md:grid-cols-2 overflow-x-hidden custom-scrollbar divide-y md:divide-y-0 md:divide-x divide-slate-800/60"
-	>
-		<div class="p-6 md:p-8 flex flex-col justify-between h-full">
+		class="custom-scrollbar relative z-50 grid h-[85vh] w-full max-w-5xl grid-cols-1 divide-y divide-slate-800/60 overflow-x-hidden rounded-2xl border border-slate-700/40 bg-slate-900/70 shadow-2xl backdrop-blur-md md:grid-cols-2 md:divide-x md:divide-y-0">
+		<div class="flex h-full flex-col justify-between p-6 md:p-8">
 			<div class="space-y-6">
-				<div
-					class="flex justify-center bg-slate-950/40 p-6 rounded-xl border border-slate-800/50 shadow-inner"
-				>
-					<img
-						src={order.img}
-						alt="Product Preview"
-						class="h-48 w-48 object-contain"
-					/>
+				<div class="flex justify-center rounded-xl border border-slate-800/50 bg-slate-950/40 p-6 shadow-inner">
+					<img src={order.img} alt="Product Preview" class="h-48 w-48 object-contain" />
 				</div>
 
-				<h1
-					class="text-3xl font-extrabold font-alchemize tracking-wide text-center md:text-left"
-				>
+				<h1 class="text-center font-alchemize text-3xl font-extrabold tracking-wide md:text-left">
 					{order.name}
 				</h1>
 
-				<div
-					class="space-y-3 bg-slate-950/30 p-4 rounded-xl border border-slate-800/40 text-sm"
-				>
+				<div class="space-y-3 rounded-xl border border-slate-800/40 bg-slate-950/30 p-4 text-sm">
 					<div class="flex items-center gap-3">
-						<Repeat class="w-4 h-4 text-slate-400" />
-						<span class="text-primary/60 w-24">Quantity:</span>
+						<Repeat class="h-4 w-4 text-slate-400" />
+						<span class="w-24 text-primary/60">Quantity:</span>
 						<span class="font-semibold text-zinc-200">{order.qty}</span>
 					</div>
 					<div class="flex items-center gap-3">
-						<Calendar class="w-4 h-4 text-slate-400" />
-						<span class="text-primary/60 w-24">Ordered on:</span>
-						<span class="font-semibold text-zinc-200"
-							>{new Date(order.dateCreated).toLocaleDateString()}</span
-						>
+						<Calendar class="h-4 w-4 text-slate-400" />
+						<span class="w-24 text-primary/60">Ordered on:</span>
+						<span class="font-semibold text-zinc-200">{new Date(order.dateCreated).toLocaleDateString()}</span>
 					</div>
 					<div class="flex items-center gap-3">
-						<User class="w-4 h-4 text-slate-400" />
-						<span class="text-primary/60 w-24">Ordered by:</span>
+						<User class="h-4 w-4 text-slate-400" />
+						<span class="w-24 text-primary/60">Ordered by:</span>
 						<span class="font-semibold text-zinc-200">{order.email}</span>
 					</div>
 				</div>
 			</div>
 
-			<div
-				class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 border-t border-slate-800/40 mt-6"
-			>
+			<div class="mt-6 grid grid-cols-1 gap-3 border-t border-slate-800/40 pt-6 sm:grid-cols-2">
 				{#if order.fulfiller === ""}
 					<Button
-						class="bg-emerald-600 hover:bg-emerald-500 text-primary-foreground font-medium shadow-lg transition-all w-full"
-						onclick={markAsFulfilled}
-					>
+						class="w-full bg-emerald-600 font-medium text-primary-foreground shadow-lg transition-all hover:bg-emerald-500"
+						onclick={markAsFulfilled}>
 						Mark as Fulfilled
 					</Button>
 				{/if}
@@ -116,40 +86,30 @@
 			</div>
 		</div>
 
-		<div class="p-6 md:p-8 flex flex-col gap-y-6 h-full bg-slate-950/20">
-			<div
-				class="bg-slate-950/40 rounded-xl p-5 border border-slate-800/60 space-y-4 shadow-sm"
-			>
-				<div
-					class="flex items-center gap-2 border-b border-slate-800/80 pb-2.5"
-				>
-					<MapPin class="w-4 h-4 text-amber-500" />
-					<h2 class="text-base font-bold font-alchemize">Shipping Address</h2>
+		<div class="flex h-full flex-col gap-y-6 bg-slate-950/20 p-6 md:p-8">
+			<div class="space-y-4 rounded-xl border border-slate-800/60 bg-slate-950/40 p-5 shadow-sm">
+				<div class="flex items-center gap-2 border-b border-slate-800/80 pb-2.5">
+					<MapPin class="h-4 w-4 text-amber-500" />
+					<h2 class="font-alchemize text-base font-bold">Shipping Address</h2>
 				</div>
 
 				<div class="space-y-3 text-sm">
 					<div class="space-y-0.5">
-						<span
-							class="text-[11px] font-semibold text-primary/40 uppercase tracking-wider block"
-							>Recipient</span
-						>
+						<span class="block text-[11px] font-semibold tracking-wider text-primary/40 uppercase">Recipient</span>
 						<p class="font-semibold text-zinc-200">
 							{order.firstName}
 						</p>
-						<p class="text-xs text-primary/50 font-mono">
+						<p class="font-mono text-xs text-primary/50">
 							{order.ageNow} years old
 						</p>
 					</div>
 
 					<div class="space-y-0.5 pt-1">
-						<span
-							class="text-[11px] font-semibold text-primary/40 uppercase tracking-wider block"
-							>Destination</span
-						>
-						<p class="text-zinc-200 leading-relaxed font-medium">
+						<span class="block text-[11px] font-semibold tracking-wider text-primary/40 uppercase">Destination</span>
+						<p class="leading-relaxed font-medium text-zinc-200">
 							{order.email}
 						</p>
-						<p class="text-zinc-400 text-xs">
+						<p class="text-xs text-zinc-400">
 							HCB — <span class="font-mono text-zinc-300">Card Grant</span>
 						</p>
 					</div>
@@ -157,19 +117,15 @@
 			</div>
 
 			<div
-				class="bg-slate-950/40 rounded-xl p-5 border border-slate-800/60 space-y-4 flex-1 flex flex-col justify-between shadow-sm"
-			>
+				class="flex flex-1 flex-col justify-between space-y-4 rounded-xl border border-slate-800/60 bg-slate-950/40 p-5 shadow-sm">
 				<div>
-					<div
-						class="flex items-center justify-between border-b border-slate-800/80 pb-2.5 mb-4"
-					>
+					<div class="mb-4 flex items-center justify-between border-b border-slate-800/80 pb-2.5">
 						<div class="flex items-center gap-2">
-							<PackageCheck class="w-4 h-4 text-indigo-400" />
-							<h2 class="text-base font-bold font-alchemize">User Analytics</h2>
+							<PackageCheck class="h-4 w-4 text-indigo-400" />
+							<h2 class="font-alchemize text-base font-bold">User Analytics</h2>
 						</div>
 						<span
-							class="text-[10px] bg-slate-800 text-primary/70 px-2 py-0.5 rounded-md border border-slate-700/40 font-mono"
-						>
+							class="rounded-md border border-slate-700/40 bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-primary/70">
 							@Slack ID HERE
 						</span>
 					</div>

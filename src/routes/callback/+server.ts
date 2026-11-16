@@ -7,7 +7,13 @@ import type { UserAuthToken } from "$lib/types"
 import { encryptAES } from "$lib/utils.server"
 import { signUserToken, USER_SESSION_MAX_AGE_SECONDS } from "$lib/server/auth"
 import { consumeOAuthState, verifyHackClubIdToken } from "$lib/server/hackClubAuth"
-import { resolveAccountForLogin, createReferRecord, addUserToAuthTable, isKnownReferrer, type LoginAccount } from "$lib/db"
+import {
+	resolveAccountForLogin,
+	createReferRecord,
+	addUserToAuthTable,
+	isKnownReferrer,
+	type LoginAccount,
+} from "$lib/db"
 import { deriveReferralKey, parseReferralCode } from "$lib/server/referralCode"
 /*
 CLEANUP PLAN DETAILS DO NOT TOUCH:
@@ -28,23 +34,19 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// slack_id: The user's Slack ID from Hack Club, used for Slack integration features in the app
 	// The Hack Club Auth access token is only used during this request and never stored
 
-
 	const code = url.searchParams.get("code")
 	const referCookie = cookies.get("refer")
 	const secureCookies = url.protocol === "https:"
 
-	let userHackatime = ""
 	if (!code) {
 		throw error(400, "Missing authorization code")
 	}
 	const clientId = PUBLIC_HACKCLUB_AUTH
 	const clientSecret = env.HACKCLUB_SECRET
 	const redirectUri = PUBLIC_HACKCLUB_REDIRECT
-	let newUser = false
 	if (!clientId || !clientSecret || !redirectUri) {
 		throw error(500, "Missing OAuth environment variables")
 	}
-
 
 	if (!consumeOAuthState(cookies, "oauth_state", url.searchParams.get("state"))) {
 		throw error(400, "Invalid state parameter")
@@ -66,14 +68,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const tokenBody = await tokenResponse.json().catch(() => null)
 	if (!tokenResponse.ok) {
 		console.error("Token exchange failed:", tokenBody)
-		throw error(
-			tokenResponse.status,
-			tokenBody?.message ?? "Token exchange failed"
-		)
+		throw error(tokenResponse.status, tokenBody?.message ?? "Token exchange failed")
 	}
 	const meResponse = await getDataFromAccessToken(tokenBody.access_token)
 
 	// Signature (key chosen by kid), issuer, audience (our OAuth client) and expiry are checked before any claim is used
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ID token claims, read one by one below once the signature is verified
 	let decodedToken: any
 	try {
 		decodedToken = await verifyHackClubIdToken(tokenBody.id_token, clientId)
@@ -96,13 +96,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	let encryptedAddress = "null"
 	if (meResponse.address && meResponse.address.length > 0) {
 		encryptedAddress = encryptAES(JSON.stringify(meResponse.address)).finalString
-
 	}
 	// "null" (unencrypted) marks a missing value, as for the address: the dashboard lists it as missing and the
 	// T2 award refuses to submit it to Unified
-	const encryptedBirthdate = typeof meResponse.birthday === "string" && meResponse.birthday !== ""
-		? encryptAES(meResponse.birthday).finalString
-		: "null"
+	const encryptedBirthdate =
+		typeof meResponse.birthday === "string" && meResponse.birthday !== ""
+			? encryptAES(meResponse.birthday).finalString
+			: "null"
 	const nameParts = name.split(" ").filter(Boolean)
 	const encryptedFirstName = nameParts.length > 0 ? encryptAES(nameParts[0]).finalString : "null"
 	const encryptedLastName = nameParts.length > 0 ? encryptAES(nameParts.at(-1)!).finalString : "null"
@@ -115,15 +115,27 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		console.error("Database error while resolving the account:", err)
 		return error(500, "Database error")
 	}
-	await addUserToAuthTable(account.email, encryptedAddress, encryptedBirthdate, encryptedFirstName, encryptedLastName, iv, hackClubId)
-	newUser = account.isNew
+	await addUserToAuthTable(
+		account.email,
+		encryptedAddress,
+		encryptedBirthdate,
+		encryptedFirstName,
+		encryptedLastName,
+		iv,
+		hackClubId
+	)
+	const newUser = account.isNew
 	const userRecordId = String(account.id)
 	if (referCookie && newUser) {
-		const referral = parseReferralCode(referCookie, deriveReferralKey(env.USER_JWT_SECRET), env.USERID_ENCRYPTION_KEY ?? "")
+		const referral = parseReferralCode(
+			referCookie,
+			deriveReferralKey(env.USER_JWT_SECRET),
+			env.USERID_ENCRYPTION_KEY ?? ""
+		)
 		const isSelfReferral = referral !== null && `ident!${referral.referer.split(" ")[0]}` === hackClubId
 		// Invalid, forged (legacy codes must name a real user) or self-referrals are ignored: the account already
 		// exists at this point, so failing here would only lock the new user out of their first login
-		if (referral && !isSelfReferral && (!referral.legacy || await isKnownReferrer(referral.referer))) {
+		if (referral && !isSelfReferral && (!referral.legacy || (await isKnownReferrer(referral.referer)))) {
 			const referRespone = await createReferRecord(
 				account.email,
 				referral.referer,
@@ -169,7 +181,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		path: "/",
 	})
 	if (account.hasHackatime) {
-
 		cookies.set("hackatime_verified", "true", {
 			httpOnly: false,
 			secure: secureCookies,

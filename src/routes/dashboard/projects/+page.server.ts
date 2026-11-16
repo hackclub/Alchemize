@@ -1,8 +1,7 @@
 import type { Actions, PageServerLoad } from "./$types"
-import crypto from "crypto"
 import { env } from "$env/dynamic/private"
-import { getDataFromAccessToken, hackatimeAuthUrl } from "$lib/utils"
-import { encryptAES, filterLogs } from "$lib/utils.server"
+import { hackatimeAuthUrl } from "$lib/utils"
+import { filterLogs } from "$lib/utils.server"
 import {
 	getProjectsByOwner,
 	createProject,
@@ -17,11 +16,7 @@ import { isProjectType } from "$lib/projectTypes"
 import { checkImageUpload } from "$lib/server/uploads"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
 import { getIdvStatus } from "$lib/server/idv"
-import type {
-	AirtableProject,
-	AirtableProjectWithPII,
-	UserAuthToken,
-} from "$lib/types"
+import type { AirtableProject, AirtableProjectWithPII } from "$lib/types"
 import { fail, redirect } from "@sveltejs/kit"
 import { requireUserApi, requireUserPage } from "$lib/server/auth"
 async function uploadScreenshot(file: File | null): Promise<string> {
@@ -42,9 +37,7 @@ async function uploadScreenshot(file: File | null): Promise<string> {
 		const errorData = await response.json()
 
 		const errorCode = errorData.error?.type ?? "UNKNOWN_ERROR"
-		const errorText =
-			errorData.error?.message ??
-			"An error occurred while uploading the screenshot"
+		const errorText = errorData.error?.message ?? "An error occurred while uploading the screenshot"
 
 		console.error("CDN upload failed:", {
 			status: response.status,
@@ -105,10 +98,7 @@ export const actions = {
 				return fail(400, { message: hackatimeConflictMessage(conflicts) })
 			}
 		}
-		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot.file),
-			uploadScreenshot(screenshot2.file),
-		])
+		const [url, url2] = await Promise.all([uploadScreenshot(screenshot.file), uploadScreenshot(screenshot2.file)])
 		const response = await createProject({
 			Name: projectName,
 			description: projectDescription ?? "",
@@ -125,7 +115,7 @@ export const actions = {
 			Theme: theme ?? "",
 			address: "redact",
 			birthdate: "redact",
-			slackId: slackId,
+			slackId,
 			firstName: "redact",
 			lastName: "redact",
 			screenshot: url,
@@ -171,7 +161,10 @@ export const actions = {
 			return fail(404, { message: "Project not found" })
 		}
 		if (isInReview(current.status)) {
-			return fail(409, { message: "This project is being reviewed, so it can't be edited right now. You can edit it again once the review is done." })
+			return fail(409, {
+				message:
+					"This project is being reviewed, so it can't be edited right now. You can edit it again once the review is done.",
+			})
 		}
 		if (hackatimeProject && hackatimeProject !== current.hackatime) {
 			if (current.log !== "") {
@@ -183,10 +176,7 @@ export const actions = {
 			}
 		}
 
-		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot.file),
-			uploadScreenshot(screenshot2.file),
-		])
+		const [url, url2] = await Promise.all([uploadScreenshot(screenshot.file), uploadScreenshot(screenshot2.file)])
 		const response = await updateProject(
 			recordId,
 			{
@@ -206,9 +196,10 @@ export const actions = {
 
 		if (!response.ok) {
 			// 409: the project entered review (or was shipped) between the checks above and the write
-			const message = response.status === 409
-				? "This project changed while you were editing it (it may have been shipped). Please refresh and try again."
-				: "Project update failed. Please notify TheUtkarsh8939 on Slack"
+			const message =
+				response.status === 409
+					? "This project changed while you were editing it (it may have been shipped). Please refresh and try again."
+					: "Project update failed. Please notify TheUtkarsh8939 on Slack"
 			console.error("Project update failed:", { status: response.status, timestamp: new Date().toISOString() })
 			return fail(response.status === 409 ? 409 : 500, { message })
 		}
@@ -223,7 +214,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		throw redirect(303, hackatimeAuthUrl)
 	}
 	if (hackatimeAccessToken) {
-		let [hackatime, projectsResponse, idvStatus] = await Promise.all([
+		const [hackatime, projectsResponse, idvStatus] = await Promise.all([
 			fetchHackatimeProjects(hackatimeAccessToken, env.START_DATE ?? ""),
 			getProjectsByOwner(email),
 			getIdvStatus(user),
@@ -236,9 +227,9 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 		}
 
 		const projectsData = await projectsResponse.json()
-		let projectsRecords: AirtableProjectWithPII[] = projectsData.records || []
-		let noPii: AirtableProject[] = []
-		for (let record of projectsRecords) {
+		const projectsRecords: AirtableProjectWithPII[] = projectsData.records || []
+		const noPii: AirtableProject[] = []
+		for (const record of projectsRecords) {
 			noPii.push({
 				id: record.id,
 				fields: {
@@ -262,8 +253,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 			})
 		}
 		// If Hackatime is down the page still loads, just without Hackatime projects to pick from
-		let filteredHacks = hackatime.ok ? hackatime.projects : []
-		let filteredHacksS = {
+		const filteredHacks = hackatime.ok ? hackatime.projects : []
+		const filteredHacksS = {
 			projects: filteredHacks,
 		}
 		return {

@@ -19,63 +19,32 @@
 	import { safeHref } from "$lib/urls"
 	import { countCharacters } from "$lib/utils"
 	import { cn } from "$lib/lib/utils"
-	import {
-		buildBillyUrl,
-		buildJoeFraudUrl,
-		HACKATIME_REVIEW_START_DATE,
-	} from "$lib/reviewTools"
+	import { buildBillyUrl, buildJoeFraudUrl, HACKATIME_REVIEW_START_DATE, totalLogMinutes } from "$lib/reviewTools"
 	import { tick } from "svelte"
-	import {
-		BarController,
-		BarElement,
-		CategoryScale,
-		Chart,
-		Legend,
-		LinearScale,
-		Title,
-		Tooltip,
-	} from "chart.js"
+	import { BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Title, Tooltip } from "chart.js"
 	type AdminProjectAccess = AirtableProject & { telescreen: TelescreenView | null }
 	type AdminProject = Project
 	let detailsOpen = $state(false)
 	let currentHackatimeAnalysis = $state({} as HackatimeAnalysis)
 	let { data } = $props()
 	let airtableProjects = $derived(data.projects as AdminProjectAccess[])
-	let project = $state({} as Project)
 	let justificationOpen = $state(false)
 	let daySummaryChart = $state<HTMLCanvasElement | undefined>(undefined)
 	let daySummaryChartInstance: Chart<"bar"> | null = null
-	Chart.register(
-		BarController,
-		BarElement,
-		CategoryScale,
-		LinearScale,
-		Tooltip,
-		Legend,
-		Title
-	)
+	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title)
 	const wasEverApproved = (project: AirtableProject) => {
 		//Checks the logs and returns true if there was ever an approved log, that is not sent to airtable (aka not pushed)
 		const logs = JSON.parse(project.fields.log || "[]") as Log[]
 		return logs.some(log => log.status === 1)
 	}
 	let currentProject = $state({} as AdminProject)
-	function calculateRecordedTime(log: Log[]): number {
-		let totalTime = 0
-		for (const entry of log) {
-			totalTime += entry.deltaTime
-		}
-		return totalTime
-	}
 	const renderBar = () => {
 		if (!daySummaryChart || !currentHackatimeAnalysis?.dayMap) {
 			return
 		}
-		let dataLabels = []
-		let dataValues = []
-		for (const [key, value] of Object.entries(
-			currentHackatimeAnalysis.dayMap
-		)) {
+		const dataLabels = []
+		const dataValues = []
+		for (const [key, value] of Object.entries(currentHackatimeAnalysis.dayMap)) {
 			dataLabels.push(key)
 			dataValues.push(Math.round((value / 3600) * 10) / 10)
 		}
@@ -115,7 +84,7 @@
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				projectId: projectId,
+				projectId,
 			}),
 		})
 		const data = await response.json()
@@ -130,14 +99,7 @@
 		currentProject = {
 			id: nextProject.id,
 			name: nextProject.fields.Name,
-			hours:
-				Math.floor(
-					(calculateRecordedTime(
-						JSON.parse(nextProject.fields.log ?? "[]") as Log[]
-					) *
-						10) /
-						60
-				) / 10,
+			hours: Math.floor((totalLogMinutes(JSON.parse(nextProject.fields.log ?? "[]") as Log[]) * 10) / 60) / 10,
 			submittedBy: nextProject.fields.slackId,
 			type: nextProject.fields.type,
 			category: nextProject.fields.Theme,
@@ -175,10 +137,22 @@
 	const trustBand = (score: number | null | undefined) => {
 		if (score == null) return null
 		if (score <= 4)
-			return { label: "Fraud", chip: "bg-rose-500/10 text-rose-300 border-rose-500/30", callout: "border-rose-500/40 bg-rose-500/5" }
+			return {
+				label: "Fraud",
+				chip: "bg-rose-500/10 text-rose-300 border-rose-500/30",
+				callout: "border-rose-500/40 bg-rose-500/5",
+			}
 		if (score <= 7)
-			return { label: "Doubtful", chip: "bg-amber-500/10 text-amber-300 border-amber-500/30", callout: "border-amber-500/40 bg-amber-500/5" }
-		return { label: "Clean", chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30", callout: "border-emerald-500/30 bg-emerald-500/5" }
+			return {
+				label: "Doubtful",
+				chip: "bg-amber-500/10 text-amber-300 border-amber-500/30",
+				callout: "border-amber-500/40 bg-amber-500/5",
+			}
+		return {
+			label: "Clean",
+			chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
+			callout: "border-emerald-500/30 bg-emerald-500/5",
+		}
 	}
 	const TELESCREEN_CLOSE_LABELS: Record<string, string> = {
 		awarded: "Paid",
@@ -207,7 +181,7 @@
 		if (result.telescreen) currentTelescreen = result.telescreen
 		telescreenPastReviews = result.pastReviews ?? []
 	}
-	type TelescreenGate = { ok: boolean, overridable: boolean, message: string }
+	type TelescreenGate = { ok: boolean; overridable: boolean; message: string }
 	const telescreenGateFor = (t: TelescreenView | null): TelescreenGate => {
 		if (!data.telescreenConfigured)
 			return { ok: false, overridable: true, message: "Telescreen isn't configured on this server" }
@@ -221,9 +195,7 @@
 			return {
 				ok: false,
 				overridable: true,
-				message: t?.lastError && !t.closed
-					? `Not sent to Telescreen: ${t.lastError}`
-					: "Not sent to Telescreen yet",
+				message: t?.lastError && !t.closed ? `Not sent to Telescreen: ${t.lastError}` : "Not sent to Telescreen yet",
 			}
 		if (!t.upToDate)
 			return {
@@ -250,9 +222,7 @@
 	let overrideActive = $derived(
 		data.isSuperAdmin && !telescreenGate.ok && telescreenGate.overridable && overrideEnabled
 	)
-	let canPush = $derived(
-		telescreenGate.ok || (overrideActive && overrideReason.trim().length >= 20)
-	)
+	let canPush = $derived(telescreenGate.ok || (overrideActive && overrideReason.trim().length >= 20))
 	// A review Telescreen rejected can't be resent until the participant ships again (the server refuses too)
 	const telescreenNeedsSubmit = (t: TelescreenView | null): boolean =>
 		!t ||
@@ -288,7 +258,9 @@
 		}).catch(() => null)
 		telescreenBusy = false
 		if (!response?.ok) {
-			toast.error(response ? await readErrorMessage(response, "Telescreen request failed") : "Telescreen request failed")
+			toast.error(
+				response ? await readErrorMessage(response, "Telescreen request failed") : "Telescreen request failed"
+			)
 			return
 		}
 		const result = await response.json()
@@ -315,11 +287,8 @@
 	// The push-to-HQ action appends a synthetic "Currency Awarded" log entry —
 	// skip it when rebuilding the review history.
 	const isSyntheticPushEntry = (entry: Log): boolean =>
-		entry.deltaTime === 0 &&
-		entry.message.length === 1 &&
-		entry.message[0]?.userExternal === "Currency Awarded"
-	const cleanReviewerName = (name?: string): string =>
-		(name ?? "unknown").replace(/^APPROVED\s+/i, "")
+		entry.deltaTime === 0 && entry.message.length === 1 && entry.message[0]?.userExternal === "Currency Awarded"
+	const cleanReviewerName = (name?: string): string => (name ?? "unknown").replace(/^APPROVED\s+/i, "")
 	const buildReviewLog = (log: Log[], includePushed: boolean): string => {
 		const blocks: string[] = []
 		let reviewNumber = 0
@@ -339,30 +308,21 @@
 					lines.push(`User devlog: ${text}`)
 				} else if (index !== entry.message.length - 1) {
 					// The final reviewer message is shown once below as the approval feedback
-					lines.push(
-						`Reviewer note (${cleanReviewerName(msg.reviewerName)}): ${text}`
-					)
+					lines.push(`Reviewer note (${cleanReviewerName(msg.reviewerName)}): ${text}`)
 				}
 			})
-			lines.push(
-				`Approval feedback: ${lastMessage?.userExternal?.trim() || "No feedback provided"}`
-			)
-			lines.push(
-				`Approved by T1 reviewer: ${cleanReviewerName(lastMessage?.reviewerName)}`
-			)
+			lines.push(`Approval feedback: ${lastMessage?.userExternal?.trim() || "No feedback provided"}`)
+			lines.push(`Approved by T1 reviewer: ${cleanReviewerName(lastMessage?.reviewerName)}`)
 			blocks.push(lines.join("\n"))
 		}
-		return blocks.length > 0
-			? blocks.join("\n\n")
-			: "No approved review entries found."
+		return blocks.length > 0 ? blocks.join("\n\n") : "No approved review entries found."
 	}
 
 	let template = $state("")
 	let range = $state("")
 	let loader = $state(false)
 	const secsToHours = (secs: number): number => Math.round(secs / 360) / 10
-	const hackatimeDays = () =>
-		Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
+	const hackatimeDays = () => Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
 	const reviewRange = () => {
 		const days = hackatimeDays()
 		return {
@@ -376,8 +336,7 @@
 		const { start, end } = reviewRange()
 		const delta = calculateDelta(currentProject.log, includePushed)
 		const awarded = Math.max(delta - subtraction, 0)
-		const isUpdate =
-			Boolean(currentProject.update) || currentProject.log.length > 1
+		const isUpdate = Boolean(currentProject.update) || currentProject.log.length > 1
 
 		const sections: string[] = []
 		sections.push(
@@ -397,9 +356,7 @@
 				`- Delta approved this review: ${delta}h`,
 				`- Hours deducted: ${subtraction > 0 ? `Yes — ${subtraction}h` : "No"}`,
 				`- Hours awarded: ${awarded}h`,
-				...(subtraction > 0
-					? [`- Deduction reason: ${reasonForOverride || "—"}`]
-					: []),
+				...(subtraction > 0 ? [`- Deduction reason: ${reasonForOverride || "—"}`] : []),
 			].join("\n")
 		)
 		const trustLabel = analysis?.trustFactor?.trustLevel
@@ -428,21 +385,11 @@
 		if (isUpdate && changelogs) {
 			sections.push(`[CHANGELOG]\n${changelogs}`)
 		}
-		sections.push(
-			`[REVIEW LOG]\n${buildReviewLog(currentProject.log, includePushed)}`
-		)
-		const linkLines = [
-			`[LINKS]`,
-			`- Demo: ${currentProject.demo || "—"}`,
-			`- Repo: ${currentProject.code || "—"}`,
-		]
+		sections.push(`[REVIEW LOG]\n${buildReviewLog(currentProject.log, includePushed)}`)
+		const linkLines = [`[LINKS]`, `- Demo: ${currentProject.demo || "—"}`, `- Repo: ${currentProject.code || "—"}`]
 		if (analysis?.hackatimeUserId) {
-			linkLines.push(
-				`- Billy: ${buildBillyUrl(analysis.hackatimeUserId, start, end)}`
-			)
-			linkLines.push(
-				`- Joe.fraud: ${buildJoeFraudUrl(analysis.hackatimeUserId, start, end)}`
-			)
+			linkLines.push(`- Billy: ${buildBillyUrl(analysis.hackatimeUserId, start, end)}`)
+			linkLines.push(`- Joe.fraud: ${buildJoeFraudUrl(analysis.hackatimeUserId, start, end)}`)
 		}
 		sections.push(linkLines.join("\n"))
 		sections.push(
@@ -450,9 +397,7 @@
 				`[SIGN-OFF]`,
 				`- Signed by ${data.name}, T2 Reviewer (Alchemize)`,
 				`- Generated at: ${new Date().toISOString()}`,
-				...(includePushed
-					? [`- Note: regenerated after this project was pushed to HQ`]
-					: []),
+				...(includePushed ? [`- Note: regenerated after this project was pushed to HQ`] : []),
 			].join("\n")
 		)
 		template = sections.join("\n\n")
@@ -464,10 +409,7 @@
 			range = ""
 			return
 		}
-		range =
-			new Date(days.at(0) || "").toDateString() +
-			" to " +
-			new Date(days.at(-1) || "").toDateString()
+		range = new Date(days.at(0) || "").toDateString() + " to " + new Date(days.at(-1) || "").toDateString()
 	}
 
 	let reviewToolUrls = $derived.by(() => {
@@ -541,7 +483,7 @@
 		projectId: string,
 		justification: string,
 		deductedHours: number,
-		telescreenDecision: { reason: string, override?: string },
+		telescreenDecision: { reason: string; override?: string },
 		resolveInDoubt?: InDoubtResolution
 	) =>
 		fetch("/admin/review2/sendToAirtable", {
@@ -570,11 +512,7 @@
 		) {
 			return "already_in_airtable"
 		}
-		if (
-			confirm(
-				"Press OK if it is NOT in Airtable, to submit it again now. Press Cancel to do nothing."
-			)
-		) {
+		if (confirm("Press OK if it is NOT in Airtable, to submit it again now. Press Cancel to do nothing.")) {
 			return "not_in_airtable"
 		}
 		return null
@@ -616,9 +554,7 @@
 			invalidateAll()
 			currentProject = {} as AdminProject
 		} else {
-			toast.error(
-				await readErrorMessage(response, "Failed to push project to Airtable")
-			)
+			toast.error(await readErrorMessage(response, "Failed to push project to Airtable"))
 			loader = false
 			invalidateAll()
 		}
@@ -630,28 +566,19 @@
 	let filteredProjects = $derived(
 		airtableProjects?.filter(
 			project =>
-				wasEverApproved(project) &&
-				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) !==
-					pending
+				wasEverApproved(project) && areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) !== pending
 		) ?? []
 	)
 
-
 	let sentCount = $derived(
 		airtableProjects?.filter(
-			project =>
-				wasEverApproved(project) &&
-				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) ===
-					true
+			project => wasEverApproved(project) && areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) === true
 		).length ?? 0
 	)
 
 	let pendingCount = $derived(
 		airtableProjects?.filter(
-			project =>
-				wasEverApproved(project) &&
-				areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) ===
-					false
+			project => wasEverApproved(project) && areAllPushedToHQ(JSON.parse(project.fields.log || "[]") as Log[]) === false
 		).length ?? 0
 	)
 
@@ -671,15 +598,13 @@
 				recordId: id,
 				userExternal: projectDescription,
 				justification: template,
-				slackId: slackId,
+				slackId,
 				decisionReason,
 			}),
 		})
 
 		if (response.ok && response.status !== 207) {
-			toast.success(
-				"Rejected " + currentProject.name + " and sent notification to user!"
-			)
+			toast.success("Rejected " + currentProject.name + " and sent notification to user!")
 			loader = false
 		} else if (response.status === 207) {
 			toast.info("Project rejected but notification not sent")
@@ -692,7 +617,6 @@
 
 	let confirmPushOpen = $state(false)
 	let confirmRejectOpen = $state(false)
-
 </script>
 
 <svelte:head>
@@ -701,53 +625,40 @@
 	<meta property="og:title" content="Alchemize | T2 Review" />
 </svelte:head>
 
-<main
-	class="w-screen h-screen text-primary font-sans overflow-hidden p-6 flex gap-6"
->
-	<div class="fixed inset-0 bg-black/20 -z-10"></div>
-	<div
-		class="relative z-50 p-5 h-full w-full flex items-start justify-start gap-x-5"
-	>
-		<aside
-			class="w-1/4 h-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col overflow-y-auto"
-		>
-			<div class="p-4 border-b border-zinc-800 bg-zinc-900/20">
-				<h3
-					class="font-semibold text-zinc-400 text-sm tracking-wider uppercase"
-				>
-					T2 Review queue
-				</h3>
+<main class="flex h-screen w-screen gap-6 overflow-hidden p-6 font-sans text-primary">
+	<div class="fixed inset-0 -z-10 bg-black/20"></div>
+	<div class="relative z-50 flex h-full w-full items-start justify-start gap-x-5 p-5">
+		<aside class="flex h-full w-1/4 flex-col overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900/50">
+			<div class="border-b border-zinc-800 bg-zinc-900/20 p-4">
+				<h3 class="text-sm font-semibold tracking-wider text-zinc-400 uppercase">T2 Review queue</h3>
 			</div>
 			{#if filteredProjects.length > 0}
-				{#each filteredProjects as project}
+				{#each filteredProjects as project (project.id)}
 					<button
 						onclick={() => setCurrentProject(project)}
-						class="project w-full border-b h-20 p-2 hover:bg-background"
-					>
-						<h1 class="text-xl font-bold w-full flex items-center h-10 px-2">
+						class="project h-20 w-full border-b p-2 hover:bg-background">
+						<h1 class="flex h-10 w-full items-center px-2 text-xl font-bold">
 							{project.fields.Name}
 						</h1>
-						<div class="flex px-2 gap-4 items-end h-6">
+						<div class="flex h-6 items-end gap-4 px-2">
 							<h2 class="creator text-sm text-gray-500">
 								{project.fields.slackId}
 							</h2>
 							<div class="theme text-xs">{project.fields.Theme}</div>
 							<span
 								class={cn(
-									"text-[10px] px-1.5 py-0.5 rounded border font-medium ml-auto",
+									"ml-auto rounded border px-1.5 py-0.5 text-[10px] font-medium",
 									telescreenBadgeClass(project.telescreen)
-								)}
-							>
+								)}>
 								{telescreenLabel(project.telescreen)}
 							</span>
 							{#if project.telescreen?.trustScore != null}
 								<span
 									title="Telescreen trust score"
 									class={cn(
-										"text-[10px] px-1.5 py-0.5 rounded border font-mono",
+										"rounded border px-1.5 py-0.5 font-mono text-[10px]",
 										trustBand(project.telescreen.trustScore)?.chip
-									)}
-								>
+									)}>
 									{project.telescreen.trustScore}/10
 								</span>
 							{/if}
@@ -755,82 +666,65 @@
 					</button>
 				{/each}
 			{:else}
-				<div class="flex-1 flex items-center justify-center p-4">
-					<h2 class="text-sm text-gray-500 text-center">
+				<div class="flex flex-1 items-center justify-center p-4">
+					<h2 class="text-center text-sm text-gray-500">
 						{pending ? "No pending projects " : "No sent projects "}
 					</h2>
 				</div>
 			{/if}
 		</aside>
-		<div class="flex-1 h-full flex flex-col gap-6 overflow-hidden">
+		<div class="flex h-full flex-1 flex-col gap-6 overflow-hidden">
 			<nav
-				class="w-full flex items-center justify-evenly gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl self-start"
-			>
+				class="flex w-full items-center justify-evenly gap-2 self-start rounded-xl border border-zinc-800 bg-zinc-900 p-1">
 				<button
 					class={cn(
-						"px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
-						pending
-							? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-							: "text-zinc-400 hover:text-zinc-200"
+						"flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all",
+						pending ? "border border-amber-500/20 bg-amber-500/10 text-amber-400" : "text-zinc-400 hover:text-zinc-200"
 					)}
-					onclick={() => (pending = true)}
-				>
+					onclick={() => (pending = true)}>
 					<span>Pending</span>
 					<span
 						class={cn(
-							"text-xs px-1.5 py-0.5 rounded-md font-mono",
-							pending
-								? "bg-amber-500/20 text-amber-300"
-								: "bg-zinc-800 text-zinc-500"
-						)}
-					>
+							"rounded-md px-1.5 py-0.5 font-mono text-xs",
+							pending ? "bg-amber-500/20 text-amber-300" : "bg-zinc-800 text-zinc-500"
+						)}>
 						{pendingCount}
 					</span>
 				</button>
 
 				<button
 					class={cn(
-						"px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
+						"flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all",
 						!pending
-							? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+							? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
 							: "text-zinc-400 hover:text-zinc-200"
 					)}
-					onclick={() => (pending = false)}
-				>
+					onclick={() => (pending = false)}>
 					<span>Sent</span>
 					<span
 						class={cn(
-							"text-xs px-1.5 py-0.5 rounded-md font-mono",
-							!pending
-								? "bg-emerald-500/20 text-emerald-300"
-								: "bg-zinc-800 text-zinc-500"
-						)}
-					>
+							"rounded-md px-1.5 py-0.5 font-mono text-xs",
+							!pending ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-500"
+						)}>
 						{sentCount}
 					</span>
 				</button>
 			</nav>
-			<div
-				class="flex-1 bg-zinc-900/30 border border-zinc-800 rounded-2xl flex flex-col overflow-hidden h-full"
-			>
+			<div class="flex h-full flex-1 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/30">
 				{#if currentProject.name}
 					<header
-						class="w-full px-5 py-4 border-b border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-zinc-950/20 flex-shrink-0"
-					>
+						class="flex w-full flex-shrink-0 flex-col items-start justify-between gap-3 border-b border-zinc-800 bg-zinc-950/20 px-5 py-4 sm:flex-row sm:items-center">
 						<div class="space-y-0.5">
-							<div class="flex items-center gap-x-2.5 flex-wrap">
-								<h1 class="text-lg text-zinc-100 font-bold tracking-tight">
+							<div class="flex flex-wrap items-center gap-x-2.5">
+								<h1 class="text-lg font-bold tracking-tight text-zinc-100">
 									{currentProject.name}
 								</h1>
 								<span
-									class="text-xs px-1.5 py-0.5 bg-zinc-800/80 text-zinc-400 rounded font-mono border border-zinc-700"
-								>
+									class="rounded border border-zinc-700 bg-zinc-800/80 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
 									{currentProject.hours} hrs
 								</span>
 							</div>
-							<p
-								class="text-[11px] text-zinc-400 flex flex-wrap items-center gap-x-1.5"
-							>
+							<p class="flex flex-wrap items-center gap-x-1.5 text-[11px] text-zinc-400">
 								<span class="text-zinc-300">{currentProject.submittedBy}</span>
 								<span class="text-zinc-700">•</span>
 								<span>{currentProject.type}</span>
@@ -838,38 +732,27 @@
 								<span>{currentProject.category}</span>
 							</p>
 							{#if currentHackatimeAnalysis?.hackatimeProject}
-								<div class="flex items-center gap-1.5 flex-wrap pt-1">
+								<div class="flex flex-wrap items-center gap-1.5 pt-1">
 									{#if currentHackatimeAnalysis?.hackatimeUserId}
 										<button
 											type="button"
 											title="Copy Hackatime user ID"
-											onclick={() =>
-												copyToClipboard(
-													currentHackatimeAnalysis.hackatimeUserId ?? "",
-													"Hackatime ID"
-												)}
-											class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-300 rounded font-mono border border-zinc-700 hover:bg-zinc-700 transition cursor-pointer"
-										>
+											onclick={() => copyToClipboard(currentHackatimeAnalysis.hackatimeUserId ?? "", "Hackatime ID")}
+											class="cursor-pointer rounded border border-zinc-700 bg-zinc-800/80 px-1.5 py-0.5 font-mono text-[11px] text-zinc-300 transition hover:bg-zinc-700">
 											Hackatime ID: {currentHackatimeAnalysis.hackatimeUserId} ⧉
 										</button>
 										<span
 											class={cn(
-												"text-[11px] px-1.5 py-0.5 rounded border font-medium",
-												trustBadgeClass(
-													currentHackatimeAnalysis?.trustFactor?.trustLevel
-												)
-											)}
-										>
-											Trust: {currentHackatimeAnalysis?.trustFactor
-												?.trustLevel ?? "unknown"}{currentHackatimeAnalysis
+												"rounded border px-1.5 py-0.5 text-[11px] font-medium",
+												trustBadgeClass(currentHackatimeAnalysis?.trustFactor?.trustLevel)
+											)}>
+											Trust: {currentHackatimeAnalysis?.trustFactor?.trustLevel ?? "unknown"}{currentHackatimeAnalysis
 												?.trustFactor?.trustValue != null
 												? ` (${currentHackatimeAnalysis.trustFactor.trustValue})`
 												: ""}
 										</span>
 									{:else}
-										<span
-											class="text-[11px] px-1.5 py-0.5 bg-zinc-800/80 text-zinc-500 rounded border border-zinc-700"
-										>
+										<span class="rounded border border-zinc-700 bg-zinc-800/80 px-1.5 py-0.5 text-[11px] text-zinc-500">
 											No Hackatime user ID found
 										</span>
 									{/if}
@@ -877,30 +760,25 @@
 							{/if}
 						</div>
 
-						<div
-							class="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0"
-						>
+						<div class="flex flex-shrink-0 items-center gap-1.5 self-end sm:self-auto">
 							<Button
 								onclick={() => (detailsOpen = true)}
-								class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[11px] px-2.5 py-1 rounded-md text-zinc-300 transition"
-							>
+								class="rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[11px] text-zinc-300 transition hover:bg-zinc-700">
 								Details
 							</Button>
-							<div class="h-3 w-[1px] bg-zinc-800 mx-0.5"></div>
+							<div class="mx-0.5 h-3 w-[1px] bg-zinc-800"></div>
 							<a
 								href={safeHref(currentProject.demo)}
 								target="_blank"
 								rel="noreferrer noopener"
-								class="text-[11px] font-medium px-2.5 py-1 bg-primary/20 hover:bg-primary/30 text-primary rounded-md transition"
-								>Demo</a
-							>
+								class="rounded-md bg-primary/20 px-2.5 py-1 text-[11px] font-medium text-primary transition hover:bg-primary/30"
+								>Demo</a>
 							<a
 								href={safeHref(currentProject.code)}
 								target="_blank"
 								rel="noreferrer noopener"
-								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
-								>Repo</a
-							>
+								class="rounded-md bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition hover:bg-zinc-700"
+								>Repo</a>
 							<a
 								href={`https://introspect.sahil.ink?${new URLSearchParams({
 									repo_url: currentProject.code ?? "",
@@ -911,78 +789,61 @@
 								})}`}
 								target="_blank"
 								rel="noreferrer noopener"
-								class="text-[11px] font-medium px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition"
-								>Introspect</a
-							>
+								class="rounded-md bg-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-300 transition hover:bg-zinc-700"
+								>Introspect</a>
 							{#if reviewToolUrls}
 								<a
 									href={reviewToolUrls.billy}
 									target="_blank"
 									rel="noreferrer noopener"
-									class="text-[11px] font-medium px-2.5 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-md transition"
-									>Billy ↗</a
-								>
+									class="rounded-md bg-indigo-500/20 px-2.5 py-1 text-[11px] font-medium text-indigo-300 transition hover:bg-indigo-500/30"
+									>Billy ↗</a>
 								<a
 									href={reviewToolUrls.joe}
 									target="_blank"
 									rel="noreferrer noopener"
-									class="text-[11px] font-medium px-2.5 py-1 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-md transition"
-									>Joe.fraud ↗</a
-								>
+									class="rounded-md bg-indigo-500/20 px-2.5 py-1 text-[11px] font-medium text-indigo-300 transition hover:bg-indigo-500/30"
+									>Joe.fraud ↗</a>
 							{/if}
 						</div>
 					</header>
 
-					<div
-						class="overflow-hidden grid grid-cols-1 xl:grid-cols-[2fr_1fr] grid-rows-2 xl:grid-rows-1 min-h-0"
-					>
-						<div
-							class="w-full h-full flex flex-col items-center overflow-y-auto custom-scrollbar"
-						>
+					<div class="grid min-h-0 grid-cols-1 grid-rows-2 overflow-hidden xl:grid-cols-[2fr_1fr] xl:grid-rows-1">
+						<div class="custom-scrollbar flex h-full w-full flex-col items-center overflow-y-auto">
 							<section class="w-full px-5 pt-5">
-								<div
-									class="border border-zinc-800 bg-zinc-950/30 rounded-xl p-4 space-y-3"
-								>
-									<div class="flex items-center justify-between gap-2 flex-wrap">
-										<div class="flex items-center gap-2 flex-wrap">
-											<h2
-												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
-											>
-												Telescreen
-											</h2>
+								<div class="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/30 p-4">
+									<div class="flex flex-wrap items-center justify-between gap-2">
+										<div class="flex flex-wrap items-center gap-2">
+											<h2 class="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Telescreen</h2>
 											<span
 												class={cn(
-													"text-[11px] px-1.5 py-0.5 rounded border font-medium",
+													"rounded border px-1.5 py-0.5 text-[11px] font-medium",
 													telescreenBadgeClass(currentTelescreen)
-												)}
-											>
+												)}>
 												{telescreenLabel(currentTelescreen)}
 											</span>
 											{#if currentTelescreen?.trustScore != null}
 												<span
 													class={cn(
-														"text-[11px] px-1.5 py-0.5 rounded border font-medium",
+														"rounded border px-1.5 py-0.5 text-[11px] font-medium",
 														trustBand(currentTelescreen.trustScore)?.chip
-													)}
-												>
+													)}>
 													{trustBand(currentTelescreen.trustScore)?.label} · trust score {currentTelescreen.trustScore}/10
 												</span>
 											{/if}
 										</div>
 										<div class="flex items-center gap-1.5">
 											<Button
-												class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-[11px] px-2.5 py-1 rounded-md text-zinc-300 transition"
+												class="rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[11px] text-zinc-300 transition hover:bg-zinc-700"
 												onclick={() => telescreenAction("refresh")}
-												disabled={telescreenBusy || !currentTelescreen}
-											>
+												disabled={telescreenBusy || !currentTelescreen}>
 												Refresh
 											</Button>
 											{#if pending && telescreenNeedsSubmit(currentTelescreen)}
 												<Button
-													class="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-[11px] px-2.5 py-1 rounded-md transition"
+													class="rounded-md bg-indigo-500/20 px-2.5 py-1 text-[11px] text-indigo-300 transition hover:bg-indigo-500/30"
 													onclick={() => telescreenAction("submit")}
-													disabled={telescreenBusy}
-												>
+													disabled={telescreenBusy}>
 													{currentTelescreen && !currentTelescreen.closed && currentTelescreen.robertProjectId
 														? "Send again"
 														: "Send to Telescreen"}
@@ -993,35 +854,30 @@
 									{#if currentTelescreen && (currentTelescreen.reviewNote || currentTelescreen.trustScore != null)}
 										<div
 											class={cn(
-												"rounded-lg border p-3 space-y-1.5",
+												"space-y-1.5 rounded-lg border p-3",
 												trustBand(currentTelescreen.trustScore)?.callout ?? "border-zinc-800 bg-zinc-900/40"
-											)}
-										>
-											<div class="flex items-center justify-between gap-2 flex-wrap">
-												<strong class="text-[11px] uppercase tracking-wider text-zinc-300">
+											)}>
+											<div class="flex flex-wrap items-center justify-between gap-2">
+												<strong class="text-[11px] tracking-wider text-zinc-300 uppercase">
 													Fraud reviewer's note
-													<span class="normal-case font-normal tracking-normal text-zinc-500"
-														>· internal, never shown to the participant</span
-													>
+													<span class="font-normal tracking-normal text-zinc-500 normal-case"
+														>· internal, never shown to the participant</span>
 												</strong>
 												{#if currentTelescreen.reviewedAt}
 													<span class="text-[11px] text-zinc-500"
-														>Reviewed {formatTelescreenDate(currentTelescreen.reviewedAt)}</span
-													>
+														>Reviewed {formatTelescreenDate(currentTelescreen.reviewedAt)}</span>
 												{/if}
 											</div>
-											<p class="text-sm text-zinc-100 whitespace-pre-wrap wrap-break-word">
+											<p class="text-sm wrap-break-word whitespace-pre-wrap text-zinc-100">
 												{currentTelescreen.reviewNote || "The fraud reviewer left no note."}
 											</p>
 										</div>
 									{/if}
 									{#if currentTelescreen?.outcomeStatus}
-										<p class="text-xs text-zinc-400 wrap-break-word">
+										<p class="text-xs wrap-break-word text-zinc-400">
 											Outcome: <span
-												class={currentTelescreen.outcomeStatus === "approved"
-													? "text-emerald-400"
-													: "text-rose-400"}>{currentTelescreen.outcomeStatus}</span
-											>
+												class={currentTelescreen.outcomeStatus === "approved" ? "text-emerald-400" : "text-rose-400"}
+												>{currentTelescreen.outcomeStatus}</span>
 											by {currentTelescreen.outcomeBy ?? "unknown"}{currentTelescreen.outcomeSource === "telescreen"
 												? " in Telescreen"
 												: ""}{currentTelescreen.outcomeReason &&
@@ -1031,59 +887,50 @@
 										</p>
 									{/if}
 									{#if currentTelescreen?.overrideBy}
-										<p class="text-xs text-rose-300 wrap-break-word">
+										<p class="text-xs wrap-break-word text-rose-300">
 											Approved without a Telescreen verdict by {currentTelescreen.overrideBy}: {currentTelescreen.overrideReason}
 										</p>
 									{/if}
 									{#if telescreenPastReviews.length > 0}
-										{@const rejectedBefore = telescreenPastReviews.some(review => isTelescreenRejection(review.closeReason))}
-										<details
-											class="border border-zinc-800 rounded-lg p-2"
-											open={rejectedBefore}
-										>
-											<summary
-												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider cursor-pointer"
-											>
+										{@const rejectedBefore = telescreenPastReviews.some(review =>
+											isTelescreenRejection(review.closeReason)
+										)}
+										<details class="rounded-lg border border-zinc-800 p-2" open={rejectedBefore}>
+											<summary class="cursor-pointer text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
 												Earlier Telescreen reviews ({telescreenPastReviews.length}){#if rejectedBefore}<span
-														class="ml-1 normal-case tracking-normal text-rose-400"
-														>· rejected by Telescreen before</span
+														class="ml-1 tracking-normal text-rose-400 normal-case">· rejected by Telescreen before</span
 													>{/if}
 											</summary>
 											<ul class="mt-2 space-y-2">
+												<!-- eslint-disable-next-line svelte/require-each-key -- past reviews carry no id -->
 												{#each telescreenPastReviews as review}
-													<li class="border border-zinc-800/80 bg-zinc-900/20 rounded-lg p-2 space-y-1 text-xs">
-														<div class="flex items-center gap-2 flex-wrap">
+													<li class="space-y-1 rounded-lg border border-zinc-800/80 bg-zinc-900/20 p-2 text-xs">
+														<div class="flex flex-wrap items-center gap-2">
 															<span class="text-zinc-500"
 																>{review.submittedAt
 																	? `Sent ${formatTelescreenDate(review.submittedAt)}`
-																	: "Never sent"}</span
-															>
+																	: "Never sent"}</span>
 															{#if review.trustScore != null}
 																<span
 																	class={cn(
-																		"px-1.5 py-0.5 rounded border text-[10px] font-medium",
+																		"rounded border px-1.5 py-0.5 text-[10px] font-medium",
 																		trustBand(review.trustScore)?.chip
-																	)}
-																	>{trustBand(review.trustScore)?.label} · {review.trustScore}/10</span
-																>
+																	)}>{trustBand(review.trustScore)?.label} · {review.trustScore}/10</span>
 															{/if}
 															<span class="text-zinc-400"
-																>{TELESCREEN_CLOSE_LABELS[review.closeReason ?? ""] ?? "Closed"}</span
-															>
+																>{TELESCREEN_CLOSE_LABELS[review.closeReason ?? ""] ?? "Closed"}</span>
 														</div>
 														{#if review.reviewNote}
-															<p class="text-zinc-200 whitespace-pre-wrap wrap-break-word">
+															<p class="wrap-break-word whitespace-pre-wrap text-zinc-200">
 																<span class="text-zinc-500">Fraud reviewer:</span>
 																{review.reviewNote}
 															</p>
 														{/if}
 														{#if review.outcomeStatus}
-															<p class="text-zinc-400 wrap-break-word">
+															<p class="wrap-break-word text-zinc-400">
 																Outcome: <span
-																	class={review.outcomeStatus === "approved"
-																		? "text-emerald-400"
-																		: "text-rose-400"}>{review.outcomeStatus}</span
-																>
+																	class={review.outcomeStatus === "approved" ? "text-emerald-400" : "text-rose-400"}
+																	>{review.outcomeStatus}</span>
 																by {review.outcomeBy ?? "unknown"}{review.outcomeSource === "telescreen"
 																	? " in Telescreen"
 																	: ""}{review.outcomeReason && review.outcomeReason !== review.reviewNote
@@ -1092,7 +939,7 @@
 															</p>
 														{/if}
 														{#if review.overrideBy}
-															<p class="text-rose-300 wrap-break-word">
+															<p class="wrap-break-word text-rose-300">
 																Approved without a Telescreen verdict by {review.overrideBy}: {review.overrideReason}
 															</p>
 														{/if}
@@ -1105,42 +952,39 @@
 										<p class="text-xs text-amber-400">{telescreenGate.message}</p>
 									{/if}
 									{#if currentTelescreen?.lastError}
-										<p class="text-xs text-rose-400 wrap-break-word">
+										<p class="text-xs wrap-break-word text-rose-400">
 											Last Telescreen error: {currentTelescreen.lastError}
 										</p>
 									{/if}
 									<p class="text-[10px] text-zinc-600">
-										Telescreen credits the in-window Hackatime time on these projects once, when it first
-										sees a submission, so on a later review cycle its hours won't match this review's delta.
+										Telescreen credits the in-window Hackatime time on these projects once, when it first sees a
+										submission, so on a later review cycle its hours won't match this review's delta.
 									</p>
 									{#if pending}
 										<div class="space-y-1">
 											<label
 												for="decision-reason"
-												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
-												>Decision reason (sent to Telescreen)</label
-											>
+												class="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase"
+												>Decision reason (sent to Telescreen)</label>
 											<Textarea
 												id="decision-reason"
-												class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+												class="h-16 resize-none rounded-lg border-zinc-800 bg-zinc-950/40 p-2 text-xs focus:border-zinc-700"
 												placeholder="Why you're approving or returning this project. Required to return it. Telescreen organizers see it, the participant doesn't."
 												bind:value={decisionReason}
-												maxlength={5000}
-											/>
+												maxlength={5000} />
 										</div>
 										{#if data.isSuperAdmin && !telescreenGate.ok && telescreenGate.overridable}
-											<div class="space-y-1.5 border border-rose-900/40 rounded-lg p-2">
+											<div class="space-y-1.5 rounded-lg border border-rose-900/40 p-2">
 												<label class="flex items-center gap-2 text-xs text-rose-300">
 													<input type="checkbox" bind:checked={overrideEnabled} />
 													Approve without a Telescreen verdict (super admin, logged)
 												</label>
 												{#if overrideEnabled}
 													<Textarea
-														class="resize-none h-14 bg-zinc-950/40 border-rose-900/30 focus:border-rose-800 text-xs rounded-lg p-2"
+														class="h-14 resize-none rounded-lg border-rose-900/30 bg-zinc-950/40 p-2 text-xs focus:border-rose-800"
 														placeholder="Why this can't wait for Telescreen (at least 20 characters)"
 														bind:value={overrideReason}
-														maxlength={2000}
-													/>
+														maxlength={2000} />
 												{/if}
 											</div>
 										{/if}
@@ -1148,30 +992,26 @@
 								</div>
 							</section>
 							<main
-								class="xl:col-span-2 p-5 grid grid-cols-1 md:grid-cols-2 gap-5 content-start border-b xl:border-b-0 xl:border-r border-zinc-800"
-							>
+								class="grid grid-cols-1 content-start gap-5 border-b border-zinc-800 p-5 md:grid-cols-2 xl:col-span-2 xl:border-r xl:border-b-0">
 								<div class="flex flex-col gap-y-3">
-									<div class="flex flex-col flex-1 max-h-50 h-50 overflow-auto">
+									<div class="flex h-50 max-h-50 flex-1 flex-col overflow-auto">
 										<label
 											for="project-desc"
-											class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5"
-											>Justification</label
-										>
+											class="mb-1.5 text-[11px] font-semibold tracking-wider text-zinc-400 uppercase"
+											>Justification</label>
 										<Textarea
 											id="project-desc"
-											class="resize-none flex-1 w-full bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 rounded-xl text-sm p-3 h-full overflow-auto"
+											class="h-full w-full flex-1 resize-none overflow-auto rounded-xl border-zinc-800 bg-zinc-950/40 p-3 text-sm focus:border-zinc-700"
 											placeholder="Describe in detail, everything technical. What the project does, how many commits, any hours deducted, why deduction of hours, how is the readme, any AI time logged, etc."
 											bind:value={projectDescription}
-											oninput={() => generateFullJustification()}
-										/>
+											oninput={() => generateFullJustification()} />
 									</div>
 
 									<div
-										class="w-full gap-2 rounded-lg flex items-center px-3 py-2 text-[10px] border transition-all duration-200 bg-zinc-950/10
+										class="flex w-full items-center gap-2 rounded-lg border bg-zinc-950/10 px-3 py-2 text-[10px] transition-all duration-200
 									{projectDescriptionLength > 250
-											? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5'
-											: 'text-amber-400 border-amber-500/20 bg-amber-500/5'}"
-									>
+											? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400'
+											: 'border-amber-500/20 bg-amber-500/5 text-amber-400'}">
 										<Info class="h-3.5 w-3.5" />
 										<span>
 											{projectDescriptionLength > 250
@@ -1181,105 +1021,80 @@
 									</div>
 								</div>
 
-								<div class="w-full space-y-4 flex flex-col justify-between">
-									<div class="w-full grid grid-rows-2 gap-y-3">
-										<div class="w-full grid grid-cols-2 gap-3">
-											<div
-												class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-											>
-												<label
-													for="git-commits"
-													class="text-[11px] font-medium text-zinc-400"
-													>Git Commits</label
-												>
+								<div class="flex w-full flex-col justify-between space-y-4">
+									<div class="grid w-full grid-rows-2 gap-y-3">
+										<div class="grid w-full grid-cols-2 gap-3">
+											<div class="space-y-1.5 rounded-xl border border-zinc-800/60 bg-zinc-950/10 p-3">
+												<label for="git-commits" class="text-[11px] font-medium text-zinc-400">Git Commits</label>
 												<Input
 													id="git-commits"
 													type="number"
-													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+													class="h-8 w-full rounded-md border-zinc-800 bg-zinc-950/60 text-sm"
 													placeholder="0"
 													bind:value={gitCommits}
-													oninput={() => generateFullJustification()}
-												/>
+													oninput={() => generateFullJustification()} />
 											</div>
 
-											<div
-												class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-											>
+											<div class="space-y-1.5 rounded-xl border border-zinc-800/60 bg-zinc-950/10 p-3">
 												<label
 													for="override-hours"
-													class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
-												>
+													class="flex items-center justify-between text-[11px] font-medium text-zinc-400">
 													<span>Deduct Hours</span>
-													<span class="text-[9px] text-zinc-600 font-normal"
-														>Optional</span
-													>
+													<span class="text-[9px] font-normal text-zinc-600">Optional</span>
 												</label>
 												<Input
 													id="override-hours"
 													type="number"
 													min="0"
-													class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-sm rounded-md"
+													class="h-8 w-full rounded-md border-zinc-800 bg-zinc-950/60 text-sm"
 													placeholder="0"
 													bind:value={subtraction}
-													oninput={() => generateFullJustification()}
-												/>
+													oninput={() => generateFullJustification()} />
 											</div>
 										</div>
-										<div
-											class="bg-zinc-950/10 border border-zinc-800/60 p-3 rounded-xl space-y-1.5"
-										>
+										<div class="space-y-1.5 rounded-xl border border-zinc-800/60 bg-zinc-950/10 p-3">
 											<label
 												for="time-range"
-												class="text-[11px] font-medium text-zinc-400 flex items-center justify-between"
-											>
+												class="flex items-center justify-between text-[11px] font-medium text-zinc-400">
 												<span>Hackatime Time-range</span>
-												<span class="text-[9px] text-zinc-600 font-normal"
-													>Time-range</span
-												>
+												<span class="text-[9px] font-normal text-zinc-600">Time-range</span>
 											</label>
 											<Input
 												id="time-range"
 												min="0"
-												class="h-8 w-full bg-zinc-950/60 border-zinc-800 text-xs rounded-md"
+												class="h-8 w-full rounded-md border-zinc-800 bg-zinc-950/60 text-xs"
 												placeholder="Date Range"
 												value={range}
-												readonly
-											/>
+												readonly />
 										</div>
 									</div>
 
-									<div class="space-y-3 flex-1 flex flex-col justify-end">
+									<div class="flex flex-1 flex-col justify-end space-y-3">
 										<div class="space-y-1">
 											<label
 												id="changelogs-label"
-												class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider"
-												>Changelog Notes</label
-											>
+												class="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Changelog Notes</label>
 											<Textarea
 												aria-labelledby="changelogs-label"
-												class="resize-none h-16 bg-zinc-950/40 border-zinc-800 focus:border-zinc-700 text-xs rounded-lg p-2"
+												class="h-16 resize-none rounded-lg border-zinc-800 bg-zinc-950/40 p-2 text-xs focus:border-zinc-700"
 												placeholder="What distinct changes were made?..."
 												bind:value={changelogs}
 												oninput={() => generateFullJustification()}
-												disabled={currentProject.update ||
-													currentProject.log.length > 1}
-											/>
+												disabled={currentProject.update || currentProject.log.length > 1} />
 										</div>
 
 										{#if subtraction > 0}
 											<div class="space-y-1">
 												<label
 													id="override-label"
-													class="text-[11px] font-semibold text-amber-500 uppercase tracking-wider"
-													>Deduction Justification</label
-												>
+													class="text-[11px] font-semibold tracking-wider text-amber-500 uppercase"
+													>Deduction Justification</label>
 												<Textarea
 													aria-labelledby="override-label"
-													class="resize-none h-16 bg-zinc-950/40 border-amber-900/30 focus:border-amber-800 text-xs rounded-lg p-2"
+													class="h-16 resize-none rounded-lg border-amber-900/30 bg-zinc-950/40 p-2 text-xs focus:border-amber-800"
 													placeholder="Provide context regarding modifications..."
 													bind:value={reasonForOverride}
-													oninput={() => generateFullJustification()}
-												/>
+													oninput={() => generateFullJustification()} />
 											</div>
 										{/if}
 									</div>
@@ -1295,50 +1110,44 @@
 									1
 								)}
 								<div
-									class="ht-data w-9/10 h-auto py-20 border-2 border-neutral-800rounded-xl flex flex-col items-center pt-4"
-								>
+									class="ht-data border-neutral-800rounded-xl flex h-auto w-9/10 flex-col items-center border-2 py-20 pt-4">
 									<header>
 										Hackatime Project: {currentHackatimeAnalysis.hackatimeProject}
 										({Math.round(totalTime / 360) / 10}h)
 									</header>
 									<div class="ai h-6 w-9/10">
-										<div class="bar h-full w-full flex">
+										<div class="bar flex h-full w-full">
 											<div
-												class="h-full bg-primary flex items-center justify-center text-xs overflow-hidden text-zinc-200"
-												style={`width: ${(currentHackatimeAnalysis.codingSec / totalTime) * 100}%`}
-											>
-												Normal Coding Time: {Math.round(
-													currentHackatimeAnalysis.codingSec / 360
-												) / 10}h/{Math.round(totalTime / 360) / 10}h
+												class="flex h-full items-center justify-center overflow-hidden bg-primary text-xs text-zinc-200"
+												style={`width: ${(currentHackatimeAnalysis.codingSec / totalTime) * 100}%`}>
+												Normal Coding Time: {Math.round(currentHackatimeAnalysis.codingSec / 360) / 10}h/{Math.round(
+													totalTime / 360
+												) / 10}h
 											</div>
 											<div
-												class="h-full bg-[#DE7356] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${(currentHackatimeAnalysis.aiSec / totalTime) * 100}%`}
-											>
-												AI Time: {Math.round(
-													currentHackatimeAnalysis.aiSec / 360
-												) / 10}h/{Math.round(totalTime / 360) / 10}h
+												class="flex h-full items-center justify-center overflow-hidden bg-[#DE7356] text-xs text-zinc-200"
+												style={`width: ${(currentHackatimeAnalysis.aiSec / totalTime) * 100}%`}>
+												AI Time: {Math.round(currentHackatimeAnalysis.aiSec / 360) / 10}h/{Math.round(totalTime / 360) /
+													10}h
 											</div>
 											<div
-												class="h-full bg-[#F5A623] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${(currentHackatimeAnalysis.buildingSec / totalTime) * 100}%`}
-											>
-												Building Time: {Math.round(
-													currentHackatimeAnalysis.buildingSec / 360
-												) / 10}h/{Math.round(totalTime / 360) / 10}h
+												class="flex h-full items-center justify-center overflow-hidden bg-[#F5A623] text-xs text-zinc-200"
+												style={`width: ${(currentHackatimeAnalysis.buildingSec / totalTime) * 100}%`}>
+												Building Time: {Math.round(currentHackatimeAnalysis.buildingSec / 360) / 10}h/{Math.round(
+													totalTime / 360
+												) / 10}h
 											</div>
 											<div
-												class="h-full bg-[#BF0B0B] flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${(currentHackatimeAnalysis.timelapsingSec / totalTime) * 100}%`}
-											>
-												Timelapsing Time: {Math.round(
-													currentHackatimeAnalysis.timelapsingSec / 360
-												) / 10}h/{Math.round(totalTime / 360) / 10}h
+												class="flex h-full items-center justify-center overflow-hidden bg-[#BF0B0B] text-xs text-zinc-200"
+												style={`width: ${(currentHackatimeAnalysis.timelapsingSec / totalTime) * 100}%`}>
+												Timelapsing Time: {Math.round(currentHackatimeAnalysis.timelapsingSec / 360) / 10}h/{Math.round(
+													totalTime / 360
+												) / 10}h
 											</div>
 											<div
-												class="h-full bg-gray-500 flex items-center justify-center text-xs text-zinc-200 overflow-hidden"
-												style={`width: ${(currentHackatimeAnalysis.others / totalTime) * 100}%`}
-											></div>
+												class="flex h-full items-center justify-center overflow-hidden bg-gray-500 text-xs text-zinc-200"
+												style={`width: ${(currentHackatimeAnalysis.others / totalTime) * 100}%`}>
+											</div>
 										</div>
 									</div>
 									<div class="day-summary-chart w-9/10">
@@ -1349,66 +1158,47 @@
 						</div>
 
 						<aside
-							class="xl:col-span-1 min-h-100 bg-zinc-950/10 flex flex-col overflow-hidden h-full border-t xl:border-t-0 border-zinc-800"
-						>
+							class="flex h-full min-h-100 flex-col overflow-hidden border-t border-zinc-800 bg-zinc-950/10 xl:col-span-1 xl:border-t-0">
 							<div
-								class="px-4 py-3 border-b border-zinc-800/60 bg-zinc-950/20 flex items-center justify-between flex-shrink-0"
-							>
-								<h2
-									class="text-[11px] font-semibold text-zinc-400 tracking-wider uppercase"
-								>
-									Previous Logs
-								</h2>
-								<span
-									class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono"
-									>{currentProject.log.length}</span
-								>
+								class="flex flex-shrink-0 items-center justify-between border-b border-zinc-800/60 bg-zinc-950/20 px-4 py-3">
+								<h2 class="text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">Previous Logs</h2>
+								<span class="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[9px] text-zinc-400"
+									>{currentProject.log.length}</span>
 							</div>
 
 							<div
-								class="border border-zinc-800 bg-zinc-950/40 rounded-xl p-4 overflow-y-auto wrap-break-word space-y-3 custom-scrollbar"
-							>
+								class="custom-scrollbar space-y-3 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 wrap-break-word">
 								{#if currentProject.log && currentProject.log.length > 0}
+									<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 									{#each [...currentProject.log].reverse() as entry}
+										<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 										{#each [...entry.message].reverse() as msg, i}
 											<div
 												class="border {msg.reviewerName === 'user'
 													? 'border-l-amber-500'
 													: i === 0 || msg.reviewerName?.includes('APPROVED')
-														? entry.status === 1 ||
-															msg.reviewerName?.includes('APPROVED')
+														? entry.status === 1 || msg.reviewerName?.includes('APPROVED')
 															? 'border-l-emerald-500'
 															: 'border-l-rose-500'
-														: 'border-l-rose-500'} border-zinc-800/80 bg-zinc-900/20 p-3 rounded-lg space-y-2 text-xs"
-											>
+														: 'border-l-rose-500'} space-y-2 rounded-lg border-zinc-800/80 bg-zinc-900/20 p-3 text-xs">
 												<div
-													class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500"
-												>
+													class="flex items-center justify-between border-b border-zinc-900 pb-1.5 text-[11px] text-zinc-500">
 													<span class="font-bold text-zinc-400"
-														>Reviewer: <span class="text-indigo-400 font-mono"
-															>@{msg.reviewerName || "staff"}</span
-														></span
-													>
-													<span>{new Date(msg.timestamp).toLocaleString()}</span
-													>
+														>Reviewer: <span class="font-mono text-indigo-400">@{msg.reviewerName || "staff"}</span
+														></span>
+													<span>{new Date(msg.timestamp).toLocaleString()}</span>
 												</div>
 												{#if msg.userExternal}
-													<p class="text-zinc-300 leading-relaxed">
-														<strong
-															class="text-[10px] uppercase tracking-wider text-zinc-500 block mb-0.5"
-															>Feedback Note:</strong
-														>
+													<p class="leading-relaxed text-zinc-300">
+														<strong class="mb-0.5 block text-[10px] tracking-wider text-zinc-500 uppercase"
+															>Feedback Note:</strong>
 														{msg.userExternal}
 													</p>
 												{/if}
 												{#if msg.internalNote}
-													<p
-														class="text-zinc-500 italic bg-zinc-900/30 p-2 rounded border border-zinc-900/20"
-													>
-														<strong
-															class="text-[10px] uppercase tracking-wider text-zinc-600 block not-italic mb-0.5"
-															>Internal Note:</strong
-														>
+													<p class="rounded border border-zinc-900/20 bg-zinc-900/30 p-2 text-zinc-500 italic">
+														<strong class="mb-0.5 block text-[10px] tracking-wider text-zinc-600 uppercase not-italic"
+															>Internal Note:</strong>
 														{msg.internalNote}
 													</p>
 												{/if}
@@ -1416,70 +1206,58 @@
 										{/each}
 									{/each}
 								{:else}
-									<p class="text-xs italic text-zinc-600 text-center py-4">
-										No cert history
-									</p>
+									<p class="py-4 text-center text-xs text-zinc-600 italic">No cert history</p>
 								{/if}
 							</div>
 						</aside>
 					</div>
 
 					<footer
-						class="w-full px-5 py-3.5 border-t border-zinc-800 bg-zinc-950/40 flex flex-col sm:flex-row justify-end items-center gap-2.5 flex-shrink-0"
-					>
+						class="flex w-full flex-shrink-0 flex-col items-center justify-end gap-2.5 border-t border-zinc-800 bg-zinc-950/40 px-5 py-3.5 sm:flex-row">
 						{#if pending}
 							<Button
-								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 sm:w-auto"
 								onclick={() => {
 									generateFullJustification()
 									justificationOpen = true
-								}}
-							>
+								}}>
 								Preview Justification
 							</Button>
 							<Button
-								class="bg-rose-600 hover:bg-rose-400 text-zinc-300 border border-rose-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								class="w-full rounded-lg border border-rose-700 bg-rose-600 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-rose-400 sm:w-auto"
 								onclick={() => (confirmRejectOpen = true)}
 								disabled={projectDescriptionLength < 20 || loader || decisionReason.trim() === ""}
-								title={decisionReason.trim() === "" ? "Write a decision reason for Telescreen first" : undefined}
-							>
+								title={decisionReason.trim() === "" ? "Write a decision reason for Telescreen first" : undefined}>
 								Return
 							</Button>
 							<Button
-								class="bg-emerald-600 hover:bg-emerald-500 text-primary-foreground w-full sm:w-auto px-5 py-2 text-xs font-medium transition rounded-lg flex items-center justify-center gap-x-2"
+								class="flex w-full items-center justify-center gap-x-2 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-medium text-primary-foreground transition hover:bg-emerald-500 sm:w-auto"
 								onclick={() => (confirmPushOpen = true)}
 								disabled={projectDescriptionLength < 250 || loader || !canPush}
-								title={!canPush ? telescreenGate.message : undefined}
-							>
+								title={!canPush ? telescreenGate.message : undefined}>
 								{#if loader}
-									<div
-										class="border-2 border-emerald-200 border-t-white rounded-full w-3 h-3 animate-spin"
-									></div>
+									<div class="h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-white"></div>
 								{/if}
 								Push to Airtable
 							</Button>
 						{:else}
 							<Button
-								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
-								onclick={loadStoredJustification}
-							>
+								class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 sm:w-auto"
+								onclick={loadStoredJustification}>
 								Stored Justification
 							</Button>
 							<Button
-								class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 w-full sm:w-auto px-4 py-2 text-xs font-medium transition rounded-lg"
+								class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 sm:w-auto"
 								onclick={() => {
 									generateFullJustification({ includePushed: true })
 									justificationOpen = true
-								}}
-							>
+								}}>
 								Regenerate Justification
 							</Button>
 						{/if}
 					</footer>
 				{:else}
-					<div
-						class="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2"
-					>
+					<div class="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="48"
@@ -1492,12 +1270,8 @@
 							stroke-linejoin="round"
 							class="lucide lucide-folder-open text-zinc-700"
 							><path
-								d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"
-							/></svg
-						>
-						<p class="text-xl font-medium tracking-tight">
-							Select a project from the left queue to review
-						</p>
+								d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2" /></svg>
+						<p class="text-xl font-medium tracking-tight">Select a project from the left queue to review</p>
 					</div>
 				{/if}
 			</div>
@@ -1508,37 +1282,28 @@
 <ProjectDetailsDialog bind:open={detailsOpen} project={currentProject} />
 {#if justificationOpen}
 	<Dialog.Root bind:open={justificationOpen}>
-		<Dialog.Content
-			class="min-w-[40vw] h-[50vh] flex flex-col bg-zinc-950 border-zinc-800 text-zinc-100 p-4"
-		>
+		<Dialog.Content class="flex h-[50vh] min-w-[40vw] flex-col border-zinc-800 bg-zinc-950 p-4 text-zinc-100">
 			<Dialog.Header class="shrink-0">
-				<Dialog.Title class="text-xl font-bold text-zinc-100">
-					Generated Justification
-				</Dialog.Title>
-				<Dialog.Description class="text-zinc-400 text-xs">
-					Review the auto-generated justification.
-				</Dialog.Description>
+				<Dialog.Title class="text-xl font-bold text-zinc-100">Generated Justification</Dialog.Title>
+				<Dialog.Description class="text-xs text-zinc-400">Review the auto-generated justification.</Dialog.Description>
 			</Dialog.Header>
 
-			<div class="my-4 flex-1 flex flex-col min-h-0">
+			<div class="my-4 flex min-h-0 flex-1 flex-col">
 				<Textarea
-					class="resize-none overflow-y-auto h-full w-full bg-zinc-900/50 border-zinc-800 text-zinc-300 font-mono text-xs custom-scrollbar p-3 rounded-lg"
-					bind:value={template}
-				/>
+					class="custom-scrollbar h-full w-full resize-none overflow-y-auto rounded-lg border-zinc-800 bg-zinc-900/50 p-3 font-mono text-xs text-zinc-300"
+					bind:value={template} />
 			</div>
-			<div class="flex justify-end gap-2 shrink-0">
+			<div class="flex shrink-0 justify-end gap-2">
 				{#if !pending}
 					<Button
-						class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-4 py-2 text-xs font-medium transition rounded-lg"
-						onclick={() => generateFullJustification({ includePushed: true })}
-					>
+						class="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700"
+						onclick={() => generateFullJustification({ includePushed: true })}>
 						Regenerate
 					</Button>
 				{/if}
 				<Button
-					class="bg-emerald-600 hover:bg-emerald-500 text-primary-foreground px-4 py-2 text-xs font-medium transition rounded-lg"
-					onclick={() => copyToClipboard(template, "Justification")}
-				>
+					class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-primary-foreground transition hover:bg-emerald-500"
+					onclick={() => copyToClipboard(template, "Justification")}>
 					Copy to clipboard
 				</Button>
 			</div>
@@ -1546,22 +1311,14 @@
 	</Dialog.Root>
 {/if}
 {#if confirmRejectOpen}
-	<div
-		class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
-	>
-		<div
-			class="w-96 bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col gap-y-4"
-		>
+	<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
+		<div class="flex w-96 flex-col gap-y-4 rounded-xl border border-zinc-800 bg-zinc-950 p-6">
 			<h2 class="text-lg font-bold text-rose-500">Confirm Rejection</h2>
 			<p class="text-sm text-zinc-400">
-				Are you sure you want to return <strong>{currentProject.name}</strong>?
-				This will notify the user.
+				Are you sure you want to return <strong>{currentProject.name}</strong>? This will notify the user.
 			</p>
 			<div class="flex justify-end gap-2">
-				<Button
-					onclick={() => (confirmRejectOpen = false)}
-					class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs"
-				>
+				<Button onclick={() => (confirmRejectOpen = false)} class="bg-zinc-800 text-xs text-zinc-300 hover:bg-zinc-700">
 					Cancel
 				</Button>
 				<Button
@@ -1569,8 +1326,7 @@
 						confirmRejectOpen = false
 						await rejectT2()
 					}}
-					class="bg-rose-600 hover:bg-rose-500 text-primary-foreground text-xs"
-				>
+					class="bg-rose-600 text-xs text-primary-foreground hover:bg-rose-500">
 					Yes, Return
 				</Button>
 			</div>
@@ -1579,22 +1335,14 @@
 {/if}
 
 {#if confirmPushOpen}
-	<div
-		class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center"
-	>
-		<div
-			class="w-96 bg-zinc-950 border border-zinc-800 rounded-xl p-6 flex flex-col gap-y-4"
-		>
+	<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
+		<div class="flex w-96 flex-col gap-y-4 rounded-xl border border-zinc-800 bg-zinc-950 p-6">
 			<h2 class="text-lg font-bold text-emerald-500">Confirm Push</h2>
 			<p class="text-sm text-zinc-400">
-				Are you ready to submit <strong>{currentProject.name}</strong> to Airtable?
-				This action is final.
+				Are you ready to submit <strong>{currentProject.name}</strong> to Airtable? This action is final.
 			</p>
 			<div class="flex justify-end gap-2">
-				<Button
-					onclick={() => (confirmPushOpen = false)}
-					class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs"
-				>
+				<Button onclick={() => (confirmPushOpen = false)} class="bg-zinc-800 text-xs text-zinc-300 hover:bg-zinc-700">
 					Cancel
 				</Button>
 				<Button
@@ -1602,8 +1350,7 @@
 						confirmPushOpen = false
 						await sendToDatabase()
 					}}
-					class="bg-emerald-600 hover:bg-emerald-500 text-primary-foreground text-xs"
-				>
+					class="bg-emerald-600 text-xs text-primary-foreground hover:bg-emerald-500">
 					Yes, Push
 				</Button>
 			</div>

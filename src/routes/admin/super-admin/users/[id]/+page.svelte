@@ -31,7 +31,7 @@
 			slackId,
 			nda,
 		}
-		let response = fetch("/admin/super-admin/updateAdmin", {
+		const response = fetch("/admin/super-admin/updateAdmin", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -55,16 +55,13 @@
 	}
 </script>
 
-<main
-	class="flex h-full w-full flex-col overflow-hidden text-primary-foreground"
->
+<main class="flex h-full w-full flex-col overflow-hidden text-primary-foreground">
 	<div class="flex-none px-6 pt-8 pb-4">
 		<div class="mb-5 flex items-center justify-between p-2">
 			<div class="flex items-center gap-3">
 				<a
 					href="/admin/super-admin/"
-					class="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:bg-white/10"
-				>
+					class="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:bg-white/10">
 					<ArrowLeft class="size-5" />
 				</a>
 
@@ -74,7 +71,7 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-x-3 justify-between border-l-2 pl-2">
+			<div class="flex items-center justify-between gap-x-3 border-l-2 pl-2">
 				<div>
 					<p class="font-medium">Slack ID</p>
 					<p class="text-sm text-zinc-400">User's Slack ID (Use /se info)</p>
@@ -90,13 +87,9 @@
 		</div>
 	</div>
 
-	<section class="flex-1 min-h-0 px-6 pb-4">
-		<div
-			class=" grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto rounded-xl p-2"
-		>
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+	<section class="min-h-0 flex-1 px-6 pb-4">
+		<div class=" grid grid-cols-2 gap-x-2 gap-y-2 overflow-y-auto rounded-xl p-2">
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">T1 Reviewer</p>
 					<p class="text-sm text-zinc-400">Can review tier 1 submissions</p>
@@ -105,9 +98,7 @@
 				<Switch bind:checked={isReviewer} />
 			</div>
 
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">T2 Reviewer</p>
 					<p class="text-sm text-zinc-400">Can review tier 2 submittions</p>
@@ -116,9 +107,7 @@
 				<Switch bind:checked={isT2Reviewer} />
 			</div>
 
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">Fulfillment</p>
 					<p class="text-sm text-zinc-400">Handles fulfillment</p>
@@ -127,9 +116,7 @@
 				<Switch bind:checked={isFulfiller} />
 			</div>
 
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">Super Admin</p>
 					<p class="text-sm text-zinc-400">Full access</p>
@@ -137,9 +124,7 @@
 
 				<Switch bind:checked={isSuperAdmin} />
 			</div>
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">Shop Manager</p>
 					<p class="text-sm text-zinc-400">Can manage shop items</p>
@@ -147,9 +132,7 @@
 
 				<Switch bind:checked={isShopManager} />
 			</div>
-			<div
-				class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5"
-			>
+			<div class="flex items-center justify-between rounded-2xl px-4 py-3 transition hover:bg-white/5">
 				<div>
 					<p class="font-medium">NDA'ed</p>
 					<p class="text-sm text-zinc-400">Has signed NDA?</p>
@@ -160,17 +143,12 @@
 		</div>
 	</section>
 
-	<div
-		class="flex-none flex justify-start border-t border-white/10 px-8 py-4 bg-zinc-950/10"
-	>
+	<div class="flex flex-none justify-start border-t border-white/10 bg-zinc-950/10 px-8 py-4">
 		<Button
 			class="rounded-xl bg-primary px-6 py-5 text-sm font-semibold text-primary-foreground transition hover:scale-104 hover:opacity-90"
-			onclick={() => handleSaveChanges()}
-		>
+			onclick={() => handleSaveChanges()}>
 			{#if loading}
-				<div
-					class="loader mx-auto h-5 w-5 animate-spin rounded-full border-2 border-gray-400 border-t-white"
-				></div>
+				<div class="loader mx-auto h-5 w-5 animate-spin rounded-full border-2 border-gray-400 border-t-white"></div>
 			{/if}
 			Save Changes
 		</Button>

@@ -1,27 +1,18 @@
 <script lang="ts">
 	import { ArrowUpRight } from "@lucide/svelte"
 	import type { Log } from "$lib/types"
+	import { totalLogMinutes } from "$lib/reviewTools"
 	let { data } = $props()
-	let project = data.project
-	const calculateTotalHours = (log: Log[]) => {
-		return log.reduce((total, entry) => {
-			return total + entry.deltaTime
-		}, 0)
-	}
-	let log = JSON.parse(project.log) as Log[]
+	const project = data.project
+	const log = JSON.parse(project.log) as Log[]
 	log.reverse()
-	let currentReview = $state({
+	const currentReview = $state({
 		message: "",
 		justification: "",
 		internalNote: "",
 		reviewerName: "",
 	})
-	const changeReview = (
-		userExternal: string,
-		justification: string,
-		internalNote: string,
-		reviewerName: string
-	) => {
+	const changeReview = (userExternal: string, justification: string, internalNote: string, reviewerName: string) => {
 		currentReview.message = userExternal
 		currentReview.justification = justification
 		currentReview.internalNote = internalNote
@@ -29,67 +20,52 @@
 	}
 </script>
 
-<div class="center flex items-center justify-center w-screen h-screen">
-	<div
-		class="h-[90vh] border border-zinc-800 rounded-2xl"
-		style="width:90vw;   backdrop-filter: blur(10px);"
-	>
-		<div
-			class="w-full h-[20%] border-b border-zinc-800 flex items-center justify-between px-5"
-		>
-			<div class="project-details py-2 px-3 w-1/3">
+<div class="center flex h-screen w-screen items-center justify-center">
+	<div class="h-[90vh] rounded-2xl border border-zinc-800" style="width:90vw;   backdrop-filter: blur(10px);">
+		<div class="flex h-[20%] w-full items-center justify-between border-b border-zinc-800 px-5">
+			<div class="project-details w-1/3 px-3 py-2">
 				<h1 class="font-alchemize text-[clamp(1.25rem,2.15vw,1.75rem)]">
 					{project.Name}
 				</h1>
-				<h3
-					class="hours font-alchemize text-[clamp(0.5rem,1vw,1rem)] text-neutral-300"
-				>
-					{calculateTotalHours(log)} hour{calculateTotalHours(log) !== 1
-						? "s"
-						: ""}, Update: {project.update ? "Yes" : "No"}
+				<h3 class="hours font-alchemize text-[clamp(0.5rem,1vw,1rem)] text-neutral-300">
+					{totalLogMinutes(log)} hour{totalLogMinutes(log) !== 1 ? "s" : ""}, Update: {project.update ? "Yes" : "No"}
 				</h3>
-				<p
-					class="description text-neutral-500 text-[clamp(0.5rem,1vw,1rem)] text-justify line-clamp-4 overflow-hidden"
-				>
+				<p class="description line-clamp-4 overflow-hidden text-justify text-[clamp(0.5rem,1vw,1rem)] text-neutral-500">
 					{project.description}
 				</p>
 			</div>
 			<img src={project.screenshot} alt="" class="screenshot max-h-9/10" />
 		</div>
 		<div class="flex h-[80%]">
-			<div
-				class="nested-timeLine w-1/2 border flex flex-col px-3 py-3 gap-2 overflow-scroll"
-			>
-				{#each log as entry, j}
+			<div class="nested-timeLine flex w-1/2 flex-col gap-2 overflow-scroll border px-3 py-3">
+				<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
+				{#each log as entry}
+					<!-- eslint-disable-next-line svelte/require-each-key -- log entries and their messages have no id -->
 					{#each [...entry.message].reverse() as message, i}
-						{#if message.reviewerName != "user"}
+						{#if message.reviewerName !== "user"}
 							<button
-								class="nest w text-primary-foreground text-left"
+								class="nest w text-left text-primary-foreground"
 								onclick={() =>
 									changeReview(
 										message.userExternal,
 										message.justification,
 										message.internalNote,
 										message.reviewerName || "unknown reviewer"
-									)}
-							>
+									)}>
 								<div
-									class="t2 bg-zinc-900 h-30 border-l-4 {i === 0
+									class="t2 h-30 border-l-4 bg-zinc-900 {i === 0
 										? entry.status === 1
 											? 'border-l-green-700'
 											: 'border-l-red-700'
-										: 'border-l-red-700'} px-3 relative"
-								>
+										: 'border-l-red-700'} relative px-3">
 									<h2 class="mb-1">{message.userExternal}</h2>
-									<p class="text-sm text-neutral-400 line-clamp-3">
+									<p class="line-clamp-3 text-sm text-neutral-400">
 										{message.justification}
 									</p>
-									<p class="by text-sm text-neutral-400 absolute bottom-2">
+									<p class="by absolute bottom-2 text-sm text-neutral-400">
 										By: {message.reviewerName}
 									</p>
-									<div
-										class="click flex absolute bottom-2 right-5 items-center text-sm"
-									>
+									<div class="click absolute right-5 bottom-2 flex items-center text-sm">
 										<ArrowUpRight class="size-5 opacity-80" />
 										To view
 									</div>
@@ -97,28 +73,23 @@
 							</button>
 						{:else}
 							<button
-								class="nest w text-primary-foreground text-left"
+								class="nest w text-left text-primary-foreground"
 								onclick={() =>
 									changeReview(
 										message.userExternal,
 										message.justification,
 										message.internalNote,
 										message.reviewerName || "unknown reviewer"
-									)}
-							>
-								<div
-									class="t2 w- bg-zinc-900 h-30 border-l-4 border-yellow-700 px-3 relative"
-								>
+									)}>
+								<div class="t2 w- relative h-30 border-l-4 border-yellow-700 bg-zinc-900 px-3">
 									<h2 class="mb-1">Ship By User</h2>
 									<p class="text-sm text-neutral-400">
 										Changelog"{message.userExternal}
 									</p>
-									<p class="by text-sm text-neutral-400 absolute bottom-2">
+									<p class="by absolute bottom-2 text-sm text-neutral-400">
 										By: {message.reviewerName}
 									</p>
-									<div
-										class="click flex absolute bottom-2 right-5 items-center text-sm"
-									>
+									<div class="click absolute right-5 bottom-2 flex items-center text-sm">
 										<ArrowUpRight class="size-5 opacity-80" />
 										To view
 									</div>
@@ -128,19 +99,19 @@
 					{/each}
 				{/each}
 			</div>
-			<div class="moreInfo py-2 px-4">
+			<div class="moreInfo px-4 py-2">
 				User Note
-				<p class="text-sm text-neutral-400 line-clamp-3">
+				<p class="line-clamp-3 text-sm text-neutral-400">
 					{currentReview.message}
 				</p>
 				<br />
 				Internal Note
-				<p class="text-sm text-neutral-400 line-clamp-3">
+				<p class="line-clamp-3 text-sm text-neutral-400">
 					{currentReview.internalNote}
 				</p>
 				<br />
 				Justification
-				<p class="text-sm text-neutral-400 whitespace-pre-line">
+				<p class="text-sm whitespace-pre-line text-neutral-400">
 					{currentReview.justification}
 				</p>
 				<br />

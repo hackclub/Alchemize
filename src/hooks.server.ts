@@ -111,9 +111,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (rule) {
 		const result = consumeRateLimit(`${rule.method} ${rule.path} ${clientKey(event)}`, rule.limit, rule.windowMs)
 		if (!result.allowed) {
-			return withSecurityHeaders(jsonResponse(429, "Too many requests, please slow down and try again shortly", {
-				"Retry-After": String(result.retryAfterSeconds),
-			}))
+			return withSecurityHeaders(
+				jsonResponse(429, "Too many requests, please slow down and try again shortly", {
+					"Retry-After": String(result.retryAfterSeconds),
+				})
+			)
 		}
 	}
 
