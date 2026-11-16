@@ -7,8 +7,11 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "(svelte-kit sync || echo '') && (git config core.hooksPath .githooks || echo '')",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint .",
+		"test": "tsx testing/manualTests/test-hackatimeToken.ts && tsx testing/manualTests/test-projectLog.ts && tsx testing/manualTests/test-referralCode.ts && tsx testing/manualTests/test-shippingWindow.ts && tsx testing/manualTests/test-telescreen.ts",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "node script/drizzleBaseline.mjs && drizzle-kit migrate"

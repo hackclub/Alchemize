@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs the same lint as CI before anything leaves this machine (installed by `npm install`, see "prepare").
+# Fix formatting with `npm run format`. To push anyway in an emergency: git push --no-verify
+npm run lint
