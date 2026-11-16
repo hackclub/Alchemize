@@ -13,7 +13,9 @@ const empty = (status: number) => new Response(null, { status })
 export const POST: RequestHandler = async ({ request }) => {
 	const config = telescreenConfig()
 	if (!config?.webhookSecret || !config.eventSlug) {
-		console.error("Telescreen webhook received but ROBERT_API_KEY, ROBERT_WEBHOOK_SECRET or ROBERT_EVENT_SLUG is not set")
+		console.error(
+			"Telescreen webhook received but ROBERT_API_KEY, ROBERT_WEBHOOK_SECRET or ROBERT_EVENT_SLUG is not set"
+		)
 		return empty(503)
 	}
 	if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) {
@@ -46,11 +48,17 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 	// Signed with our secret but for another event: nothing of ours, and retrying won't change that
 	if (payload.eventId !== config.eventSlug) {
-		console.warn(`Telescreen webhook for event "${String(payload.eventId).slice(0, 64)}" ignored (expected "${config.eventSlug}")`)
+		console.warn(
+			`Telescreen webhook for event "${String(payload.eventId).slice(0, 64)}" ignored (expected "${config.eventSlug}")`
+		)
 		return empty(204)
 	}
 
-	const claim = await claimTelescreenWebhookDelivery(deliveryId, event, isUuid(payload.projectId) ? payload.projectId : null)
+	const claim = await claimTelescreenWebhookDelivery(
+		deliveryId,
+		event,
+		isUuid(payload.projectId) ? payload.projectId : null
+	)
 	if (claim === "processed") {
 		return empty(204)
 	}

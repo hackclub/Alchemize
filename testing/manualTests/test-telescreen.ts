@@ -3,8 +3,19 @@
 // Run: npx tsx testing/manualTests/test-telescreen.ts
 import assert from "node:assert/strict"
 import { createHmac } from "node:crypto"
-import { buildSubmission, isUuid, telescreenConfigFromEnv, verifyWebhookSignature } from "../../src/lib/server/telescreenClient"
-import { applyShip, applyT1Review, applyT2Award, applyT2Reject, latestUnpaidShipTime } from "../../src/lib/server/projectLog"
+import {
+	buildSubmission,
+	isUuid,
+	telescreenConfigFromEnv,
+	verifyWebhookSignature,
+} from "../../src/lib/server/telescreenClient"
+import {
+	applyShip,
+	applyT1Review,
+	applyT2Award,
+	applyT2Reject,
+	latestUnpaidShipTime,
+} from "../../src/lib/server/projectLog"
 import type { Log } from "../../src/lib/types"
 
 let passed = 0
@@ -32,7 +43,10 @@ test("refuses a replayed (old) delivery", () => {
 	assert.equal(verifyWebhookSignature(SECRET, ts, sign(ts, BODY), BODY, NOW), false)
 })
 test("refuses a tampered body", () => {
-	assert.equal(verifyWebhookSignature(SECRET, String(NOW), sign(String(NOW), BODY), BODY.replace("ping", "outcome.set"), NOW), false)
+	assert.equal(
+		verifyWebhookSignature(SECRET, String(NOW), sign(String(NOW), BODY), BODY.replace("ping", "outcome.set"), NOW),
+		false
+	)
 })
 test("refuses a signature made with another secret", () => {
 	assert.equal(verifyWebhookSignature(SECRET, String(NOW), sign(String(NOW), BODY, "whsec_other"), BODY, NOW), false)
@@ -102,7 +116,10 @@ test("config needs a ysws_ key; base URL defaults to telescreen.hackclub.com", (
 	assert.equal(telescreenConfigFromEnv({}), null)
 	assert.equal(telescreenConfigFromEnv({ ROBERT_API_KEY: "sk_wrong" }), null)
 	assert.deepEqual(telescreenConfigFromEnv({ ROBERT_API_KEY: "ysws_abc", ROBERT_EVENT_SLUG: "alchemize" }), {
-		baseUrl: "https://telescreen.hackclub.com", apiKey: "ysws_abc", webhookSecret: "", eventSlug: "alchemize",
+		baseUrl: "https://telescreen.hackclub.com",
+		apiKey: "ysws_abc",
+		webhookSecret: "",
+		eventSlug: "alchemize",
 	})
 })
 
@@ -139,7 +156,10 @@ test("a reship after a rejection folds into the same entry and counts from the n
 test("Telescreen rejection keeps the participant text generic and labels it for reviewers", () => {
 	let log: Log[] = applyShip([], 120, "first", at("2026-10-01T10:00:00Z"))
 	log = applyT1Review(log, 0, "accept", review, at("2026-10-02T10:00:00Z"))
-	const rejected = applyT2Reject(log, "generic", at("2026-10-03T10:00:00Z"), { internalNote: "Rejected by Telescreen fraud review (trust score 3)", reviewerName: "Telescreen" })
+	const rejected = applyT2Reject(log, "generic", at("2026-10-03T10:00:00Z"), {
+		internalNote: "Rejected by Telescreen fraud review (trust score 3)",
+		reviewerName: "Telescreen",
+	})
 	const message = rejected.at(-1)!.message.at(-1)!
 	assert.equal(rejected.at(-1)!.status, 2)
 	assert.equal(message.reviewerName, "Telescreen")

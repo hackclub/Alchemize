@@ -8,9 +8,7 @@
 	let searchQuery = $state("")
 
 	let filteredUsers = $derived(
-		data.userData.filter((user: any) =>
-			user.fields?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-		)
+		data.userData.filter((user: any) => user.fields?.email?.toLowerCase().includes(searchQuery.toLowerCase()))
 	)
 </script>
 
@@ -20,36 +18,25 @@
 	<meta property="og:title" content="Alchemize | Super Admin" />
 </svelte:head>
 
-<main class="w-full h-full p-5 flex items-center justify-center gap-x-5">
-	<div
-		class="h-full w-full flex flex-col items-start justify-start overflow-y-scroll"
-	>
-		<div class="flex items-center gap-x-4 p-2 w-full mb-6 sticky">
-			<Input
-				placeholder="Search users using email...."
-				bind:value={searchQuery}
-			/>
+<main class="flex h-full w-full items-center justify-center gap-x-5 p-5">
+	<div class="flex h-full w-full flex-col items-start justify-start overflow-y-scroll">
+		<div class="sticky mb-6 flex w-full items-center gap-x-4 p-2">
+			<Input placeholder="Search users using email...." bind:value={searchQuery} />
 		</div>
 
 		{#each filteredUsers as user}
-			<div
-				class="users-list w-full flex flex-col items-center justify-start gap-y-2 list-none p-2"
-			>
-				<li
-					class="w-full py-1 bg-background/40 rounded-xl border-2 p-2 flex items-center justify-between"
-				>
+			<div class="users-list flex w-full list-none flex-col items-center justify-start gap-y-2 p-2">
+				<li class="flex w-full items-center justify-between rounded-xl border-2 bg-background/40 p-2 py-1">
 					<p class="font-alchemize">{user.fields.email}</p>
 					<a href={`/admin/super-admin/users/${user.fields.email}`}>
-						<Button class="bg-primary border border-muted hover:scale-104">
-							View user
-						</Button>
+						<Button class="border border-muted bg-primary hover:scale-104">View user</Button>
 					</a>
 				</li>
 			</div>
 		{/each}
 
 		{#if filteredUsers.length === 0}
-			<p class="text-muted-foreground text-sm p-4 text-center w-full">
+			<p class="w-full p-4 text-center text-sm text-muted-foreground">
 				No users found matching "{searchQuery}"
 			</p>
 		{/if}

@@ -17,11 +17,7 @@ import { isProjectType } from "$lib/projectTypes"
 import { checkImageUpload } from "$lib/server/uploads"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
 import { getIdvStatus } from "$lib/server/idv"
-import type {
-	AirtableProject,
-	AirtableProjectWithPII,
-	UserAuthToken,
-} from "$lib/types"
+import type { AirtableProject, AirtableProjectWithPII, UserAuthToken } from "$lib/types"
 import { fail, redirect } from "@sveltejs/kit"
 import { requireUserApi, requireUserPage } from "$lib/server/auth"
 async function uploadScreenshot(file: File | null): Promise<string> {
@@ -42,9 +38,7 @@ async function uploadScreenshot(file: File | null): Promise<string> {
 		const errorData = await response.json()
 
 		const errorCode = errorData.error?.type ?? "UNKNOWN_ERROR"
-		const errorText =
-			errorData.error?.message ??
-			"An error occurred while uploading the screenshot"
+		const errorText = errorData.error?.message ?? "An error occurred while uploading the screenshot"
 
 		console.error("CDN upload failed:", {
 			status: response.status,
@@ -105,10 +99,7 @@ export const actions = {
 				return fail(400, { message: hackatimeConflictMessage(conflicts) })
 			}
 		}
-		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot.file),
-			uploadScreenshot(screenshot2.file),
-		])
+		const [url, url2] = await Promise.all([uploadScreenshot(screenshot.file), uploadScreenshot(screenshot2.file)])
 		const response = await createProject({
 			Name: projectName,
 			description: projectDescription ?? "",
@@ -171,7 +162,10 @@ export const actions = {
 			return fail(404, { message: "Project not found" })
 		}
 		if (isInReview(current.status)) {
-			return fail(409, { message: "This project is being reviewed, so it can't be edited right now. You can edit it again once the review is done." })
+			return fail(409, {
+				message:
+					"This project is being reviewed, so it can't be edited right now. You can edit it again once the review is done.",
+			})
 		}
 		if (hackatimeProject && hackatimeProject !== current.hackatime) {
 			if (current.log !== "") {
@@ -183,10 +177,7 @@ export const actions = {
 			}
 		}
 
-		const [url, url2] = await Promise.all([
-			uploadScreenshot(screenshot.file),
-			uploadScreenshot(screenshot2.file),
-		])
+		const [url, url2] = await Promise.all([uploadScreenshot(screenshot.file), uploadScreenshot(screenshot2.file)])
 		const response = await updateProject(
 			recordId,
 			{
@@ -206,9 +197,10 @@ export const actions = {
 
 		if (!response.ok) {
 			// 409: the project entered review (or was shipped) between the checks above and the write
-			const message = response.status === 409
-				? "This project changed while you were editing it (it may have been shipped). Please refresh and try again."
-				: "Project update failed. Please notify TheUtkarsh8939 on Slack"
+			const message =
+				response.status === 409
+					? "This project changed while you were editing it (it may have been shipped). Please refresh and try again."
+					: "Project update failed. Please notify TheUtkarsh8939 on Slack"
 			console.error("Project update failed:", { status: response.status, timestamp: new Date().toISOString() })
 			return fail(response.status === 409 ? 409 : 500, { message })
 		}

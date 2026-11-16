@@ -62,113 +62,87 @@
 </svelte:head>
 
 <main
-	class="h-screen w-full text-foreground p-4 md:p-10 font-mono tracking-wide selection:bg-primary selection:text-admin-foreground relative overflow-hidden flex flex-col"
->
-	<div class="fixed inset-0 bg-black/20 z-0 pointer-events-none"></div>
+	class="selection:text-admin-foreground relative flex h-screen w-full flex-col overflow-hidden p-4 font-mono tracking-wide text-foreground selection:bg-primary md:p-10">
+	<div class="pointer-events-none fixed inset-0 z-0 bg-black/20"></div>
 
-	<div class="relative z-10 w-full h-full flex flex-col gap-6 min-h-0">
+	<div class="relative z-10 flex h-full min-h-0 w-full flex-col gap-6">
 		<div
-			class="flex flex-col lg:flex-row gap-4 items-center justify-between border-b-2 border-primary/40 pb-4 w-full shrink-0 pr-10"
-		>
+			class="flex w-full shrink-0 flex-col items-center justify-between gap-4 border-b-2 border-primary/40 pr-10 pb-4 lg:flex-row">
 			<div class="flex items-center gap-3">
 				<ShoppingBag class="h-4 w-4 animate-pulse text-primary" />
 				<h1
-					class="text-2xl font-alchemize font-black uppercase tracking-wider text-primary [text-shadow:0_2px_10px_rgba(var(--primary),0.2)]"
-				>
+					class="font-alchemize text-2xl font-black tracking-wider text-primary uppercase [text-shadow:0_2px_10px_rgba(var(--primary),0.2)]">
 					Manage Shop
 				</h1>
 			</div>
 			<Button
-				class="bg-primary text-primary rounded-sm font-bold hover:bg-primary/70"
-				onclick={() => (openCreateItem = true)}
-			>
+				class="rounded-sm bg-primary font-bold text-primary hover:bg-primary/70"
+				onclick={() => (openCreateItem = true)}>
 				<Plus />
 				Add Item
 			</Button>
 		</div>
 
 		<div class="relative w-full shrink-0">
-			<Search
-				class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/60"
-			/>
+			<Search class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-primary/60" />
 			<Input
 				type="text"
 				placeholder="SEARCH SHOP BY NAME OR DESCRIPTION..."
 				bind:value={searchQuery}
-				class="pl-10 uppercase text-xs tracking-widest h-10 border-2 border-primary/40 bg-black/80 rounded-none text-primary-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary placeholder:text-zinc-600 font-mono"
-			/>
+				class="h-10 rounded-none border-2 border-primary/40 bg-black/80 pl-10 font-mono text-xs tracking-widest text-primary-foreground uppercase placeholder:text-zinc-600 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary" />
 		</div>
 
 		<div
-			class="hidden md:grid grid-cols-12 gap-4 px-4 py-1 border-b border-primary/20 text-sm font-bold uppercase text-primary tracking-wider shrink-0"
-		>
+			class="hidden shrink-0 grid-cols-12 gap-4 border-b border-primary/20 px-4 py-1 text-sm font-bold tracking-wider text-primary uppercase md:grid">
 			<div class="col-span-1">Item</div>
 			<div class="col-span-5">Details</div>
 			<div class="col-span-3 text-right">Cost</div>
 			<div class="col-span-3 text-right">Actions</div>
 		</div>
 
-		<div
-			class="flex flex-col gap-4 overflow-y-auto overflow-x-hidden flex-1 pb-6 pr-2"
-		>
+		<div class="flex flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto pr-2 pb-6">
 			{#each filteredItems as item (item.itemID)}
-				<div class="relative group w-full shrink-0">
+				<div class="group relative w-full shrink-0">
 					<div
-						class="absolute inset-0 bg-primary/80 translate-x-1 translate-y-1 rounded-sm transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5"
-					></div>
+						class="absolute inset-0 translate-x-1 translate-y-1 rounded-sm bg-primary/80 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5">
+					</div>
 
 					<div
-						class="relative w-full grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-black/95 border-2 border-primary/90 rounded-sm p-3 transition-transform hover:-translate-x-px hover:-translate-y-px"
-					>
+						class="relative grid w-full grid-cols-1 items-center gap-4 rounded-sm border-2 border-primary/90 bg-black/95 p-3 transition-transform hover:-translate-x-px hover:-translate-y-px md:grid-cols-12">
 						<div class="col-span-1 flex justify-center md:justify-start">
-							<div
-								class="w-16 h-16 bg-zinc-950 border border-zinc-800 rounded-none overflow-hidden shrink-0 relative"
-							>
+							<div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-none border border-zinc-800 bg-zinc-950">
 								<img
 									src={item.image}
 									alt={item.name}
-									class="w-full h-full object-contain scale-100 group-hover:scale-[1.05] transition-transform duration-300"
-								/>
-								<div
-									class="absolute inset-0 bg-linear-to-t from-black/40 to-transparent"
-								></div>
+									class="h-full w-full scale-100 object-contain transition-transform duration-300 group-hover:scale-[1.05]" />
+								<div class="absolute inset-0 bg-linear-to-t from-black/40 to-transparent"></div>
 							</div>
 						</div>
 
-						<div class="col-span-1 md:col-span-5 flex flex-col gap-1 min-w-0">
-							<h2
-								class="text-sm font-black uppercase text-primary-foreground tracking-tight font-alchemize"
-							>
+						<div class="col-span-1 flex min-w-0 flex-col gap-1 md:col-span-5">
+							<h2 class="font-alchemize text-sm font-black tracking-tight text-primary-foreground uppercase">
 								{item.name}
 							</h2>
-							<p
-								class="text-zinc-400 text-[11px] leading-snug font-mono tracking-normal line-clamp-2 md:line-clamp-1"
-							>
+							<p class="line-clamp-2 font-mono text-[11px] leading-snug tracking-normal text-zinc-400 md:line-clamp-1">
 								{item.description}
 							</p>
 						</div>
 
 						<div
-							class="col-span-1 md:col-span-3 flex flex-row md:flex-col justify-between md:justify-center md:items-end text-[11px]"
-						>
-							<span class="md:hidden text-zinc-500 uppercase font-bold"
-								>Cost:</span
-							>
-							<span class="text-primary font-bold tracking-wider">
+							class="col-span-1 flex flex-row justify-between text-[11px] md:col-span-3 md:flex-col md:items-end md:justify-center">
+							<span class="font-bold text-zinc-500 uppercase md:hidden">Cost:</span>
+							<span class="font-bold tracking-wider text-primary">
 								{formatAqua(item.priceHundredths)}
 							</span>
 						</div>
 
-						<div
-							class="col-span-1 md:col-span-3 flex justify-end w-full pt-2 md:pt-0"
-						>
+						<div class="col-span-1 flex w-full justify-end pt-2 md:col-span-3 md:pt-0">
 							<Button
-								class="w-full md:w-32 py-3 h-8 border border-primary bg-background text-primary hover:text-black hover:bg-primary  font-bold tracking-wider uppercase rounded-none transition-all duration-100 shadow-[2px_2px_0px_0px_rgba(var(--primary),0.4)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none text-[10px]"
+								class="h-8 w-full rounded-none border border-primary bg-background py-3 text-[10px] font-bold tracking-wider  text-primary uppercase shadow-[2px_2px_0px_0px_rgba(var(--primary),0.4)] transition-all duration-100 hover:bg-primary hover:text-black active:translate-x-0.5 active:translate-y-0.5 active:shadow-none md:w-32"
 								onclick={() => {
 									selectedItem = item
 									openEditItem = true
-								}}
-							>
+								}}>
 								Edit
 							</Button>
 						</div>
@@ -176,23 +150,12 @@
 				</div>
 			{:else}
 				<div
-					class="text-center py-12 border-2 border-dashed border-zinc-800 text-zinc-500 uppercase text-xs tracking-widest"
-				>
+					class="border-2 border-dashed border-zinc-800 py-12 text-center text-xs tracking-widest text-zinc-500 uppercase">
 					No items matching your current search.
 				</div>
 			{/each}
 		</div>
 	</div>
 </main>
-<ShopDialog
-	bind:open={openCreateItem}
-	mode="create"
-	shopItem={null}
-	{invalidater}
-/>
-<ShopDialog
-	bind:open={openEditItem}
-	mode="update"
-	shopItem={selectedItem}
-	{invalidater}
-/>
+<ShopDialog bind:open={openCreateItem} mode="create" shopItem={null} {invalidater} />
+<ShopDialog bind:open={openEditItem} mode="update" shopItem={selectedItem} {invalidater} />

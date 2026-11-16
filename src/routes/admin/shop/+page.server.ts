@@ -1,118 +1,121 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from "./$types"
 import type { Item } from "$lib/types"
 import { unitsToHundredths } from "$lib/currency"
-import { deleteShopItem, fetchAllItems, upsertShopItem } from '$lib/db';
-import { error } from '@sveltejs/kit';
-import { BOT_AUTH } from '$env/static/private';
-import { requireAdminApi, requireAdminPage } from '$lib/server/auth';
-import { checkImageUpload } from '$lib/server/uploads';
+import { deleteShopItem, fetchAllItems, upsertShopItem } from "$lib/db"
+import { error } from "@sveltejs/kit"
+import { BOT_AUTH } from "$env/static/private"
+import { requireAdminApi, requireAdminPage } from "$lib/server/auth"
+import { checkImageUpload } from "$lib/server/uploads"
 export const actions = {
-    upsert: async (event) => {
-        requireAdminApi(event.locals, "shop_manager");
-        //Fetch all the form data
-        const formData = await event.request.formData();
-        let itemID = formData.get('itemID') as string | null;
-        const name = formData.get('name') as string;
-        const description = formData.get('description') as string;
-        // Price is entered in Aqua Regia (up to two decimals) and stored in hundredths
-        const priceHundredths = unitsToHundredths(Number(formData.get('itemPrice')));
-        const cdnImage = formData.get('cdnImage') as string;
-        const imageCheck = await checkImageUpload(formData.get('img'), 'Item image');
-        if (!imageCheck.ok) {
-            return error(400, imageCheck.message);
-        }
-        const img = imageCheck.file;
-        if (!name || !description) {
-            return error(400, "Bad Request");
-        }
-        if (priceHundredths === null || priceHundredths <= 0) {
-            return error(400, "Price must be a positive amount of Aqua Regia");
-        }
-        if (!itemID) {
-            itemID = null;
-        }
-        let cdnLink = cdnImage;
-        if (img) {
-            const tempFormData = new FormData();
-            tempFormData.append('file', img);
+	upsert: async event => {
+		requireAdminApi(event.locals, "shop_manager")
+		//Fetch all the form data
+		const formData = await event.request.formData()
+		let itemID = formData.get("itemID") as string | null
+		const name = formData.get("name") as string
+		const description = formData.get("description") as string
+		// Price is entered in Aqua Regia (up to two decimals) and stored in hundredths
+		const priceHundredths = unitsToHundredths(Number(formData.get("itemPrice")))
+		const cdnImage = formData.get("cdnImage") as string
+		const imageCheck = await checkImageUpload(formData.get("img"), "Item image")
+		if (!imageCheck.ok) {
+			return error(400, imageCheck.message)
+		}
+		const img = imageCheck.file
+		if (!name || !description) {
+			return error(400, "Bad Request")
+		}
+		if (priceHundredths === null || priceHundredths <= 0) {
+			return error(400, "Price must be a positive amount of Aqua Regia")
+		}
+		if (!itemID) {
+			itemID = null
+		}
+		let cdnLink = cdnImage
+		if (img) {
+			const tempFormData = new FormData()
+			tempFormData.append("file", img)
 
-            const cdnResponse = await fetch('https://notifications.alchemize.hackclub.com/cdn/upload', {
-                method: 'POST',
-                headers: { 'Authorization': "Bearer " + BOT_AUTH },
-                body: tempFormData
-            });
-            if (!cdnResponse.ok) {
-                const errorData = await cdnResponse.json();
-                const errorCode = errorData.error?.type || 'UNKNOWN_ERROR';
-                const errorText = errorData.error?.message || 'An error occurred while uploading the image';
-                console.error('CDN upload failed:', {
-                    status: cdnResponse.status,
-                    errorCode,
-                    errorText,
-                    timestamp: new Date().toISOString()
-                });
-                throw new Error(`Image upload failed: ${errorText}. Please notify Aoishik on slack with the error code: ${errorCode}`);
-            }
-            const { url } = await cdnResponse.json();
-            cdnLink = url;
-        }
-        const upsertResponse = await upsertShopItem({
-            name,
-            description,
-            priceHundredths,
-            cdnImage: cdnLink,
+			const cdnResponse = await fetch("https://notifications.alchemize.hackclub.com/cdn/upload", {
+				method: "POST",
+				headers: { Authorization: "Bearer " + BOT_AUTH },
+				body: tempFormData,
+			})
+			if (!cdnResponse.ok) {
+				const errorData = await cdnResponse.json()
+				const errorCode = errorData.error?.type || "UNKNOWN_ERROR"
+				const errorText = errorData.error?.message || "An error occurred while uploading the image"
+				console.error("CDN upload failed:", {
+					status: cdnResponse.status,
+					errorCode,
+					errorText,
+					timestamp: new Date().toISOString(),
+				})
+				throw new Error(
+					`Image upload failed: ${errorText}. Please notify Aoishik on slack with the error code: ${errorCode}`
+				)
+			}
+			const { url } = await cdnResponse.json()
+			cdnLink = url
+		}
+		const upsertResponse = await upsertShopItem(
+			{
+				name,
+				description,
+				priceHundredths,
+				cdnImage: cdnLink,
+			},
+			itemID
+		)
+		if (upsertResponse.ok) {
+			return {
+				success: true,
+				message: "Item upserted successfully",
+			}
+		} else {
+			const errorText = await upsertResponse.text()
+			console.error("Error upserting item:", errorText)
+			return error(500, "Internal Server Error: " + errorText)
+		}
+	},
+	delete: async event => {
+		requireAdminApi(event.locals, "shop_manager")
+		//Fetch all the form data
+		const formData = await event.request.formData()
+		let itemID = formData.get("itemID") as string | null
+		if (!itemID) {
+			return error(400, "Bad Request: Missing itemID")
+		}
 
-        }, itemID)
-        if (upsertResponse.ok) {
-            return {
-                success: true,
-                message: "Item upserted successfully"
-            }
-        } else {
-            const errorText = await upsertResponse.text();
-            console.error("Error upserting item:", errorText);
-            return error(500, "Internal Server Error: " + errorText);
-        }
-    },
-    delete: async (event) => {
-        requireAdminApi(event.locals, "shop_manager");
-        //Fetch all the form data
-        const formData = await event.request.formData();
-        let itemID = formData.get('itemID') as string | null;
-        if (!itemID) {
-            return error(400, "Bad Request: Missing itemID");
-        }
-
-        const deleteResponse = await deleteShopItem(itemID);
-        if (!deleteResponse.ok) {
-            const errorText = await deleteResponse.text();
-            console.error("Error deleting item:", errorText);
-            return error(404, "Item not found: " + errorText);
-        }
-        return {
-            success: true,
-            message: "Item deleted successfully"
-        }
-    }
+		const deleteResponse = await deleteShopItem(itemID)
+		if (!deleteResponse.ok) {
+			const errorText = await deleteResponse.text()
+			console.error("Error deleting item:", errorText)
+			return error(404, "Item not found: " + errorText)
+		}
+		return {
+			success: true,
+			message: "Item deleted successfully",
+		}
+	},
 }
 
 export const load: PageServerLoad = async ({ locals }) => {
-    requireAdminPage(locals, "shop_manager");
-    const itemsResponse = await fetchAllItems();
-    if (!itemsResponse.ok) {
-        throw new Error("Failed to fetch items from the database");
-    }
-    const itemsData = await itemsResponse.json();
-    const items: Item[] = itemsData.records.map((record: any) => ({
-        itemID: record.id,
-        name: record.fields.name,
-        description: record.fields.description,
-        priceHundredths: record.fields.priceHundredths,
-        cdnImage: record.fields.cdnImage,
-    }));
+	requireAdminPage(locals, "shop_manager")
+	const itemsResponse = await fetchAllItems()
+	if (!itemsResponse.ok) {
+		throw new Error("Failed to fetch items from the database")
+	}
+	const itemsData = await itemsResponse.json()
+	const items: Item[] = itemsData.records.map((record: any) => ({
+		itemID: record.id,
+		name: record.fields.name,
+		description: record.fields.description,
+		priceHundredths: record.fields.priceHundredths,
+		cdnImage: record.fields.cdnImage,
+	}))
 
-    return {
-        items,
-
-    }
+	return {
+		items,
+	}
 }

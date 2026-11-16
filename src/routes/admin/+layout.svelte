@@ -49,20 +49,11 @@
 
 	const onPointerMove = (event: PointerEvent) => {
 		if (!isDragging) return
-		if (
-			Math.abs(event.clientX - buttonX - dragOffsetX) > 2 ||
-			Math.abs(event.clientY - buttonY - dragOffsetY) > 2
-		) {
+		if (Math.abs(event.clientX - buttonX - dragOffsetX) > 2 || Math.abs(event.clientY - buttonY - dragOffsetY) > 2) {
 			hasDragged = true
 		}
-		buttonX = Math.max(
-			10,
-			Math.min(window.innerWidth - 70, event.clientX - dragOffsetX)
-		)
-		buttonY = Math.max(
-			10,
-			Math.min(window.innerHeight - 70, event.clientY - dragOffsetY)
-		)
+		buttonX = Math.max(10, Math.min(window.innerWidth - 70, event.clientX - dragOffsetX))
+		buttonY = Math.max(10, Math.min(window.innerHeight - 70, event.clientY - dragOffsetY))
 	}
 
 	const onPointerUp = (event: PointerEvent) => {
@@ -101,8 +92,7 @@
 		--secondary-foreground: {adminText};
 		--muted-foreground: {adminText};
 		--border: {adminPrimary};
-	"
->
+	">
 	{@render children()}
 </div>
 
@@ -110,14 +100,10 @@
 	<Adminnav admin={data.admin} />
 {/if}
 {#if $navigating || $loaderStore}
-	<div
-		class="fixed inset-0 bg-black/70 flex items-center justify-center z-80 backdrop-blur-none"
-	>
+	<div class="fixed inset-0 z-80 flex items-center justify-center bg-black/70 backdrop-blur-none">
 		<div class="flex flex-col items-center gap-4">
-			<div
-				class="w-12 h-12 border-4 border-gray-600 border-t-primary rounded-full animate-spin"
-			></div>
-			<p class="text-primary-foreground text-lg">Loading...</p>
+			<div class="h-12 w-12 animate-spin rounded-full border-4 border-gray-600 border-t-primary"></div>
+			<p class="text-lg text-primary-foreground">Loading...</p>
 		</div>
 	</div>
 {/if}

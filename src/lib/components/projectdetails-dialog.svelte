@@ -21,8 +21,7 @@
 			submittedBy: "coolcream",
 			type: "software",
 			category: "Tribute",
-			description:
-				"This is a demo project description. Soon this will be dynamic.",
+			description: "This is a demo project description. Soon this will be dynamic.",
 			screenshot: "/path/to/screenshot.jpg",
 			screenshot2: "/path/to/screenshot2.jpg",
 		},
@@ -35,9 +34,7 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="min-w-[60vw]">
 		<Dialog.Header>
-			<Dialog.Title class="text-2xl font-bold text-primary"
-				>{project.name} ({project.hours}hrs)</Dialog.Title
-			>
+			<Dialog.Title class="text-2xl font-bold text-primary">{project.name} ({project.hours}hrs)</Dialog.Title>
 
 			<Dialog.Description class="text-muted-foreground">
 				{project.submittedBy} • {project.type} • {project.category}
@@ -47,24 +44,14 @@
 		<div class="space-y-4 py-2">
 			<div>
 				<h2 class="font-semibold text-primary">Description</h2>
-				<p
-					class="text-muted-foreground max-w-[54vw] overflow-hidden wrap-break-word"
-				>
+				<p class="max-w-[54vw] overflow-hidden wrap-break-word text-muted-foreground">
 					{project.description}
 				</p>
 			</div>
 		</div>
 		<div class="screenshots flex w-[60vw] gap-4">
-			<img
-				src={project.screenshot}
-				alt=""
-				class="w-[45%] object-contain h-auto rounded-xl border-primary border-2"
-			/>
-			<img
-				src={project.screenshot2}
-				alt=""
-				class="w-[45%] object-contain h-auto rounded-xl border-primary border-2"
-			/>
+			<img src={project.screenshot} alt="" class="h-auto w-[45%] rounded-xl border-2 border-primary object-contain" />
+			<img src={project.screenshot2} alt="" class="h-auto w-[45%] rounded-xl border-2 border-primary object-contain" />
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

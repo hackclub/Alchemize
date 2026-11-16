@@ -1,12 +1,5 @@
 <script lang="ts">
-	import {
-		Home,
-		LockKeyhole,
-		Package,
-		Star,
-		UserStar,
-		ShoppingBag,
-	} from "lucide-svelte"
+	import { Home, LockKeyhole, Package, Star, UserStar, ShoppingBag } from "lucide-svelte"
 
 	const { data } = $props()
 
@@ -55,32 +48,22 @@
 	<meta property="og:title" content="Alchemize | Admin" />
 </svelte:head>
 
-<div
-	class="admin-cont flex h-screen w-screen items-center justify-center flex-col gap-y-2"
->
+<div class="admin-cont flex h-screen w-screen flex-col items-center justify-center gap-y-2">
 	<button
 		onclick={() => {
 			window.location.href = "/dashboard"
 		}}
-		class="bg-transparent p-2 text-sm text-[var(--primary-foreground)] hover:scale-103 hover:bg-[color:var(--primary)]/10 hover:-translate-y-px border-2 border-[color:var(--primary)] hover:border-[color:var(--primary)] flex items-center just-center flex-col rounded-xl transition absolute top-5 left-5 group"
-	>
+		class="just-center group absolute top-5 left-5 flex flex-col items-center rounded-xl border-2 border-[color:var(--primary)] bg-transparent p-2 text-sm text-[var(--primary-foreground)] transition hover:-translate-y-px hover:scale-103 hover:border-[color:var(--primary)] hover:bg-[color:var(--primary)]/10">
 		<Home class="h-5 w-5 group-hover:text-[var(--primary-foreground)]" />
 	</button>
 	<img src="/pmix_v2.png" alt="alchemize" class="h-35" />
-	<h1 class="text-5xl text-[var(--primary)] font-alchemize font-bold">
-		Alchemize Admin
-	</h1>
-	<h1 class="text-xl text-[var(--primary-foreground)] font-alchemize font-medium">
+	<h1 class="font-alchemize text-5xl font-bold text-[var(--primary)]">Alchemize Admin</h1>
+	<h1 class="font-alchemize text-xl font-medium text-[var(--primary-foreground)]">
 		Where would you like to go today, {data.name || "Admin"}?
 	</h1>
-	<nav
-		class="grid grid-cols-5 items-center justify-center gap-10 mt-5 w-[75%] px-10"
-	>
+	<nav class="mt-5 grid w-[75%] grid-cols-5 items-center justify-center gap-10 px-10">
 		{#each visibleButtons as button}
-			<button
-				onclick={() => (window.location.href = button.href)}
-				class={buttonClass}
-			>
+			<button onclick={() => (window.location.href = button.href)} class={buttonClass}>
 				<button.icon class="h-10 w-10" />
 				{button.label}
 			</button>

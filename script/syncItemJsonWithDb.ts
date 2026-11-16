@@ -142,50 +142,48 @@ const itemJson = `[
 ]
 `
 interface Item {
-    id: string
-    name: string
-    description: string
-    cdnImage: string
-    priceHundredths: number
+	id: string
+	name: string
+	description: string
+	cdnImage: string
+	priceHundredths: number
 }
-import {uuid, varchar, jsonb, integer, pgTable} from "drizzle-orm/pg-core"
-import {Pool} from "pg"
-import {drizzle} from "drizzle-orm/node-postgres"
+import { uuid, varchar, jsonb, integer, pgTable } from "drizzle-orm/pg-core"
+import { Pool } from "pg"
+import { drizzle } from "drizzle-orm/node-postgres"
 import dotenv from "dotenv"
 dotenv.config({
-    path: ".env.production"
+	path: ".env.production",
 })
 const DATABASE_URL = process.env.DATABASE_URL || ""
 export const shopItemsTable = pgTable("shop_items", {
-    itemID: uuid().primaryKey().defaultRandom(),
-    name: varchar({ length: 255 }).notNull(),
-    description: varchar({ length: 1000 }).notNull(),
-    // Legacy multi-currency price, mirrored from src/lib/db.ts; no longer written
-    itemPrice: jsonb().notNull().default({}),
-    // Aqua Regia price in hundredths of a unit (see src/lib/currency.ts)
-    priceHundredths: integer().notNull().default(0),
-    cdnImage: varchar({ length: 1000 }).notNull(),
-    priority: integer().notNull().default(0),
+	itemID: uuid().primaryKey().defaultRandom(),
+	name: varchar({ length: 255 }).notNull(),
+	description: varchar({ length: 1000 }).notNull(),
+	// Legacy multi-currency price, mirrored from src/lib/db.ts; no longer written
+	itemPrice: jsonb().notNull().default({}),
+	// Aqua Regia price in hundredths of a unit (see src/lib/currency.ts)
+	priceHundredths: integer().notNull().default(0),
+	cdnImage: varchar({ length: 1000 }).notNull(),
+	priority: integer().notNull().default(0),
 })
 const pool = new Pool({
-    connectionString: DATABASE_URL,
-    
-        
-});
+	connectionString: DATABASE_URL,
+})
 
-const db = drizzle(pool);
+const db = drizzle(pool)
 const main = async () => {
-    const items: Item[] = JSON.parse(itemJson)
-    for (const item of items) {
-        if (!Number.isSafeInteger(item.priceHundredths) || item.priceHundredths < 0) {
-            throw new Error(`Invalid priceHundredths for ${item.name}: ${item.priceHundredths}`)
-        }
-        await db.insert(shopItemsTable).values({
-            name: item.name,
-            description: item.description,
-            priceHundredths: item.priceHundredths,
-            cdnImage: item.cdnImage || " "
-        })
-    }
+	const items: Item[] = JSON.parse(itemJson)
+	for (const item of items) {
+		if (!Number.isSafeInteger(item.priceHundredths) || item.priceHundredths < 0) {
+			throw new Error(`Invalid priceHundredths for ${item.name}: ${item.priceHundredths}`)
+		}
+		await db.insert(shopItemsTable).values({
+			name: item.name,
+			description: item.description,
+			priceHundredths: item.priceHundredths,
+			cdnImage: item.cdnImage || " ",
+		})
+	}
 }
 main()

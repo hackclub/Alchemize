@@ -14,9 +14,7 @@
 	let { data } = $props()
 	const loggedIn = !!data.userRecord
 
-	let balanceHundredths = $derived(
-		data.userRecord?.fields?.balanceHundredths ?? 0
-	)
+	let balanceHundredths = $derived(data.userRecord?.fields?.balanceHundredths ?? 0)
 
 	type ShopItem = {
 		itemID: string
@@ -100,9 +98,7 @@
 	}
 
 	let finalItems = $derived(
-		shopItems.filter((item: any) =>
-			item?.name.toLowerCase().includes(searchQuery.toLowerCase())
-		)
+		shopItems.filter((item: any) => item?.name.toLowerCase().includes(searchQuery.toLowerCase()))
 	)
 </script>
 
@@ -111,48 +107,27 @@
 	<title>Alchemize | Shop</title>
 </svelte:head>
 
-<main
-	class="h-screen w-full px-10 py-6 tracking-wide relative overflow-hidden flex flex-col font-body"
->
+<main class="relative flex h-screen w-full flex-col overflow-hidden px-10 py-6 font-body tracking-wide">
 	<header class="relative z-10 w-full shrink-0">
-		<div
-			class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 py-3 px-8"
-		>
+		<div class="flex flex-col items-start justify-between gap-4 border-b-2 px-8 py-3 sm:flex-row sm:items-center">
 			<div class="flex items-center gap-3 text-foreground">
 				<ShoppingBag class="size-5" />
 				<div>
-					<h1
-						class="text-xl sm:text-2xl font-display font-black uppercase tracking-wider leading-none"
-					>
-						The Shop
-					</h1>
+					<h1 class="font-display text-xl leading-none font-black tracking-wider uppercase sm:text-2xl">The Shop</h1>
 				</div>
 			</div>
 
 			{#if loggedIn}
-				<div
-					class="flex w-full sm:w-auto items-center gap-2 font-note font-bold"
-				>
+				<div class="flex w-full items-center gap-2 font-note font-bold sm:w-auto">
 					<div
-						class="flex items-center gap-2 rounded-md border border-blue-300/50 bg-blue-300/10 px-2 py-1.5 text-blue-300"
-					>
-						<img
-							src="/alch-aquaregia.png"
-							alt=""
-							class="size-7 object-contain"
-						/>
-						<span class="font-black text-sm font-display">
+						class="flex items-center gap-2 rounded-md border border-blue-300/50 bg-blue-300/10 px-2 py-1.5 text-blue-300">
+						<img src="/alch-aquaregia.png" alt="" class="size-7 object-contain" />
+						<span class="font-display text-sm font-black">
 							{formatAqua(balanceHundredths)}
 						</span>
 					</div>
 
-					<Button
-						size="sm"
-						variant="outline"
-						onclick={() => (ordersDialogOpen = true)}
-					>
-						Orders
-					</Button>
+					<Button size="sm" variant="outline" onclick={() => (ordersDialogOpen = true)}>Orders</Button>
 				</div>
 			{/if}
 		</div>
@@ -160,34 +135,23 @@
 
 	{#if loggedIn}
 		<div
-			class="relative z-10 w-full flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch lg:items-center justify-between py-3 border-b-2 border-border shrink-0"
-		>
+			class="relative z-10 flex w-full shrink-0 flex-col items-stretch justify-between gap-3 border-b-2 border-border py-3 lg:flex-row lg:items-center lg:gap-4">
 			<div class="flex flex-wrap items-center gap-3">
 				<label
-					class="flex items-center gap-2 cursor-pointer text-xs font-display font-bold uppercase tracking-wider text-foreground"
-				>
-					<input
-						type="checkbox"
-						bind:checked={affordableOnly}
-						class="accent-primary"
-					/>
+					class="flex cursor-pointer items-center gap-2 font-display text-xs font-bold tracking-wider text-foreground uppercase">
+					<input type="checkbox" bind:checked={affordableOnly} class="accent-primary" />
 
 					<span>Affordable Only</span>
 				</label>
 
-				<div class="hidden sm:block h-5 w-px bg-border"></div>
+				<div class="hidden h-5 w-px bg-border sm:block"></div>
 
 				<div class="flex items-center gap-2">
-					<span
-						class="text-xs font-display font-bold uppercase tracking-wider text-muted-foreground"
-					>
-						Sort:
-					</span>
+					<span class="font-display text-xs font-bold tracking-wider text-muted-foreground uppercase"> Sort: </span>
 
 					<select
 						bind:value={activeSort}
-						class="bg-card text-foreground border-2 border-border rounded-md px-2 py-1.5 outline-none focus:border-primary font-body text-xs cursor-pointer"
-					>
+						class="cursor-pointer rounded-md border-2 border-border bg-card px-2 py-1.5 font-body text-xs text-foreground outline-none focus:border-primary">
 						<option value="none">Default</option>
 						<option value="affordable">Affordable First</option>
 						<option value="price">Highest Cost</option>
@@ -195,61 +159,50 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-2 w-full lg:w-auto">
+			<div class="flex w-full items-center gap-2 lg:w-auto">
 				<div class="relative w-full lg:w-64">
 					<Input
-						class="w-full border-2 border-border bg-card rounded-md font-body text-foreground pr-9 focus:border-primary"
+						class="w-full rounded-md border-2 border-border bg-card pr-9 font-body text-foreground focus:border-primary"
 						bind:value={searchQuery}
-						placeholder="Search items..."
-					/>
+						placeholder="Search items..." />
 
-					<Search
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground size-4 pointer-events-none"
-					/>
+					<Search class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
 				</div>
 			</div>
 		</div>
 	{/if}
 
 	<div
-		class="relative z-10 flex-1 min-h-0 overflow-y-auto pr-2 pt-4 pb-6 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 content-start"
-	>
+		class="relative z-10 grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(250px,1fr))] content-start gap-4 overflow-y-auto pt-4 pr-2 pb-6">
 		{#each finalItems as item}
 			<div
-				class={"relative z-10 w-full flex flex-col bg-card border-2 rounded rounded-tl-3xl rounded-br-3xl p-3 h-full gap-3 backdrop-blur-sm transition-all border-border shadow-aqr"}
-			>
+				class={"shadow-aqr relative z-10 flex h-full w-full flex-col gap-3 rounded rounded-tl-3xl rounded-br-3xl border-2 border-border bg-card p-3 backdrop-blur-sm transition-all"}>
 				<div
-					class="w-full aspect-square border bg-background rounded rounded-tl-3xl rounded-br-3xl overflow-hidden relative shrink-0 flex items-center justify-center p-3"
-				>
+					class="relative flex aspect-square w-full shrink-0 items-center justify-center overflow-hidden rounded rounded-tl-3xl rounded-br-3xl border bg-background p-3">
 					<img
 						src={item.image}
 						alt={item.name}
-						class="max-w-full max-h-full object-scale rounded rounded-tl-3xl rounded-br-3xl relative z-10"
-					/>
+						class="object-scale relative z-10 max-h-full max-w-full rounded rounded-tl-3xl rounded-br-3xl" />
 				</div>
 
-				<div class="flex flex-col flex-1 justify-between gap-2">
+				<div class="flex flex-1 flex-col justify-between gap-2">
 					<div class="flex flex-col gap-1">
-						<h2
-							class="text-sm font-display font-black uppercase text-foreground tracking-tight line-clamp-1"
-						>
+						<h2 class="line-clamp-1 font-display text-sm font-black tracking-tight text-foreground uppercase">
 							{item.name}
 						</h2>
 
-						<p
-							class="text-muted-foreground text-[11px] leading-snug font-body line-clamp-3"
-						>
+						<p class="line-clamp-3 font-body text-[11px] leading-snug text-muted-foreground">
 							{item.description}
 						</p>
 					</div>
 
-					<div class="pt-2 border-t border-border w-full mt-auto space-y-2">
+					<div class="mt-auto w-full space-y-2 border-t border-border pt-2">
 						<div class="flex items-center justify-between gap-2">
-							<p class="text-muted-foreground text-[11px] font-body font-bold">
+							<p class="font-body text-[11px] font-bold text-muted-foreground">
 								~{item.estimatedHours} hrs
 							</p>
 
-							<p class={cn("text-xs font-body text-card-foreground")}>
+							<p class={cn("font-body text-xs text-card-foreground")}>
 								{formatAqua(item.priceHundredths)}
 							</p>
 						</div>
@@ -261,8 +214,7 @@
 								item.grayedOut &&
 									"pointer-events-none cursor-not-allowed border bg-muted text-muted-foreground shadow-none"
 							)}
-							onclick={() => handleBuyClick(item)}
-						>
+							onclick={() => handleBuyClick(item)}>
 							{#if !loggedIn}
 								<a href="/" class="hover:text-primary"> Login to Purchase </a>
 							{:else if item.grayedOut}
@@ -284,14 +236,9 @@
 		bind:open={isDialogOpen}
 		item={selectedItem}
 		{balanceHundredths}
-		onConfirm={handleConfirmPurchase}
-	/>
+		onConfirm={handleConfirmPurchase} />
 
-	<OrdersDialog
-		bind:open={ordersDialogOpen}
-		orders={data.orders ?? []}
-		unavailable={data.ordersUnavailable}
-	/>
+	<OrdersDialog bind:open={ordersDialogOpen} orders={data.orders ?? []} unavailable={data.ordersUnavailable} />
 {/if}
 
 <style>

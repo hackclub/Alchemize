@@ -32,7 +32,8 @@ if (!process.env.DATABASE_URL) fail("DATABASE_URL is not set")
 
 const journal = JSON.parse(readFileSync(`${MIGRATIONS_FOLDER}/meta/_journal.json`, "utf8"))
 const baseline = journal.entries[0]
-if (baseline?.tag !== BASELINE_TAG) fail(`The first migration in ${MIGRATIONS_FOLDER}/meta/_journal.json must be ${BASELINE_TAG}`)
+if (baseline?.tag !== BASELINE_TAG)
+	fail(`The first migration in ${MIGRATIONS_FOLDER}/meta/_journal.json must be ${BASELINE_TAG}`)
 const baselineSql = readFileSync(`${MIGRATIONS_FOLDER}/${BASELINE_TAG}.sql`).toString()
 const snapshot = JSON.parse(readFileSync(`${MIGRATIONS_FOLDER}/meta/0000_snapshot.json`, "utf8"))
 
@@ -64,21 +65,23 @@ try {
 	if (missing.length > 0) {
 		fail(
 			`This database predates drizzle migrations but doesn't match ${BASELINE_TAG}. Missing:\n  ${missing.join("\n  ")}\n\n` +
-			"Run the hand-written migration that adds them first (script/migrations/), then run this again."
+				"Run the hand-written migration that adds them first (script/migrations/), then run this again."
 		)
 	}
 
 	await client.query("BEGIN")
 	await client.query(`CREATE SCHEMA IF NOT EXISTS ${MIGRATIONS_SCHEMA}`)
 	// Same table drizzle-kit creates (drizzle-orm pg-core dialect.migrate)
-	await client.query(`CREATE TABLE IF NOT EXISTS ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}" (id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint)`)
+	await client.query(
+		`CREATE TABLE IF NOT EXISTS ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}" (id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint)`
+	)
 	await client.query(`LOCK TABLE ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}" IN EXCLUSIVE MODE`)
 	const { rows } = await client.query(`SELECT count(*)::int AS n FROM ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}"`)
 	if (rows[0].n === 0) {
-		await client.query(
-			`INSERT INTO ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}" (hash, created_at) VALUES ($1, $2)`,
-			[createHash("sha256").update(baselineSql).digest("hex"), baseline.when]
-		)
+		await client.query(`INSERT INTO ${MIGRATIONS_SCHEMA}."${MIGRATIONS_TABLE}" (hash, created_at) VALUES ($1, $2)`, [
+			createHash("sha256").update(baselineSql).digest("hex"),
+			baseline.when,
+		])
 		console.log(`Existing database: recorded ${BASELINE_TAG} as already applied`)
 	}
 	await client.query("COMMIT")

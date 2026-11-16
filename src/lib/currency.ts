@@ -19,8 +19,7 @@ export const unitsToHundredths = (units: unknown): number | null => {
 export const hundredthsToUnits = (hundredths: number): number => hundredths / HUNDREDTHS_PER_UNIT
 
 // Approved Hackatime minutes -> hundredths of Aqua Regia, rounded down to the nearest hundredth
-export const minutesToHundredths = (minutes: number): number =>
-	Math.floor((minutes * HUNDREDTHS_PER_UNIT) / 60)
+export const minutesToHundredths = (minutes: number): number => Math.floor((minutes * HUNDREDTHS_PER_UNIT) / 60)
 
 // "66.4", "5", "0.8" — no trailing zeros, at most two decimals
 export const formatAquaAmount = (hundredths: number): string =>

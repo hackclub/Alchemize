@@ -40,15 +40,9 @@
 
 {#if loading || $navigating}
 	<div
-		class="loading-screen w-full h-screen bg-black flex items-center justify-center fixed inset-0 z-[100] flex-col gap-4"
-	>
-		<div
-			class="loader rounded-full w-16 h-16 border-2 border-t-primary animate-spin border-zinc-800"
-		></div>
-		<span
-			class="text-zinc-400 font-mono text-sm tracking-widest uppercase animate-pulse"
-			>Loading Referrals...</span
-		>
+		class="loading-screen fixed inset-0 z-[100] flex h-screen w-full flex-col items-center justify-center gap-4 bg-black">
+		<div class="loader h-16 w-16 animate-spin rounded-full border-2 border-zinc-800 border-t-primary"></div>
+		<span class="animate-pulse font-mono text-sm tracking-widest text-zinc-400 uppercase">Loading Referrals...</span>
 	</div>
 {/if}
 
@@ -60,36 +54,23 @@
 
 <a
 	href="/dashboard"
-	class="self-start absolute z-10 top-5 left-5 hover:text-primary hover:underline underline-offset-4"
->
+	class="absolute top-5 left-5 z-10 self-start underline-offset-4 hover:text-primary hover:underline">
 	<ArrowLeft class="size-7" />
 </a>
-<main
-	class="w-full h-screen text-foreground p-10 flex flex-col gap-10 items-center select-none"
->
+<main class="flex h-screen w-full flex-col items-center gap-10 p-10 text-foreground select-none">
 	<div class="flex flex-col items-center">
-		<img
-			src="/assets/Alchemize.png"
-			alt="Alchemize"
-			class="w-72 max-w-[80vw] object-contain"
-		/>
+		<img src="/assets/Alchemize.png" alt="Alchemize" class="w-72 max-w-[80vw] object-contain" />
 		<div class="mt-2 flex items-center gap-3">
 			<span class="h-px w-8 bg-primary/60" aria-hidden="true"></span>
-			<h1
-				class="font-note text-xs font-bold uppercase tracking-[0.3em] text-primary"
-			>
-				Refer
-			</h1>
+			<h1 class="font-note text-xs font-bold tracking-[0.3em] text-primary uppercase">Refer</h1>
 			<span class="h-px w-8 bg-primary/60" aria-hidden="true"></span>
 		</div>
 	</div>
 	<div
-		class="w-[60%] flex items-center gap-4 bg-card p-3 rounded-tl-2xl rounded-br-2xl rounded-md border border-border shadow-sm shadow-primary"
-	>
+		class="flex w-[60%] items-center gap-4 rounded-md rounded-tl-2xl rounded-br-2xl border border-border bg-card p-3 shadow-sm shadow-primary">
 		<div
-			class="bg-secondary text-secondary-foreground w-full py-3 px-4 flex items-center justify-start rounded-lg border border-border/70 select-all overflow-x-auto whitespace-nowrap scrollbar-none"
-		>
-			<p id="ref-link" class="font-mono text-xs md:text-sm tracking-wide">
+			class="flex w-full scrollbar-none items-center justify-start overflow-x-auto rounded-lg border border-border/70 bg-secondary px-4 py-3 whitespace-nowrap text-secondary-foreground select-all">
+			<p id="ref-link" class="font-mono text-xs tracking-wide md:text-sm">
 				{linkText}
 			</p>
 		</div>
@@ -98,96 +79,64 @@
 		</Button>
 	</div>
 
-	<div
-		class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full flex-1 items-stretch relative z-10 min-h-0 px-10"
-	>
+	<div class="relative z-10 grid min-h-0 w-full flex-1 grid-cols-1 items-stretch gap-6 px-10 lg:grid-cols-2">
 		<div
-			class="w-full h-full flex flex-col p-5 bg-card rounded-tl-2xl rounded-br-2xl rounded-md gap-4 border-border border-2 shadow-sm shadow-primary relative z-10 overflow-hidden"
-		>
+			class="relative z-10 flex h-full w-full flex-col gap-4 overflow-hidden rounded-md rounded-tl-2xl rounded-br-2xl border-2 border-border bg-card p-5 shadow-sm shadow-primary">
 			<h2
-				class="font-display font-bold text-xl tracking-wider uppercase border-b border-border pb-3 flex items-center justify-between"
-			>
+				class="flex items-center justify-between border-b border-border pb-3 font-display text-xl font-bold tracking-wider uppercase">
 				Your Referrals:
-				<span
-					class="text-md px-3 text-card-foreground border border-border rounded-md"
-					>{referralCount}</span
-				>
+				<span class="text-md rounded-md border border-border px-3 text-card-foreground">{referralCount}</span>
 			</h2>
 
-			<div
-				class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 relative z-20 scrollbar-none min-h-0"
-			>
+			<div class="relative z-20 flex min-h-0 flex-1 scrollbar-none flex-col gap-3 overflow-y-auto pr-1">
 				{#each myReferals as referral}
 					<div
-						class="relative z-10 w-full rounded-lg border border-border bg-secondary flex items-center justify-between p-3 shadow-xs shadow-primary transition-all duration-150"
-					>
-						<p
-							class="text-sm font-mono tracking-wide text-secondary-foreground"
-						>
+						class="relative z-10 flex w-full items-center justify-between rounded-lg border border-border bg-secondary p-3 shadow-xs shadow-primary transition-all duration-150">
+						<p class="font-mono text-sm tracking-wide text-secondary-foreground">
 							{referral.referedName || referral.referedName}
 						</p>
 						<span
-							class="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 tracking-wider"
-							>Referred</span
-						>
+							class="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-primary"
+							>Referred</span>
 					</div>
 				{/each}
 
 				{#if myReferals.length === 0}
-					<div
-						class="flex flex-col items-center justify-center flex-1 py-12 text-center"
-					>
-						<p
-							class="text-card-foreground font-note text-xs max-w-[90%] leading-relaxed"
-						>
-							No referrals yet...
-						</p>
+					<div class="flex flex-1 flex-col items-center justify-center py-12 text-center">
+						<p class="max-w-[90%] font-note text-xs leading-relaxed text-card-foreground">No referrals yet...</p>
 					</div>
 				{/if}
 			</div>
 		</div>
 
 		<div
-			class="w-full h-full flex flex-col p-5 bg-card rounded-tl-2xl rounded-br-2xl rounded-md gap-4 border-border border-2 shadow-sm shadow-primary relative z-10 overflow-hidden"
-		>
-			<h2
-				class="font-display font-bold text-xl tracking-wider uppercase border-b border-border pb-3"
-			>
+			class="relative z-10 flex h-full w-full flex-col gap-4 overflow-hidden rounded-md rounded-tl-2xl rounded-br-2xl border-2 border-border bg-card p-5 shadow-sm shadow-primary">
+			<h2 class="border-b border-border pb-3 font-display text-xl font-bold tracking-wider uppercase">
 				Global Leaderboard
 			</h2>
 
-			<div
-				class="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 relative z-20 scrollbar-none min-h-0"
-			>
+			<div class="relative z-20 flex min-h-0 flex-1 scrollbar-none flex-col gap-3 overflow-y-auto pr-1">
 				{#each sortedCounts as [name, count], index}
 					<div
-						class="relative z-10 w-full rounded-lg border border-border bg-secondary text-secondary-foreground flex items-center justify-between p-3 shadow-sm shadow-primary"
-					>
+						class="relative z-10 flex w-full items-center justify-between rounded-lg border border-border bg-secondary p-3 text-secondary-foreground shadow-sm shadow-primary">
 						<div class="flex items-center gap-3">
 							<span
-								class="font-note text-[10px] font-black px-2 py-0.5 rounded flex items-center justify-center min-w-8 z-10 bg-primary/40 border border-primary/60"
-							>
+								class="z-10 flex min-w-8 items-center justify-center rounded border border-primary/60 bg-primary/40 px-2 py-0.5 font-note text-[10px] font-black">
 								#{index + 1}
 							</span>
-							<p class="text-sm font-display font-medium">
+							<p class="font-display text-sm font-medium">
 								{name}
 							</p>
 						</div>
-						<p class="text-base font-display font-black">
+						<p class="font-display text-base font-black">
 							{count}
 						</p>
 					</div>
 				{/each}
 
 				{#if sortedCounts.length === 0}
-					<div
-						class="flex flex-col items-center justify-center flex-1 py-12 text-center"
-					>
-						<p
-							class="text-zinc-500 font-mono text-xs max-w-[200px] leading-relaxed"
-						>
-							No referrals yet....
-						</p>
+					<div class="flex flex-1 flex-col items-center justify-center py-12 text-center">
+						<p class="max-w-[200px] font-mono text-xs leading-relaxed text-zinc-500">No referrals yet....</p>
 					</div>
 				{/if}
 			</div>

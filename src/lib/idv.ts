@@ -9,7 +9,7 @@ export const IDV_DASHBOARD_URL = "https://auth.hackclub.com"
 export interface IdvBlock {
 	title: string
 	message: string
-	link?: { href: string, label: string }
+	link?: { href: string; label: string }
 }
 
 // Why a user can't ship, or null if their status allows it
@@ -24,13 +24,15 @@ export const idvShipBlock = (status: IdvStatus): IdvBlock | null => {
 		case "pending":
 			return {
 				title: "Verification in review",
-				message: "Your identity verification is still being reviewed. You can submit a project to Alchemize once it's approved, keep working on your project in the meantime.",
+				message:
+					"Your identity verification is still being reviewed. You can submit a project to Alchemize once it's approved, keep working on your project in the meantime.",
 				link: { href: IDV_DASHBOARD_URL, label: "Check status on Hack Club Auth" },
 			}
 		case "ineligible":
 			return {
 				title: "Not eligible",
-				message: "You can't submit projects to Alchemize because your Hack Club account isn't eligible for this program. If you think this is a mistake, ask in #identity-help.",
+				message:
+					"You can't submit projects to Alchemize because your Hack Club account isn't eligible for this program. If you think this is a mistake, ask in #identity-help.",
 			}
 		default:
 			return null

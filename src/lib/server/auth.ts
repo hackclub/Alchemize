@@ -49,7 +49,7 @@ export interface AdminSession {
 export const getAdminSession = async (cookies: Cookies): Promise<AdminSession | null> => {
 	const token = cookies.get("admin_jwt")
 	if (!token) return null
-	let claims: { email?: unknown, slackId?: unknown }
+	let claims: { email?: unknown; slackId?: unknown }
 	try {
 		claims = jwt.verify(token, ADMIN_JWT_SECRET, { algorithms: ["HS256"] }) as typeof claims
 	} catch {

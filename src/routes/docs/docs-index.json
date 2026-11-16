@@ -1,74 +1,73 @@
 {
-    "Getting Started": [
-        {
-            "name": "Introduction",
-            "path": "/docs/getting-started/introduction",
-            "filePath": "/markdown/getting-started/Introduction.md"
-        },
-        {
-            "name": "Getting Started",
-            "path": "/docs/getting-started/getting-started",
-            "filePath": "/markdown/getting-started/Getting Started.md"
-        },
-        {
-            "name": "Setting Up Hackatime",
-            "path": "/docs/getting-started/setting-up-hackatime",
-            "filePath": "/markdown/getting-started/Setting Up Hackatime.md"
-        },
+	"Getting Started": [
+		{
+			"name": "Introduction",
+			"path": "/docs/getting-started/introduction",
+			"filePath": "/markdown/getting-started/Introduction.md"
+		},
+		{
+			"name": "Getting Started",
+			"path": "/docs/getting-started/getting-started",
+			"filePath": "/markdown/getting-started/Getting Started.md"
+		},
+		{
+			"name": "Setting Up Hackatime",
+			"path": "/docs/getting-started/setting-up-hackatime",
+			"filePath": "/markdown/getting-started/Setting Up Hackatime.md"
+		},
 		{
 			"name": "Dashboard Guide",
 			"path": "/docs/guides/dashboard-guide",
 			"filePath": "/markdown/getting-started/Dashboard Guide.md"
 		},
-		
+
 		{
 			"name": "Setting Up Git",
 			"path": "/docs/guides/setting-up-git",
 			"filePath": "/markdown/getting-started/Setting Up Git.md"
 		}
-    ],
-    "Themes":[
-		        {
-            "name": "What Counts",
-            "path": "/docs/themes/what-counts",
-            "filePath": "/markdown/themes/What counts.md"
-        },
-				        {
-            "name": "Submission Requirements",
-            "path": "/docs/themes/submission-requirements",
-            "filePath": "/markdown/themes/submission-req.md"
-        }
 	],
-    "Stones and Shops": [
+	"Themes": [
+		{
+			"name": "What Counts",
+			"path": "/docs/themes/what-counts",
+			"filePath": "/markdown/themes/What counts.md"
+		},
+		{
+			"name": "Submission Requirements",
+			"path": "/docs/themes/submission-requirements",
+			"filePath": "/markdown/themes/submission-req.md"
+		}
+	],
+	"Stones and Shops": [
 		{
 			"name": "Aqua Regia",
 			"path": "/docs/stones-and-shops/the-stones",
 			"filePath": "/markdown/shop-and-stones/The Stones.md"
 		}
 	],
-    "Software": [
-        {
-            "name": "Tips",
-            "path": "/docs/software/tips",
-            "filePath": "/markdown/Software/Tips.md"
-        },
-        {
-            "name": "Getting Started With Unreal Engine",
-            "path": "/docs/unreal-engine/getting-started-with-unreal-engine",
-            "filePath": "/markdown/Software/UnrealEngine/GettingStartedWithUnrealEngine/GettingStarted.md"
-        },
-        {
-            "name": "Creating A 2D Game With Unreal Engine",
-            "path": "/docs/unreal-engine/creating-a-2d-game-with-unreal-engine",
-            "filePath": "/markdown/Software/UnrealEngine/CreatingA2DGameWithUnrealEngine/Guide.md"
-        }
-    ],
-    "Issues" : [
-                {
-            "name": "HCA Configs",
-            "path": "/docs/issues/hca-configs",
-            "filePath": "/markdown/issues/HCAConfigs.md"
-        }
-    ]
-    
+	"Software": [
+		{
+			"name": "Tips",
+			"path": "/docs/software/tips",
+			"filePath": "/markdown/Software/Tips.md"
+		},
+		{
+			"name": "Getting Started With Unreal Engine",
+			"path": "/docs/unreal-engine/getting-started-with-unreal-engine",
+			"filePath": "/markdown/Software/UnrealEngine/GettingStartedWithUnrealEngine/GettingStarted.md"
+		},
+		{
+			"name": "Creating A 2D Game With Unreal Engine",
+			"path": "/docs/unreal-engine/creating-a-2d-game-with-unreal-engine",
+			"filePath": "/markdown/Software/UnrealEngine/CreatingA2DGameWithUnrealEngine/Guide.md"
+		}
+	],
+	"Issues": [
+		{
+			"name": "HCA Configs",
+			"path": "/docs/issues/hca-configs",
+			"filePath": "/markdown/issues/HCAConfigs.md"
+		}
+	]
 }

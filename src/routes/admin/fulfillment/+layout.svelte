@@ -9,7 +9,7 @@
 </svelte:head>
 
 <main class="h-screen w-full p-5">
-	<div class="h-full w-full rounded-xl bg-black/40 border-2 p-2 flex gap-5">
+	<div class="flex h-full w-full gap-5 rounded-xl border-2 bg-black/40 p-2">
 		{@render children()}
 	</div>
 </main>

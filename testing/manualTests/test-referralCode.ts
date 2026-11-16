@@ -6,7 +6,8 @@ import { createReferralCode, deriveReferralKey, parseReferralCode } from "../../
 const key = deriveReferralKey("server-secret")
 const legacyKey = "a1b2c3d4"
 const legacyEncode = (text: string, hex: string) => {
-	const k = Buffer.from(hex, "hex"), b = Buffer.from(text)
+	const k = Buffer.from(hex, "hex"),
+		b = Buffer.from(text)
 	return Buffer.from(b.map((byte, i) => byte ^ k[i % k.length])).toString("base64")
 }
 
@@ -23,11 +24,25 @@ assert.equal(parseReferralCode(code + "x", key, legacyKey), null)
 assert.equal(parseReferralCode(code + ".extra", key, legacyKey), null)
 console.log("ok - signed codes can't be forged, re-keyed or tampered with")
 
-assert.deepEqual(parseReferralCode(legacyEncode("abc123 U0ABCDEF12", legacyKey), key, legacyKey), { referer: "abc123 U0ABCDEF12", legacy: true })
-assert.deepEqual(parseReferralCode(legacyEncode("abc123 U0ABCDEF12", ""), key, ""), { referer: "abc123 U0ABCDEF12", legacy: true }, "empty legacy key = identity, as before")
+assert.deepEqual(parseReferralCode(legacyEncode("abc123 U0ABCDEF12", legacyKey), key, legacyKey), {
+	referer: "abc123 U0ABCDEF12",
+	legacy: true,
+})
+assert.deepEqual(
+	parseReferralCode(legacyEncode("abc123 U0ABCDEF12", ""), key, ""),
+	{ referer: "abc123 U0ABCDEF12", legacy: true },
+	"empty legacy key = identity, as before"
+)
 console.log("ok - legacy XOR codes still parse, flagged as legacy (must be matched to a real user)")
 
-for (const junk of ["", "QUFBQQ", "!!!", legacyEncode("ident!abc U0ABCDEF12", legacyKey), legacyEncode("abc U0ABCDEF12 extra", legacyKey), legacyEncode("abc not-a-slack-id", legacyKey)]) {
+for (const junk of [
+	"",
+	"QUFBQQ",
+	"!!!",
+	legacyEncode("ident!abc U0ABCDEF12", legacyKey),
+	legacyEncode("abc U0ABCDEF12 extra", legacyKey),
+	legacyEncode("abc not-a-slack-id", legacyKey),
+]) {
 	assert.equal(parseReferralCode(junk, key, legacyKey), null, `accepted ${JSON.stringify(junk)}`)
 }
 console.log("ok - junk and malformed codes are rejected without throwing")

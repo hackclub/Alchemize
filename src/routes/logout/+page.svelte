@@ -21,11 +21,9 @@
 	}
 </script>
 
-<main
-	class="bg-gradbg h-screen w-screen flex flex-col gap-y-2 items-center justify-center"
->
+<main class="bg-gradbg flex h-screen w-screen flex-col items-center justify-center gap-y-2">
 	{#if confirming}
-		<p class="text-xs font-mono text-primary">Are you sure?</p>
+		<p class="font-mono text-xs text-primary">Are you sure?</p>
 	{/if}
 
 	<Button onclick={handleClick} class="px-5 py-2 hover:scale-103">

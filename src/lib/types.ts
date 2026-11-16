@@ -168,7 +168,7 @@ export interface Address {
 	phone_number: string
 	primary: boolean
 }
-export interface Heartbeats{
+export interface Heartbeats {
 	branch: string
 	category: string
 	cursorpos: number
@@ -181,12 +181,12 @@ export interface Heartbeats{
 	operating_system: string
 	project: string
 	time: number
-}	
+}
 interface FileBreakdown {
-    [file: string]: {
-        totalMs: number;
-        formatted: string;
-    };
+	[file: string]: {
+		totalMs: number
+		formatted: string
+	}
 }
 export interface HackatimeAnalysis {
 	hackatimeProject: string

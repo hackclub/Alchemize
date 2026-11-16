@@ -4,7 +4,13 @@ import { START_DATE } from "$env/static/private"
 import { filterLogs } from "$lib/utils.server"
 import type { Log } from "$lib/types"
 import { env } from "$env/dynamic/private"
-import { findHackatimeConflicts, getHackatimeTokenByEmail, getProjectById, patchProjectForShip, patchUserHackatime } from "$lib/db"
+import {
+	findHackatimeConflicts,
+	getHackatimeTokenByEmail,
+	getProjectById,
+	patchProjectForShip,
+	patchUserHackatime,
+} from "$lib/db"
 import { fetchHackatimeProjects } from "$lib/server/hackatime"
 import { getShippingWindowState } from "$lib/server/shippingWindow"
 import { requireUserApi } from "$lib/server/auth"
@@ -29,7 +35,11 @@ function parseLog(logJson: string): Log[] {
 		return [] as Log[]
 	}
 }
-const notifyShip = async (body: { user_id: string, project_name: string, project_link: string | null }): Promise<{ ok: boolean, status?: number }> => {
+const notifyShip = async (body: {
+	user_id: string
+	project_name: string
+	project_link: string | null
+}): Promise<{ ok: boolean; status?: number }> => {
 	try {
 		const botResponse = await fetch("https://notifications.alchemize.hackclub.com/ship", {
 			method: "POST",
@@ -46,7 +56,10 @@ const notifyShip = async (body: { user_id: string, project_name: string, project
 }
 export const POST: RequestHandler = async ({ request, locals }) => {
 	// Season window from SHIPPING_OPENS_AT / SHIPPING_CLOSES_AT (closed unless configured)
-	const shippingWindow = getShippingWindowState({ SHIPPING_OPENS_AT: env.SHIPPING_OPENS_AT, SHIPPING_CLOSES_AT: env.SHIPPING_CLOSES_AT })
+	const shippingWindow = getShippingWindowState({
+		SHIPPING_OPENS_AT: env.SHIPPING_OPENS_AT,
+		SHIPPING_CLOSES_AT: env.SHIPPING_CLOSES_AT,
+	})
 	if (!shippingWindow.open) {
 		return new Response(shippingWindow.message, { status: 403 })
 	}
@@ -77,10 +90,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	// and before anything else about the project, so an unverified user is told what to do first.
 	const idvStatus = await getIdvStatus(userData)
 	if (idvStatus === "unavailable") {
-		return new Response("Couldn't check your identity verification right now, please try again in a few minutes", { status: 503 })
+		return new Response("Couldn't check your identity verification right now, please try again in a few minutes", {
+			status: 503,
+		})
 	}
 	if (idvStatus !== "verified") {
-		const message = idvShipBlock(idvStatus)?.message ?? "Only identity-verified Hack Club members can ship, please ask in #identity-help"
+		const message =
+			idvShipBlock(idvStatus)?.message ??
+			"Only identity-verified Hack Club members can ship, please ask in #identity-help"
 		return new Response(JSON.stringify({ message, idvStatus }), {
 			status: 403,
 			headers: { "Content-Type": "application/json" },
@@ -128,13 +145,19 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		if (hackatime.reason === "unauthorized") {
 			// Revoked or expired token: forget it, the dashboard will ask the user to connect Hackatime again
 			await patchUserHackatime(userData.email, "")
-			return new Response("Your Hackatime connection has expired, please reload the dashboard and connect Hackatime again", { status: 400 })
+			return new Response(
+				"Your Hackatime connection has expired, please reload the dashboard and connect Hackatime again",
+				{ status: 400 }
+			)
 		}
 		return new Response("Hackatime is not responding right now, please try again in a few minutes", { status: 503 })
 	}
 	const hackatimeProject = hackatime.projects.find(project => project.name === projectData.fields.hackatime)
 	if (!hackatimeProject) {
-		return new Response(`Couldn't find the Hackatime project "${projectData.fields.hackatime}" on your Hackatime account`, { status: 400 })
+		return new Response(
+			`Couldn't find the Hackatime project "${projectData.fields.hackatime}" on your Hackatime account`,
+			{ status: 400 }
+		)
 	}
 	const previousLogs = parseLog(projectData.fields.log || "[]")
 	const hackatimeTime = Math.floor(hackatimeProject.total_seconds / 60)
@@ -142,12 +165,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	// A zero delta is allowed (shipping an update without new time); a negative one means Hackatime now
 	// shows less than was already recorded, which reviewers could neither approve nor reject
 	if (deltaTime < 0) {
-		return new Response("Hackatime shows less time on this project than was already recorded, please ask in #alchemize-help", { status: 400 })
+		return new Response(
+			"Hackatime shows less time on this project than was already recorded, please ask in #alchemize-help",
+			{ status: 400 }
+		)
 	}
 
 	const currentTime = Date.now()
 	const updatedLog = applyShip(previousLogs, deltaTime, changelog.trim())
-	const response = await patchProjectForShip(String(recordId), projectData.fields.log, updatedLog, `pending_${currentTime}`)
+	const response = await patchProjectForShip(
+		String(recordId),
+		projectData.fields.log,
+		updatedLog,
+		`pending_${currentTime}`
+	)
 	if (!response.ok) {
 		const failure = await response.json().catch(() => ({ message: "" }))
 		console.error(`Failed to update project ${recordId}:`, {
@@ -160,7 +191,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		})
 		// 409 = the log changed since it was read (e.g. a review landed), or a Unified submission is in flight
 		if (response.status === 409) {
-			return new Response(failure.message || "Your project was just updated by a reviewer, please refresh and ship again", { status: 409 })
+			return new Response(
+				failure.message || "Your project was just updated by a reviewer, please refresh and ship again",
+				{ status: 409 }
+			)
 		}
 		return new Response("Failed to ship Project", { status: 500 })
 	}

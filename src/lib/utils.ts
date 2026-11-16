@@ -1,4 +1,4 @@
-import type {Address} from "./types"
+import type { Address } from "./types"
 interface Data {
 	id: string
 	email: string
@@ -9,8 +9,7 @@ interface Data {
 	address: Address[]
 	birthday: string
 }
-export const scopes =
-	"openid+profile+email+name+verification_status+slack_id+address+basic_info"
+export const scopes = "openid+profile+email+name+verification_status+slack_id+address+basic_info"
 export const authUrl = `/auth`
 
 type HackatimeProject = {
@@ -21,9 +20,7 @@ type HackatimeProject = {
 }
 // Server route that sets the OAuth state cookie and redirects to Hackatime (see src/routes/hackatime_auth)
 export const hackatimeAuthUrl = `/hackatime_auth`
-export const getDataFromAccessToken = async (
-	accessToken: string
-): Promise<Data> => {
+export const getDataFromAccessToken = async (accessToken: string): Promise<Data> => {
 	if (accessToken === undefined || accessToken === "") {
 		throw new Error("Access token is undefined or empty")
 	}
@@ -36,9 +33,7 @@ export const getDataFromAccessToken = async (
 	})
 	const data = await response.json()
 	if (!response.ok) {
-		throw new Error(
-			data?.message ?? "Failed to fetch user data from access token"
-		)
+		throw new Error(data?.message ?? "Failed to fetch user data from access token")
 	}
 	return {
 		id: data.identity.id,
@@ -47,8 +42,8 @@ export const getDataFromAccessToken = async (
 		first_name: data.identity.first_name,
 		last_name: data.identity.last_name,
 		slack_id: data.identity.slack_id,
-        address: data.identity.addresses,
-        birthday: data.identity.birthday,
+		address: data.identity.addresses,
+		birthday: data.identity.birthday,
 	}
 }
 export const getSlackProfile = async (slackId: string): Promise<string> => {
@@ -67,9 +62,7 @@ export function formatHours(totalSeconds: number | undefined): string {
 export function getHackatimeProjects(payload: unknown): HackatimeProject[] {
 	if (!payload || typeof payload !== "object") return []
 	const maybeProjects = (payload as { projects?: unknown }).projects
-	return Array.isArray(maybeProjects)
-		? (maybeProjects as HackatimeProject[])
-		: []
+	return Array.isArray(maybeProjects) ? (maybeProjects as HackatimeProject[]) : []
 }
 export const countCharacters = (str: string) => {
 	return str.trim().length

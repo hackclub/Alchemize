@@ -1,9 +1,6 @@
 <script lang="ts" module>
 	import { cn, type WithElementRef } from "$lib/lib/utils.js"
-	import type {
-		HTMLAnchorAttributes,
-		HTMLButtonAttributes,
-	} from "svelte/elements"
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements"
 	import { type VariantProps, tv } from "tailwind-variants"
 
 	export const buttonVariants = tv({
@@ -11,13 +8,10 @@
 		variants: {
 			variant: {
 				primary: "bg-primary text-primary-foreground hover:bg-primary-hover",
-				secondary:
-					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
+				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
 				outline: "bg-card text-card-foreground hover:bg-secondary",
-				ghost:
-					"border-transparent shadow-none bg-transparent text-foreground hover:bg-secondary",
-				destructive:
-					"bg-destructive text-destructive-foreground hover:bg-destructive/90",
+				ghost: "border-transparent shadow-none bg-transparent text-foreground hover:bg-secondary",
+				destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 			},
 			size: {
 				xs: "h-9 px-3 text-xs",
@@ -69,8 +63,7 @@
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
-		{...restProps}
-	>
+		{...restProps}>
 		{@render children?.()}
 	</a>
 {:else}
@@ -80,8 +73,7 @@
 		class={cn(buttonVariants({ variant, size }), className)}
 		{type}
 		{disabled}
-		{...restProps}
-	>
+		{...restProps}>
 		{@render children?.()}
 	</button>
 {/if}

@@ -11,8 +11,18 @@
 //   npx tsx script/telescreen.ts sync [--apply]
 //       Retries failed sends, and Robert updates that failed when a project was rejected or superseded here.
 //       Dry run unless --apply.
-import { getOpenTelescreenSubmission, getShippedProjectLogs, getTelescreenSubmissionsInStates, pool } from "../src/lib/db"
-import { ensureTelescreenSubmission, isUpToDate, retryRobertRelease, telescreenConfig } from "../src/lib/server/telescreen"
+import {
+	getOpenTelescreenSubmission,
+	getShippedProjectLogs,
+	getTelescreenSubmissionsInStates,
+	pool,
+} from "../src/lib/db"
+import {
+	ensureTelescreenSubmission,
+	isUpToDate,
+	retryRobertRelease,
+	telescreenConfig,
+} from "../src/lib/server/telescreen"
 import { hasUnpushedApprovedEntries } from "../src/lib/server/projectLog"
 import { setWebhookUrl } from "../src/lib/server/telescreenClient"
 import type { Log } from "../src/lib/types"
@@ -31,7 +41,11 @@ const unexpectedArguments = (): string[] => {
 }
 
 const parseLog = (raw: string): Log[] => {
-	try { return JSON.parse(raw || "[]") } catch { return [] }
+	try {
+		return JSON.parse(raw || "[]")
+	} catch {
+		return []
+	}
 }
 
 const setWebhook = async (url: string | undefined) => {
@@ -52,7 +66,9 @@ const setWebhook = async (url: string | undefined) => {
 // exit code at the end, so a scripted run can tell
 const backfill = async (): Promise<boolean> => {
 	const projects = await getShippedProjectLogs()
-	let waiting = 0, sent = 0, failed = 0
+	let waiting = 0,
+		sent = 0,
+		failed = 0
 	for (const project of projects) {
 		const log = parseLog(project.log)
 		if (!hasUnpushedApprovedEntries(log)) continue
@@ -60,7 +76,9 @@ const backfill = async (): Promise<boolean> => {
 		if (open?.robertProjectId && isUpToDate(open, log)) continue
 		waiting++
 		if (!apply) {
-			console.log(`would send project ${project.id} (${project.Name})${open ? ` [open submission: ${open.state}]` : ""}`)
+			console.log(
+				`would send project ${project.id} (${project.Name})${open ? ` [open submission: ${open.state}]` : ""}`
+			)
 			continue
 		}
 		const result = await ensureTelescreenSubmission(project.id, ACTOR)
@@ -72,7 +90,9 @@ const backfill = async (): Promise<boolean> => {
 			console.log(`FAILED project ${project.id} (${project.Name}): ${result.message}`)
 		}
 	}
-	console.log(`\n${waiting} project(s) waiting on T2 without an up-to-date Telescreen submission${apply ? `: ${sent} sent, ${failed} failed` : " (dry run, pass --apply to send)"}`)
+	console.log(
+		`\n${waiting} project(s) waiting on T2 without an up-to-date Telescreen submission${apply ? `: ${sent} sent, ${failed} failed` : " (dry run, pass --apply to send)"}`
+	)
 	return failed === 0
 }
 
@@ -80,22 +100,33 @@ const sync = async (): Promise<boolean> => {
 	let failed = 0
 	const unsent = await getTelescreenSubmissionsInStates(["unsent"], true)
 	for (const row of unsent) {
-		if (!apply) { console.log(`would retry sending project ${row.projectId} (last error: ${row.lastError ?? "none"})`); continue }
+		if (!apply) {
+			console.log(`would retry sending project ${row.projectId} (last error: ${row.lastError ?? "none"})`)
+			continue
+		}
 		const result = await ensureTelescreenSubmission(row.projectId, ACTOR)
 		if (!result.ok) failed++
-		console.log(`project ${row.projectId}: ${result.ok ? `sent (${result.submission.state})` : `FAILED: ${result.message}`}`)
+		console.log(
+			`project ${row.projectId}: ${result.ok ? `sent (${result.submission.state})` : `FAILED: ${result.message}`}`
+		)
 	}
 	// Closed here while Robert still has them open. Paid ones are left alone: approving them in Robert after the
 	// fact would claim a fraud review that never happened (super admin override)
-	const stranded = (await getTelescreenSubmissionsInStates(["awaiting_review", "awaiting_outcome"], false))
-		.filter(row => row.robertProjectId && row.closeReason !== "awarded")
+	const stranded = (await getTelescreenSubmissionsInStates(["awaiting_review", "awaiting_outcome"], false)).filter(
+		row => row.robertProjectId && row.closeReason !== "awarded"
+	)
 	for (const row of stranded) {
-		if (!apply) { console.log(`would close project ${row.projectId} in Telescreen (${row.state}, closed here: ${row.closeReason})`); continue }
+		if (!apply) {
+			console.log(`would close project ${row.projectId} in Telescreen (${row.state}, closed here: ${row.closeReason})`)
+			continue
+		}
 		const error = await retryRobertRelease(row)
 		if (error) failed++
 		console.log(`project ${row.projectId}: ${error ? `FAILED: ${error}` : "closed in Telescreen"}`)
 	}
-	console.log(`\n${unsent.length} unsent, ${stranded.length} to close in Telescreen${apply ? `, ${failed} failed` : " (dry run, pass --apply)"}`)
+	console.log(
+		`\n${unsent.length} unsent, ${stranded.length} to close in Telescreen${apply ? `, ${failed} failed` : " (dry run, pass --apply)"}`
+	)
 	return failed === 0
 }
 
@@ -104,11 +135,12 @@ try {
 	if (unexpected.length > 0) {
 		console.error(`Unexpected argument${unexpected.length > 1 ? "s" : ""}: ${unexpected.join(" ")}\n${USAGE}`)
 		process.exitCode = 1
-	}
-	else if (command === "set-webhook") await setWebhook(rest[0])
-	else if (command === "backfill") { if (!(await backfill())) process.exitCode = 1 }
-	else if (command === "sync") { if (!(await sync())) process.exitCode = 1 }
-	else {
+	} else if (command === "set-webhook") await setWebhook(rest[0])
+	else if (command === "backfill") {
+		if (!(await backfill())) process.exitCode = 1
+	} else if (command === "sync") {
+		if (!(await sync())) process.exitCode = 1
+	} else {
 		console.log(USAGE)
 		process.exitCode = 1
 	}

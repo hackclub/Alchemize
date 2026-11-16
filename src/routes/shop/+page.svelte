@@ -31,62 +31,47 @@
 	<meta property="og:title" content="Shop" />
 </svelte:head>
 
-<main
-	class="h-screen w-full px-10 py-6 tracking-wide relative overflow-hidden flex flex-col font-body"
->
+<main class="relative flex h-screen w-full flex-col overflow-hidden px-10 py-6 font-body tracking-wide">
 	<header
-		class="relative z-10 w-full flex flex-col md:flex-row gap-4 items-center justify-between border-b-2 pb-4 shrink-0"
-	>
+		class="relative z-10 flex w-full shrink-0 flex-col items-center justify-between gap-4 border-b-2 pb-4 md:flex-row">
 		<div class="flex items-center gap-3">
 			<ShoppingBag class="h-5 w-5 animate-pulse text-primary" />
 			<h1
-				class="text-2xl font-alchemize font-black uppercase tracking-wider text-primary [text-shadow:0_2px_10px_rgba(var(--primary),0.2)]"
-			>
-				The Shop <span
-					class="text-[0.6rem] text-zinc-500 tracking-widest block md:inline md:ml-2"
-					>Alchemize</span
-				>
+				class="font-alchemize text-2xl font-black tracking-wider text-primary uppercase [text-shadow:0_2px_10px_rgba(var(--primary),0.2)]">
+				The Shop <span class="block text-[0.6rem] tracking-widest text-zinc-500 md:ml-2 md:inline">Alchemize</span>
 			</h1>
 		</div>
 	</header>
 
 	<div
-		class="relative z-10 flex-1 min-h-0 overflow-y-auto pr-2 pt-4 pb-6 grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 content-start"
-	>
+		class="relative z-10 grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(250px,1fr))] content-start gap-4 overflow-y-auto pt-4 pr-2 pb-6">
 		{#each shopItems as item}
 			<div
 				class={cn(
-					"relative z-10 w-full flex flex-col bg-card border-2 rounded p-3 h-full gap-3 backdrop-blur-sm transition-all",
+					"relative z-10 flex h-full w-full flex-col gap-3 rounded border-2 bg-card p-3 backdrop-blur-sm transition-all",
 					"shadow-md shadow-blue-700"
-				)}
-			>
+				)}>
 				<div
-					class="w-full aspect-square border bg-background rounded overflow-hidden relative shrink-0 flex items-center justify-center p-3"
-				>
+					class="relative flex aspect-square w-full shrink-0 items-center justify-center overflow-hidden rounded border bg-background p-3">
 					<img
 						src={item.image}
 						alt={item.name}
-						class="max-w-full max-h-full object-contain transform scale-100 group-hover:scale-[1.05] transition-transform duration-300 relative z-10"
-					/>
+						class="relative z-10 max-h-full max-w-full scale-100 transform object-contain transition-transform duration-300 group-hover:scale-[1.05]" />
 				</div>
 
-				<div class="flex flex-col flex-1 justify-between gap-2">
+				<div class="flex flex-1 flex-col justify-between gap-2">
 					<div class="flex flex-col gap-1">
-						<h2
-							class="text-sm font-display font-black uppercase text-foreground tracking-tight line-clamp-1"
-						>
+						<h2 class="line-clamp-1 font-display text-sm font-black tracking-tight text-foreground uppercase">
 							{item.name}
 						</h2>
 
-						<p
-							class="text-muted-foreground text-[11px] leading-snug font-body line-clamp-3"
-						>
+						<p class="line-clamp-3 font-body text-[11px] leading-snug text-muted-foreground">
 							{item.description}
 						</p>
 					</div>
 
-					<div class="pt-2 border-t border-border w-full mt-auto space-y-2">
-						<p class="text-xs font-body text-card-foreground text-right">
+					<div class="mt-auto w-full space-y-2 border-t border-border pt-2">
+						<p class="text-right font-body text-xs text-card-foreground">
 							{formatAqua(item.priceHundredths)}
 						</p>
 
