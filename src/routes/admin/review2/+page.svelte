@@ -605,12 +605,16 @@
 		if (loader) return
 		loader = true
 		pendingAction = "return"
-		// The preview dialog lets the reviewer empty the generated text, and the server refuses an empty one
-		if (template.trim() === "") generateFullJustification()
 		const id = currentProject.id
 		const name = currentProject.name
 		const slackId = currentProject.submittedBy
 		try {
+			if (!id) {
+				toast.error("Select a project before returning it")
+				return
+			}
+			// The preview dialog lets the reviewer empty the generated text, and the server refuses an empty one
+			if (template.trim() === "") generateFullJustification()
 			const response = await fetch("/admin/review2/reject", {
 				method: "POST",
 				headers: {
