@@ -321,6 +321,8 @@
 	let template = $state("")
 	let range = $state("")
 	let loader = $state(false)
+	// Which decision holds `loader`, so the spinner shows on the button that was pressed
+	let pendingAction = $state<"push" | "return" | null>(null)
 	const secsToHours = (secs: number): number => Math.round(secs / 360) / 10
 	const hackatimeDays = () => Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
 	const reviewRange = () => {
@@ -519,7 +521,10 @@
 	}
 
 	const sendToDatabase = async () => {
+		// One decision at a time, shared with rejectT2: held across a resubmission and released on every outcome
 		if (loader) return
+		loader = true
+		pendingAction = "push"
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		const id = currentProject.id
 		const name = currentProject.name
@@ -530,33 +535,36 @@
 			override: overrideActive ? overrideReason : undefined,
 		}
 		currentProject = {} as AdminProject
-		let response = await pushToUnified(id, justification, deductedHours, telescreenDecision)
+		try {
+			let response = await pushToUnified(id, justification, deductedHours, telescreenDecision)
 
-		if (response.status === 409) {
-			const body = await response
-				.clone()
-				.json()
-				.catch(() => null)
-			if (body?.code === "SUBMISSION_IN_DOUBT") {
-				const resolution = askHowToResolve(body.message)
-				if (!resolution) {
-					toast.info("Nothing was changed. Resolve it once you've checked Airtable.")
-					loader = false
-					invalidateAll()
-					return
+			if (response.status === 409) {
+				const body = await response
+					.clone()
+					.json()
+					.catch(() => null)
+				if (body?.code === "SUBMISSION_IN_DOUBT") {
+					const resolution = askHowToResolve(body.message)
+					if (!resolution) {
+						toast.info("Nothing was changed. Resolve it once you've checked Airtable.")
+						return
+					}
+					response = await pushToUnified(id, justification, deductedHours, telescreenDecision, resolution)
 				}
-				response = await pushToUnified(id, justification, deductedHours, telescreenDecision, resolution)
 			}
-		}
 
-		if (response.ok) {
-			toast.success("Pushed " + name + " to Airtable successfully!")
+			if (response.ok) {
+				toast.success("Pushed " + name + " to Airtable successfully!")
+			} else {
+				toast.error(await readErrorMessage(response, "Failed to push project to Airtable"))
+			}
+		} catch (error) {
+			// No response at all (network failure): the push may or may not have gone through
+			console.error("Push request failed:", error)
+			toast.error("Couldn't confirm the push of " + name + ". Check Airtable before retrying.")
+		} finally {
 			loader = false
-			invalidateAll()
-			currentProject = {} as AdminProject
-		} else {
-			toast.error(await readErrorMessage(response, "Failed to push project to Airtable"))
-			loader = false
+			pendingAction = null
 			invalidateAll()
 		}
 	}
@@ -596,6 +604,7 @@
 		// One decision at a time: a slow request must not be sent twice, nor race a push
 		if (loader) return
 		loader = true
+		pendingAction = "return"
 		const id = currentProject.id
 		const name = currentProject.name
 		const slackId = currentProject.submittedBy
@@ -633,6 +642,7 @@
 			toast.error("Couldn't confirm the return of " + name + ". Reload to check its status before retrying.")
 		} finally {
 			loader = false
+			pendingAction = null
 		}
 	}
 
@@ -1251,6 +1261,9 @@
 								class="w-full rounded-lg border border-rose-700 bg-rose-600 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-rose-400 sm:w-auto"
 								onclick={() => (confirmRejectOpen = true)}
 								disabled={returnBlocker !== null || loader}>
+								{#if pendingAction === "return"}
+									<div class="h-3 w-3 animate-spin rounded-full border-2 border-rose-200 border-t-white"></div>
+								{/if}
 								Return
 							</Button>
 							<Button
@@ -1258,7 +1271,7 @@
 								onclick={() => (confirmPushOpen = true)}
 								disabled={projectDescriptionLength < 250 || loader || !canPush}
 								title={!canPush ? telescreenGate.message : undefined}>
-								{#if loader}
+								{#if pendingAction === "push"}
 									<div class="h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-white"></div>
 								{/if}
 								Push to Airtable

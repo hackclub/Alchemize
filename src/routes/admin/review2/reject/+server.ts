@@ -69,6 +69,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${BOT_AUTH}`,
 		},
+		// The rejection is already committed, so a bot that never answers must not hold this response open
+		signal: AbortSignal.timeout(10_000),
 		body: JSON.stringify({
 			user_id: slackId,
 			project_name: projectData.fields.Name,
