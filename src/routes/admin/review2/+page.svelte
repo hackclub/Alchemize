@@ -582,12 +582,19 @@
 		).length ?? 0
 	)
 
-	const rejectT2 = async () => {
-		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
+	// Why Return is unavailable, shown next to the button (a disabled button never shows its tooltip)
+	let returnBlocker = $derived(
+		projectDescriptionLength < 20
+			? `Write at least 20 characters of justification to return (${projectDescriptionLength}/20)`
+			: decisionReason.trim() === ""
+				? "Fill in “Decision reason (sent to Telescreen)” above to return this project"
+				: null
+	)
 
+	const rejectT2 = async () => {
 		const id = currentProject.id
+		const name = currentProject.name
 		const slackId = currentProject.submittedBy
-		currentProject = {} as AdminProject
 		const response = await fetch("/admin/review2/reject", {
 			method: "POST",
 			headers: {
@@ -603,8 +610,13 @@
 			}),
 		})
 
+		// Only drop the project from the queue once the server has rejected it, so a failed attempt can be retried
+		if (response.ok) {
+			airtableProjects = airtableProjects.filter(p => p.id !== id)
+			if (currentProject.id === id) currentProject = {} as AdminProject
+		}
 		if (response.ok && response.status !== 207) {
-			toast.success("Rejected " + currentProject.name + " and sent notification to user!")
+			toast.success("Rejected " + name + " and sent notification to user!")
 			loader = false
 		} else if (response.status === 207) {
 			toast.info("Project rejected but notification not sent")
@@ -1215,6 +1227,9 @@
 					<footer
 						class="flex w-full flex-shrink-0 flex-col items-center justify-end gap-2.5 border-t border-zinc-800 bg-zinc-950/40 px-5 py-3.5 sm:flex-row">
 						{#if pending}
+							{#if returnBlocker}
+								<p class="text-xs text-amber-400 sm:mr-auto">{returnBlocker}</p>
+							{/if}
 							<Button
 								class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 sm:w-auto"
 								onclick={() => {
@@ -1226,8 +1241,7 @@
 							<Button
 								class="w-full rounded-lg border border-rose-700 bg-rose-600 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-rose-400 sm:w-auto"
 								onclick={() => (confirmRejectOpen = true)}
-								disabled={projectDescriptionLength < 20 || loader || decisionReason.trim() === ""}
-								title={decisionReason.trim() === "" ? "Write a decision reason for Telescreen first" : undefined}>
+								disabled={returnBlocker !== null || loader}>
 								Return
 							</Button>
 							<Button
