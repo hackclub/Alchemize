@@ -605,6 +605,8 @@
 		if (loader) return
 		loader = true
 		pendingAction = "return"
+		// The preview dialog lets the reviewer empty the generated text, and the server refuses an empty one
+		if (template.trim() === "") generateFullJustification()
 		const id = currentProject.id
 		const name = currentProject.name
 		const slackId = currentProject.submittedBy
