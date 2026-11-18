@@ -76,6 +76,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			reviewer_id: decoded.slackId,
 			feedback: userExternal,
 		}),
+	}).catch(error => {
+		// The rejection is already committed; an unreachable bot is reported like any other failed notification
+		console.warn(`Notification request for record ${recordId} failed:`, error)
+		return new Response(null, { status: 502, statusText: "Notification request failed" })
 	})
 
 	if (!botResponse.ok) {

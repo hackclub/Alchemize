@@ -519,6 +519,7 @@
 	}
 
 	const sendToDatabase = async () => {
+		if (loader) return
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		const id = currentProject.id
 		const name = currentProject.name
@@ -592,37 +593,45 @@
 	)
 
 	const rejectT2 = async () => {
+		// One decision at a time: a slow request must not be sent twice, nor race a push
+		if (loader) return
+		loader = true
 		const id = currentProject.id
 		const name = currentProject.name
 		const slackId = currentProject.submittedBy
-		const response = await fetch("/admin/review2/reject", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-			body: JSON.stringify({
-				recordId: id,
-				userExternal: projectDescription,
-				justification: template,
-				slackId,
-				decisionReason,
-			}),
-		})
+		try {
+			const response = await fetch("/admin/review2/reject", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					recordId: id,
+					userExternal: projectDescription,
+					justification: template,
+					slackId,
+					decisionReason,
+				}),
+			})
 
-		// Only drop the project from the queue once the server has rejected it, so a failed attempt can be retried
-		if (response.ok) {
-			airtableProjects = airtableProjects.filter(p => p.id !== id)
-			if (currentProject.id === id) currentProject = {} as AdminProject
-		}
-		if (response.ok && response.status !== 207) {
-			toast.success("Rejected " + name + " and sent notification to user!")
-			loader = false
-		} else if (response.status === 207) {
-			toast.info("Project rejected but notification not sent")
-			loader = false
-		} else {
-			toast.error(await readErrorMessage(response, "Failed to reject project"))
+			// Only drop the project from the queue once the server has rejected it, so a failed attempt can be retried
+			if (response.ok) {
+				airtableProjects = airtableProjects.filter(p => p.id !== id)
+				if (currentProject.id === id) currentProject = {} as AdminProject
+			}
+			if (response.ok && response.status !== 207) {
+				toast.success("Rejected " + name + " and sent notification to user!")
+			} else if (response.status === 207) {
+				toast.info("Project rejected but notification not sent")
+			} else {
+				toast.error(await readErrorMessage(response, "Failed to reject project"))
+			}
+		} catch (error) {
+			// No response at all (network failure): the server may or may not have rejected it
+			console.error("Return request failed:", error)
+			toast.error("Couldn't confirm the return of " + name + ". Reload to check its status before retrying.")
+		} finally {
 			loader = false
 		}
 	}
