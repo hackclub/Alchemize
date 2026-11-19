@@ -321,6 +321,8 @@
 	let template = $state("")
 	let range = $state("")
 	let loader = $state(false)
+	// Which decision holds `loader`, so the spinner shows on the button that was pressed
+	let pendingAction = $state<"push" | "return" | null>(null)
 	const secsToHours = (secs: number): number => Math.round(secs / 360) / 10
 	const hackatimeDays = () => Object.keys(currentHackatimeAnalysis?.dayMap ?? {})
 	const reviewRange = () => {
@@ -519,6 +521,10 @@
 	}
 
 	const sendToDatabase = async () => {
+		// One decision at a time, shared with rejectT2: held across a resubmission and released on every outcome
+		if (loader) return
+		loader = true
+		pendingAction = "push"
 		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
 		const id = currentProject.id
 		const name = currentProject.name
@@ -529,33 +535,36 @@
 			override: overrideActive ? overrideReason : undefined,
 		}
 		currentProject = {} as AdminProject
-		let response = await pushToUnified(id, justification, deductedHours, telescreenDecision)
+		try {
+			let response = await pushToUnified(id, justification, deductedHours, telescreenDecision)
 
-		if (response.status === 409) {
-			const body = await response
-				.clone()
-				.json()
-				.catch(() => null)
-			if (body?.code === "SUBMISSION_IN_DOUBT") {
-				const resolution = askHowToResolve(body.message)
-				if (!resolution) {
-					toast.info("Nothing was changed. Resolve it once you've checked Airtable.")
-					loader = false
-					invalidateAll()
-					return
+			if (response.status === 409) {
+				const body = await response
+					.clone()
+					.json()
+					.catch(() => null)
+				if (body?.code === "SUBMISSION_IN_DOUBT") {
+					const resolution = askHowToResolve(body.message)
+					if (!resolution) {
+						toast.info("Nothing was changed. Resolve it once you've checked Airtable.")
+						return
+					}
+					response = await pushToUnified(id, justification, deductedHours, telescreenDecision, resolution)
 				}
-				response = await pushToUnified(id, justification, deductedHours, telescreenDecision, resolution)
 			}
-		}
 
-		if (response.ok) {
-			toast.success("Pushed " + name + " to Airtable successfully!")
+			if (response.ok) {
+				toast.success("Pushed " + name + " to Airtable successfully!")
+			} else {
+				toast.error(await readErrorMessage(response, "Failed to push project to Airtable"))
+			}
+		} catch (error) {
+			// No response at all (network failure): the push may or may not have gone through
+			console.error("Push request failed:", error)
+			toast.error("Couldn't confirm the push of " + name + ". Check Airtable before retrying.")
+		} finally {
 			loader = false
-			invalidateAll()
-			currentProject = {} as AdminProject
-		} else {
-			toast.error(await readErrorMessage(response, "Failed to push project to Airtable"))
-			loader = false
+			pendingAction = null
 			invalidateAll()
 		}
 	}
@@ -582,36 +591,64 @@
 		).length ?? 0
 	)
 
+	// Why Return is unavailable, shown next to the button (a disabled button never shows its tooltip)
+	let returnBlocker = $derived(
+		projectDescriptionLength < 20
+			? `Write at least 20 characters of justification to return (${projectDescriptionLength}/20)`
+			: decisionReason.trim() === ""
+				? "Fill in “Decision reason (sent to Telescreen)” above to return this project"
+				: null
+	)
+
 	const rejectT2 = async () => {
-		airtableProjects = airtableProjects.filter(p => p.id !== currentProject.id)
-
+		// One decision at a time: a slow request must not be sent twice, nor race a push
+		if (loader) return
+		loader = true
+		pendingAction = "return"
 		const id = currentProject.id
+		const name = currentProject.name
 		const slackId = currentProject.submittedBy
-		currentProject = {} as AdminProject
-		const response = await fetch("/admin/review2/reject", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-			body: JSON.stringify({
-				recordId: id,
-				userExternal: projectDescription,
-				justification: template,
-				slackId,
-				decisionReason,
-			}),
-		})
+		try {
+			if (!id) {
+				toast.error("Select a project before returning it")
+				return
+			}
+			// The preview dialog lets the reviewer empty the generated text, and the server refuses an empty one
+			if (template.trim() === "") generateFullJustification()
+			const response = await fetch("/admin/review2/reject", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					recordId: id,
+					userExternal: projectDescription,
+					justification: template,
+					slackId,
+					decisionReason,
+				}),
+			})
 
-		if (response.ok && response.status !== 207) {
-			toast.success("Rejected " + currentProject.name + " and sent notification to user!")
+			// Only drop the project from the queue once the server has rejected it, so a failed attempt can be retried
+			if (response.ok) {
+				airtableProjects = airtableProjects.filter(p => p.id !== id)
+				if (currentProject.id === id) currentProject = {} as AdminProject
+			}
+			if (response.ok && response.status !== 207) {
+				toast.success("Rejected " + name + " and sent notification to user!")
+			} else if (response.status === 207) {
+				toast.info("Project rejected but notification not sent")
+			} else {
+				toast.error(await readErrorMessage(response, "Failed to reject project"))
+			}
+		} catch (error) {
+			// No response at all (network failure): the server may or may not have rejected it
+			console.error("Return request failed:", error)
+			toast.error("Couldn't confirm the return of " + name + ". Reload to check its status before retrying.")
+		} finally {
 			loader = false
-		} else if (response.status === 207) {
-			toast.info("Project rejected but notification not sent")
-			loader = false
-		} else {
-			toast.error(await readErrorMessage(response, "Failed to reject project"))
-			loader = false
+			pendingAction = null
 		}
 	}
 
@@ -1215,6 +1252,9 @@
 					<footer
 						class="flex w-full flex-shrink-0 flex-col items-center justify-end gap-2.5 border-t border-zinc-800 bg-zinc-950/40 px-5 py-3.5 sm:flex-row">
 						{#if pending}
+							{#if returnBlocker}
+								<p class="text-xs text-amber-400 sm:mr-auto">{returnBlocker}</p>
+							{/if}
 							<Button
 								class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-zinc-700 sm:w-auto"
 								onclick={() => {
@@ -1226,8 +1266,10 @@
 							<Button
 								class="w-full rounded-lg border border-rose-700 bg-rose-600 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:bg-rose-400 sm:w-auto"
 								onclick={() => (confirmRejectOpen = true)}
-								disabled={projectDescriptionLength < 20 || loader || decisionReason.trim() === ""}
-								title={decisionReason.trim() === "" ? "Write a decision reason for Telescreen first" : undefined}>
+								disabled={returnBlocker !== null || loader}>
+								{#if pendingAction === "return"}
+									<div class="h-3 w-3 animate-spin rounded-full border-2 border-rose-200 border-t-white"></div>
+								{/if}
 								Return
 							</Button>
 							<Button
@@ -1235,7 +1277,7 @@
 								onclick={() => (confirmPushOpen = true)}
 								disabled={projectDescriptionLength < 250 || loader || !canPush}
 								title={!canPush ? telescreenGate.message : undefined}>
-								{#if loader}
+								{#if pendingAction === "push"}
 									<div class="h-3 w-3 animate-spin rounded-full border-2 border-emerald-200 border-t-white"></div>
 								{/if}
 								Push to Airtable

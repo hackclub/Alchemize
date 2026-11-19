@@ -69,6 +69,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${BOT_AUTH}`,
 		},
+		// The rejection is already committed, so a bot that never answers must not hold this response open
+		signal: AbortSignal.timeout(10_000),
 		body: JSON.stringify({
 			user_id: slackId,
 			project_name: projectData.fields.Name,
@@ -76,6 +78,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			reviewer_id: decoded.slackId,
 			feedback: userExternal,
 		}),
+	}).catch(error => {
+		// The rejection is already committed; an unreachable bot is reported like any other failed notification
+		console.warn(`Notification request for record ${recordId} failed:`, error)
+		return new Response(null, { status: 502, statusText: "Notification request failed" })
 	})
 
 	if (!botResponse.ok) {
